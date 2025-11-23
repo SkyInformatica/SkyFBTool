@@ -1,0 +1,40 @@
+﻿# Build
+bin/
+obj/
+
+# Pacotes NuGet
+packages/
+*.nupkg
+*.snupkg
+
+# Logs
+*.log
+
+# Configurações do Rider
+.idea/
+*.sln.iml
+
+# Arquivos temporários
+*.tmp
+*.temp
+*.bak
+*.old
+*~
+
+# Resultados de testes
+TestResults/
+*.coverage
+*.coveragexml
+*.VisualState.xml
+
+# Publish local
+publish/
+
+# Arquivos de ambiente
+.env
+
+# Cache e metadados
+_ReSharper*/           # ReSharper para Rider, se estiver habilitado
+.vscode/               # Se estiver alternando com VS Code
+.DS_Store              # macOS
+Thumbs.db              # Windows
