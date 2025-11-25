@@ -70,8 +70,27 @@ public static class ConstrutorInsert
                     break;
 
                 case "BLOB":
-                    sb.Append(FormatarBlob(leitor, i, formatoBlob));
+
+                    // Detectar se este BLOB é texto ou binário
+                    var valor = leitor.GetValue(i);
+
+                    if (valor is byte[] bytesBlob)
+                    {
+                        // BLOB binário
+                        sb.Append(FormatarBlobBinario(bytesBlob, formatoBlob));
+                    }
+                    else if (valor is string textoBlob)
+                    {
+                        // BLOB texto (SUB_TYPE 1)
+                        textoBlob = textoBlob.Replace("'", "''");
+                        sb.Append('\'').Append(textoBlob).Append('\'');
+                    }
+                    else
+                    {
+                        sb.Append("NULL");
+                    }
                     break;
+
 
                 case "CHAR":
                 case "VARCHAR":
@@ -116,4 +135,15 @@ public static class ConstrutorInsert
             _ => "NULL"
         };
     }
+    
+    private static string FormatarBlobBinario(byte[] dados, FormatoBlob formatoBlob)
+    {
+        return formatoBlob switch
+        {
+            FormatoBlob.Hex => "x'" + BitConverter.ToString(dados).Replace("-", "") + "'",
+            FormatoBlob.Base64 => "'" + Convert.ToBase64String(dados) + "'",
+            _ => "NULL"
+        };
+    }
+
 }

@@ -12,7 +12,7 @@ public class OpcoesExportacao
     public string? AliasTabela { get; set; }       // --alias
     public string ArquivoSaida { get; set; } = string.Empty;
 
-    public string Charset { get; set; }  // usado no SET NAMES do arquivo
+    public string? Charset { get; set; }  // usado no SET NAMES do arquivo
     public string? CondicaoWhere { get; set; }     // --where
 
     public FormatoBlob FormatoBlob { get; set; } = FormatoBlob.Hex;

@@ -18,8 +18,21 @@ public static class LeitorRawWin1252
         if (leitor.IsDBNull(indice))
             return string.Empty;
 
-        // Lê como bytes "raw"
-        var bytes = leitor.GetFieldValue<byte[]>(indice);
-        return EncodingWin1252.GetString(bytes);
+        object valor = leitor.GetValue(indice);
+
+        switch (valor)
+        {
+            case byte[] raw:
+                // Campo realmente binário → decodificar como Win1252
+                return EncodingWin1252.GetString(raw);
+
+            case string s:
+                // Campo textual → retornar como está
+                return s;
+
+            default:
+                // fallback seguro
+                return valor.ToString() ?? string.Empty;
+        }
     }
 }
