@@ -97,6 +97,7 @@ static async Task ExecutarExportacao(string[] args)
     }
 
     Console.WriteLine("Iniciando exportação...");
+    
     await using var destino = new DestinoArquivo(op.ArquivoSaida);
     await ExportadorTabelaFirebird.ExportarAsync(op, destino);
 

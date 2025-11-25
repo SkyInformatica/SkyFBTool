@@ -1,4 +1,6 @@
-﻿using System.Globalization;
+﻿using System.Data;
+using System.Globalization;
+using System.Text;
 using FirebirdSql.Data.FirebirdClient;
 using SkyFBTool.Core;
 using SkyFBTool.Infra;
@@ -7,142 +9,111 @@ namespace SkyFBTool.Services.Export;
 
 public static class ConstrutorInsert
 {
+    private static readonly CultureInfo CulturaInvariante = CultureInfo.InvariantCulture;
+
     public static string MontarInsert(
         FbDataReader leitor,
-        string tabela,
+        string tabelaDestino,
         string[] colunas,
         FormatoBlob formatoBlob,
-        bool forcarWin1252 = false,
-        bool sanitizeTexto = false,
-        bool escaparQuebras = false)
+        bool forcarWin1252,
+        bool sanitizarTexto,
+        bool escaparQuebrasDeLinha)
     {
-        int quantidade = colunas.Length;
-        string[] valores = new string[quantidade];
+        var sb = new StringBuilder();
 
-        for (int i = 0; i < quantidade; i++)
+        sb.Append("INSERT INTO ")
+          .Append(tabelaDestino)
+          .Append(" (")
+          .Append(string.Join(", ", colunas))
+          .Append(") VALUES (");
+
+        for (int i = 0; i < colunas.Length; i++)
         {
-            // Valor nulo
+            if (i > 0)
+                sb.Append(", ");
+
             if (leitor.IsDBNull(i))
             {
-                valores[i] = "NULL";
+                sb.Append("NULL");
                 continue;
             }
 
-            // Nome do tipo no Firebird
-            string tipoNome = leitor.GetDataTypeName(i).ToUpperInvariant();
+            var tipo = leitor.GetDataTypeName(i).ToUpperInvariant();
 
-            // Tipo .NET
-            Type tipo = leitor.GetFieldType(i);
-
-            //
-            // Determinar se é texto
-            //
-            bool ehTexto =
-                   tipoNome.Contains("CHAR")
-                || tipoNome.Contains("VARCHAR")
-                || tipoNome.Contains("VARYING")
-                || tipoNome.Contains("CSTRING")
-                || tipoNome == "TEXT"
-                || (tipoNome == "BLOB" && EhBlobTexto(leitor, i));
-
-            //
-            // Determinar se é binário real
-            //
-            bool ehBinario =
-                tipo == typeof(byte[]) && !ehTexto;
-
-            //
-            // 1️⃣ RAW_WIN1252 PARA TEXTO
-            //
-            if (forcarWin1252 && ehTexto)
+            switch (tipo)
             {
-                string texto = LeitorRawWin1252.LerCampoTextoComoWin1252(leitor, i);
+                case "SMALLINT":
+                case "INTEGER":
+                case "BIGINT":
+                    sb.Append(leitor.GetValue(i).ToString());
+                    break;
 
-                if (sanitizeTexto || escaparQuebras)
-                    texto = SanitizadorTexto.Sanitizar(texto, escaparQuebras);
+                case "NUMERIC":
+                case "DECIMAL":
+                    var valorDecimal = Convert.ToDecimal(leitor.GetValue(i), CulturaInvariante);
+                    sb.Append(valorDecimal.ToString(CulturaInvariante));
+                    break;
 
-                texto = texto.Replace("'", "''");
+                case "DATE":
+                    var data = leitor.GetDateTime(i);
+                    sb.Append('\'')
+                      .Append(data.ToString("yyyy-MM-dd", CulturaInvariante))
+                      .Append('\'');
+                    break;
 
-                valores[i] = $"'{texto}'";
-                continue;
+                case "TIMESTAMP":
+                    var dataHora = leitor.GetDateTime(i);
+                    sb.Append('\'')
+                      .Append(dataHora.ToString("yyyy-MM-dd HH:mm:ss", CulturaInvariante))
+                      .Append('\'');
+                    break;
+
+                case "BLOB":
+                    sb.Append(FormatarBlob(leitor, i, formatoBlob));
+                    break;
+
+                case "CHAR":
+                case "VARCHAR":
+                default:
+                    string texto;
+
+                    if (forcarWin1252)
+                        texto = LeitorRawWin1252.LerCampoTextoComoWin1252(leitor, i);
+                    else
+                        texto = leitor.GetString(i);
+
+                    if (sanitizarTexto)
+                        texto = SanitizadorTexto.Sanitizar(texto);
+
+                    if (escaparQuebrasDeLinha)
+                    {
+                        texto = texto.Replace("\r", "\\r")
+                                     .Replace("\n", "\\n");
+                    }
+
+                    texto = texto.Replace("'", "''");
+
+                    sb.Append('\'')
+                      .Append(texto)
+                      .Append('\'');
+                    break;
             }
-
-            //
-            // 2️⃣ TEXTO NORMAL
-            //
-            if (ehTexto)
-            {
-                string texto = leitor.GetValue(i).ToString()!;
-
-                if (sanitizeTexto || escaparQuebras)
-                    texto = SanitizadorTexto.Sanitizar(texto, escaparQuebras);
-
-                texto = texto.Replace("'", "''");
-
-                valores[i] = $"'{texto}'";
-                continue;
-            }
-
-            //
-            // 3️⃣ BINÁRIO (BLOB OCTETS, BLOB SUBTYPE 0)
-            //
-            if (ehBinario)
-            {
-                byte[] dados = (byte[])leitor.GetValue(i);
-
-                if (formatoBlob == FormatoBlob.Hex)
-                    valores[i] = $"x'{ConversorHex.ParaHex(dados)}'";
-                else
-                    valores[i] = $"'{Convert.ToBase64String(dados)}'";
-
-                continue;
-            }
-
-            //
-            // 4️⃣ TIPOS ESPECIAIS
-            //
-            object valor = leitor.GetValue(i);
-
-            // Date/DateTime → formato ISO
-            if (valor is DateTime dt)
-            {
-                valores[i] = $"'{dt:yyyy-MM-dd HH:mm:ss}'";
-                continue;
-            }
-
-            // NUMERIC / DECIMAL / FLOAT / DOUBLE → SEM NOTAÇÃO CIENTÍFICA
-            if (valor is decimal dec)
-            {
-                valores[i] = dec.ToString("0.#########################", CultureInfo.InvariantCulture);
-                continue;
-            }
-
-            if (valor is double d)
-            {
-                valores[i] = d.ToString("0.#########################", CultureInfo.InvariantCulture);
-                continue;
-            }
-
-            if (valor is float f)
-            {
-                valores[i] = f.ToString("0.#########################", CultureInfo.InvariantCulture);
-                continue;
-            }
-
-            // Demais: inteiro, booleano, etc
-            valores[i] = valor.ToString() ?? "NULL";
         }
 
-        return
-            $"INSERT INTO {tabela} ({string.Join(", ", colunas)}) VALUES ({string.Join(", ", valores)});";
+        sb.Append(");");
+        return sb.ToString();
     }
 
-    /// <summary>
-    /// Detecta se um BLOB é TEXT baseado no comportamento do FirebirdClient.
-    /// FirebirdClient retorna string quando sub_type = 1.
-    /// </summary>
-    private static bool EhBlobTexto(FbDataReader leitor, int index)
+    private static string FormatarBlob(FbDataReader leitor, int indice, FormatoBlob formatoBlob)
     {
-        return leitor.GetFieldType(index) == typeof(string);
+        var dados = leitor.GetFieldValue<byte[]>(indice);
+
+        return formatoBlob switch
+        {
+            FormatoBlob.Hex => "x'" + BitConverter.ToString(dados).Replace("-", "") + "'",
+            FormatoBlob.Base64 => "'" + Convert.ToBase64String(dados) + "'",
+            _ => "NULL"
+        };
     }
 }

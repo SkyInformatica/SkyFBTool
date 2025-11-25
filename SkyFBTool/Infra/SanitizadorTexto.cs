@@ -1,50 +1,25 @@
-﻿using System.Text;
-
-namespace SkyFBTool.Infra;
+﻿namespace SkyFBTool.Infra;
 
 public static class SanitizadorTexto
 {
-    public static string Sanitizar(string texto, bool escaparNewLines)
+    public static string Sanitizar(string texto)
     {
         if (string.IsNullOrEmpty(texto))
             return texto;
 
-        var sb = new StringBuilder(texto.Length);
+        Span<char> buffer = stackalloc char[texto.Length];
+        int pos = 0;
 
-        foreach (char c in texto)
+        foreach (var c in texto)
         {
-            // manter caracteres válidos
-            if (c == '\t' || c == '\n' || c == '\r')
+            // Mantém basicamente ASCII + acentuação latina
+            if (c == '\r' || c == '\n' || c == '\t' ||
+                (c >= ' ' && c <= '\u00FF'))
             {
-                // opcionalmente transformar CRLF → \n
-                if (escaparNewLines)
-                {
-                    if (c == '\n') sb.Append("\\n");
-                    else if (c == '\r') sb.Append("\\r");
-                    else sb.Append(c);
-                }
-                else
-                {
-                    sb.Append(c);
-                }
-
-                continue;
+                buffer[pos++] = c;
             }
-
-            // remover control chars 0x00–0x1F, exceto CR/LF/TAB
-            if (char.IsControl(c))
-                continue;
-
-            // NBSP → espaço
-            if (c == '\u00A0')
-            {
-                sb.Append(' ');
-                continue;
-            }
-
-            sb.Append(c);
         }
 
-        return sb.ToString();
+        return new string(buffer[..pos]);
     }
 }

@@ -1,6 +1,4 @@
-﻿using System.Data;
-using System.Diagnostics;
-using FirebirdSql.Data.FirebirdClient;
+﻿using FirebirdSql.Data.FirebirdClient;
 using SkyFBTool.Core;
 using SkyFBTool.Infra;
 
@@ -10,99 +8,80 @@ public static class ExportadorTabelaFirebird
 {
     public static async Task ExportarAsync(OpcoesExportacao opcoes, IDestinoArquivo destino)
     {
-        if (string.IsNullOrWhiteSpace(opcoes.Tabela))
-            throw new ArgumentException("Nome da tabela não informado (--table).");
-
         if (string.IsNullOrWhiteSpace(opcoes.Database))
-            throw new ArgumentException("Caminho do banco não informado (--database).");
+            throw new ArgumentException("Banco de dados não informado (--database).");
 
-        string consultaSql = ConstrutorConsultaFirebird.MontarSelect(
-            opcoes.Tabela,
-            opcoes.CondicaoWhere
-        );
+        if (string.IsNullOrWhiteSpace(opcoes.Tabela))
+            throw new ArgumentException("Tabela não informada (--table).");
 
-        // Abrir conexão
-        await using var conexao = FabricaConexaoFirebird.CriarConexao(opcoes);
+        var tabelaOrigem = opcoes.Tabela;
+        var tabelaDestino = string.IsNullOrWhiteSpace(opcoes.AliasTabela)
+            ? tabelaOrigem
+            : opcoes.AliasTabela;
+
+        Console.WriteLine($"Iniciando exportação da tabela '{tabelaOrigem}' para '{tabelaDestino}'...");
+
+        // Cabeçalho do arquivo (não vamos tentar executar isso como SQL no importador;
+        // o importador vai tratar SET NAMES / SET DIALECT de forma especial depois).
+        await destino.EscreverLinhaAsync($"SET SQL DIALECT 3;");
+        await destino.EscreverLinhaAsync($"SET NAMES {opcoes.Charset};");
+        await destino.EscreverLinhaAsync(string.Empty);
+
+        using var conexao = FabricaConexaoFirebird.CriarConexao(opcoes);
         await conexao.OpenAsync();
 
-        await using var comando = new FbCommand
+        var sqlSelect = ConstrutorConsultaFirebird.MontarSelect(opcoes);
+
+        await using var cmd = new FbCommand(sqlSelect, conexao)
         {
-            Connection = conexao,
-            CommandText = consultaSql,
             CommandTimeout = 0
         };
 
-        await using var leitor = await comando.ExecuteReaderAsync(CommandBehavior.SequentialAccess);
+        await using var leitor = await cmd.ExecuteReaderAsync();
 
-        int quantidadeColunas = leitor.FieldCount;
-        var nomesColunas = new string[quantidadeColunas];
+        var schema = leitor.GetSchemaTable()
+                     ?? throw new InvalidOperationException("Não foi possível obter o schema da tabela.");
 
-        for (int i = 0; i < quantidadeColunas; i++)
-            nomesColunas[i] = leitor.GetName(i);
+        var colunas = schema.Rows
+            .Cast<System.Data.DataRow>()
+            .Select(r => (string)r["ColumnName"])
+            .ToArray();
 
         long totalLinhas = 0;
-        var cronometro = Stopwatch.StartNew();
-
-        string arquivoLog = "erros_exportacao.log";
-        if (File.Exists(arquivoLog))
-            File.Delete(arquivoLog);
-
-        Console.WriteLine($"Iniciando exportação da tabela '{opcoes.Tabela}'...");
-
-        //
-        // 🔥 Cabeçalho SQL do arquivo exportado
-        //
-        await destino.EscreverLinhaAsync("SET SQL DIALECT 3;");
-
-        if (!string.IsNullOrWhiteSpace(opcoes.Charset))
-        {
-            await destino.EscreverLinhaAsync($"SET NAMES {opcoes.Charset.ToUpperInvariant()};");
-        }
-        await destino.EscreverLinhaAsync("");
-
-        string nomeParaInsert = 
-            !string.IsNullOrWhiteSpace(opcoes.AliasTabela)
-                ? opcoes.AliasTabela
-                : opcoes.Tabela;
 
         while (await leitor.ReadAsync())
         {
             totalLinhas++;
 
+            string insert = ConstrutorInsert.MontarInsert(
+                leitor,
+                tabelaDestino,
+                colunas,
+                opcoes.FormatoBlob,
+                opcoes.ForcarWin1252,
+                opcoes.SanitizarTexto,
+                opcoes.EscaparQuebrasDeLinha
+            );
+
             try
             {
-                string linhaInsert = ConstrutorInsert.MontarInsert(
-                    leitor,
-                    nomeParaInsert,
-                    nomesColunas,
-                    opcoes.FormatoBlob,
-                    opcoes.ForcarWin1252,
-                    opcoes.SanitizarTexto,
-                    opcoes.EscaparQuebrasDeLinha
-                );
-
-                await destino.EscreverLinhaAsync(linhaInsert);
-                
-                // COMMIT periódico no arquivo SQL
-                if (opcoes.CommitACada > 0 && totalLinhas % opcoes.CommitACada == 0)
-                {
-                    await destino.EscreverLinhaAsync("COMMIT;");
-                }
+                await destino.EscreverLinhaAsync(insert);
             }
             catch (Exception ex)
             {
                 if (!opcoes.ContinuarEmCasoDeErro)
                     throw;
 
-                File.AppendAllText(arquivoLog,
-                    $"[Linha {totalLinhas}] Erro: {ex.Message}{Environment.NewLine}");
-
-                continue;
+                File.AppendAllText("erros_exportacao.log",
+                    $"Erro ao escrever linha {totalLinhas}: {ex.Message}{Environment.NewLine}");
             }
 
-            //
-            // 📊 Progresso no console
-            //
+            if (opcoes.CommitACada > 0 &&
+                totalLinhas % opcoes.CommitACada == 0)
+            {
+                await destino.EscreverLinhaAsync("COMMIT;");
+            }
+
             if (opcoes.ProgressoACada > 0 &&
                 totalLinhas % opcoes.ProgressoACada == 0)
             {
@@ -110,30 +89,14 @@ public static class ExportadorTabelaFirebird
             }
         }
 
-        //
-        // COMMIT final para fechar última transação lógica
-        //
-        await destino.EscreverLinhaAsync("COMMIT;");
-
-        cronometro.Stop();
-
-        Console.WriteLine();
-        Console.ForegroundColor = ConsoleColor.Green;
-        Console.WriteLine("Exportação concluída com sucesso.");
-        Console.ResetColor();
-
-        Console.WriteLine($"Tabela:           {opcoes.Tabela}");
-        Console.WriteLine($"Total de linhas:  {totalLinhas:N0}");
-        Console.WriteLine($"Tempo total:      {cronometro.Elapsed:hh\\:mm\\:ss\\.fff}");
-        Console.WriteLine($"Arquivo de saída: {opcoes.ArquivoSaida}");
-
-        if (opcoes.ContinuarEmCasoDeErro && File.Exists(arquivoLog))
+        // Commit final — se o importador não tiver COMMIT próprio no fim, este garante.
+        if (totalLinhas > 0 && opcoes.CommitACada > 0)
         {
-            Console.WriteLine();
-            Console.ForegroundColor = ConsoleColor.Yellow;
-            Console.WriteLine("Atenção: Ocorreram erros em algumas linhas.");
-            Console.WriteLine($"Consulte o arquivo: {arquivoLog}");
-            Console.ResetColor();
+            await destino.EscreverLinhaAsync("COMMIT;");
         }
+
+        Console.ForegroundColor = ConsoleColor.Green;
+        Console.WriteLine($"Exportação concluída. Linhas exportadas: {totalLinhas:N0}");
+        Console.ResetColor();
     }
 }

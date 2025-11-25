@@ -2,6 +2,6 @@
 
 public enum FormatoBlob
 {
-    Hex,
-    Base64
+    Hex = 0,
+    Base64 = 1
 }

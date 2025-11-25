@@ -7,17 +7,19 @@ public static class FabricaConexaoFirebird
 {
     public static FbConnection CriarConexao(OpcoesExportacao opcoes)
     {
-        var builder = new FbConnectionStringBuilder
+        var csb = new FbConnectionStringBuilder
         {
             DataSource = opcoes.Host,
             Port = opcoes.Porta,
             Database = opcoes.Database,
             UserID = opcoes.Usuario,
             Password = opcoes.Senha,
-            Charset = opcoes.Charset,
-            Dialect = 3
+            Dialect = 3,
+            Charset = string.IsNullOrWhiteSpace(opcoes.Charset)
+                ? "NONE"
+                : opcoes.Charset
         };
 
-        return new FbConnection(builder.ToString());
+        return new FbConnection(csb.ConnectionString);
     }
 }

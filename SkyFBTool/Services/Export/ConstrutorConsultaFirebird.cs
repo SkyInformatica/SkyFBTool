@@ -1,12 +1,22 @@
-﻿namespace SkyFBTool.Services.Export;
+﻿using System.Text;
+using SkyFBTool.Core;
+
+namespace SkyFBTool.Services.Export;
 
 public static class ConstrutorConsultaFirebird
 {
-    public static string MontarSelect(string nomeTabela, string? condicaoWhere)
+    public static string MontarSelect(OpcoesExportacao opcoes)
     {
-        if (string.IsNullOrWhiteSpace(condicaoWhere))
-            return $"SELECT * FROM {nomeTabela}";
+        var nomeTabela = opcoes.Tabela;
 
-        return $"SELECT * FROM {nomeTabela} WHERE {condicaoWhere}";
+        var sb = new StringBuilder();
+        sb.Append("SELECT * FROM ").Append(nomeTabela);
+
+        if (!string.IsNullOrWhiteSpace(opcoes.CondicaoWhere))
+        {
+            sb.Append(" WHERE ").Append(opcoes.CondicaoWhere);
+        }
+
+        return sb.ToString();
     }
 }
