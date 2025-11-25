@@ -8,6 +8,8 @@ public static class ExportadorTabelaFirebird
 {
     public static async Task ExportarAsync(OpcoesExportacao opcoes, IDestinoArquivo destino)
     {
+        var cronometro = System.Diagnostics.Stopwatch.StartNew();
+
         if (string.IsNullOrWhiteSpace(opcoes.Database))
             throw new ArgumentException("Banco de dados não informado (--database).");
 
@@ -89,14 +91,21 @@ public static class ExportadorTabelaFirebird
             }
         }
 
-        // Commit final — se o importador não tiver COMMIT próprio no fim, este garante.
+// Commit final — se o importador não tiver COMMIT próprio no fim, este garante.
         if (totalLinhas > 0 && opcoes.CommitACada > 0)
         {
             await destino.EscreverLinhaAsync("COMMIT;");
         }
 
+        cronometro.Stop();
+
+        Console.WriteLine();
         Console.ForegroundColor = ConsoleColor.Green;
-        Console.WriteLine($"Exportação concluída. Linhas exportadas: {totalLinhas:N0}");
+        Console.WriteLine("Exportação concluída com sucesso.");
         Console.ResetColor();
+
+        Console.WriteLine($"Linhas exportadas: {totalLinhas:N0}");
+        Console.WriteLine($"Tempo total:       {cronometro.Elapsed:hh\\:mm\\:ss\\.fff}");
+
     }
 }
