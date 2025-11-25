@@ -34,7 +34,6 @@ Ideal para:
   SET SQL DIALECT 3;
   SET NAMES <CHARSET>;
   ```
-*(Sem COMMIT inicial — evita erro de “no transaction exists”)*
 
 - Permite renomear a tabela destino:
   ```
