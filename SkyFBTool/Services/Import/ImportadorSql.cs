@@ -14,15 +14,54 @@ public static class ImportadorSql
         if (!File.Exists(opcoes.ArquivoEntrada))
             throw new FileNotFoundException($"Arquivo SQL não encontrado: {opcoes.ArquivoEntrada}");
 
-        Console.WriteLine($"Iniciando importação do arquivo '{opcoes.ArquivoEntrada}'...");
+        Console.WriteLine($"Iniciando importação do arquivo '{opcoes.ArquivoEntrada}'...\n");
 
         string caminhoLogErros = "erros_importacao.log";
         if (File.Exists(caminhoLogErros))
             File.Delete(caminhoLogErros);
 
-        //
-        // 🔵 ABRIR CONEXÃO COM O FIREBIRD
-        //
+        // --------------------------------------------------------------------
+        // 🔵 PRIMEIRO PASSO: LER APENAS AS LINHAS SET NAMES / SET SQL DIALECT
+        // --------------------------------------------------------------------
+
+        string? charsetArquivo = null;
+
+        using (var leitorCabecalho = new StreamReader(
+            opcoes.ArquivoEntrada,
+            new UTF8Encoding(false),
+            detectEncodingFromByteOrderMarks: true))
+        {
+            for (int i = 0; i < 5; i++)  // ler somente início do arquivo
+            {
+                string? l = await leitorCabecalho.ReadLineAsync();
+                if (l == null) break;
+
+                string linha = l.TrimStart('\uFEFF', '\u200B', '\u00A0', '\u2060', ' ', '\t')
+                                 .Trim();
+
+                if (linha.StartsWith("SET NAMES", StringComparison.OrdinalIgnoreCase))
+                {
+                    var partes = linha.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+                    if (partes.Length >= 3)
+                        charsetArquivo = partes[2].Replace(";", "").Trim().ToUpperInvariant();
+                }
+            }
+        }
+
+        if (charsetArquivo == null)
+        {
+            Console.ForegroundColor = ConsoleColor.Yellow;
+            Console.WriteLine("Aviso: Arquivo não contém 'SET NAMES'. Usando charset UTF8.");
+            Console.ResetColor();
+            charsetArquivo = "UTF8";
+        }
+
+        Console.WriteLine($"Charset detectado: {charsetArquivo}\n");
+
+        // --------------------------------------------------------------------
+        // 🔵 ABRIR CONEXÃO COM O CHARSET CORRETO
+        // --------------------------------------------------------------------
+
         var csb = new FbConnectionStringBuilder
         {
             DataSource = opcoes.Host,
@@ -30,48 +69,45 @@ public static class ImportadorSql
             Database = opcoes.Database,
             UserID = opcoes.Usuario,
             Password = opcoes.Senha,
-            Charset = "UTF8", // será substituído pelo próprio SET NAMES no arquivo
+            Charset = charsetArquivo,
             Dialect = 3
         };
 
         await using var conexao = new FbConnection(csb.ConnectionString);
         await conexao.OpenAsync();
 
-        // Transação inicial
         FbTransaction? transacao = null;
 
         long totalLinhas = 0;
 
-        //
-        // 🔵 LEITURA DO ARQUIVO (STREAMING)
-        //
+        // --------------------------------------------------------------------
+        // 🔵 SEGUNDO PASSO: LEITURA REAL DO ARQUIVO
+        // --------------------------------------------------------------------
+
         using var leitor = new StreamReader(
             opcoes.ArquivoEntrada,
-            new UTF8Encoding(encoderShouldEmitUTF8Identifier: false),
-            detectEncodingFromByteOrderMarks: true
-        );
+            new UTF8Encoding(false),
+            detectEncodingFromByteOrderMarks: true);
 
-        string? linha;
-        while ((linha = await leitor.ReadLineAsync()) != null)
+        string? linhaOriginal;
+        while ((linhaOriginal = await leitor.ReadLineAsync()) != null)
         {
             totalLinhas++;
 
-            if (totalLinhas == 1)
-            {
-                linha = new string(linha
-                    .SkipWhile(c =>
-                            c == '\uFEFF' || // BOM
-                            c == '\u200B' || // ZERO WIDTH SPACE
-                            c == '\u00A0' || // NO BREAK SPACE
-                            c == '\u2060' || // WORD JOINER
-                            c == ' '      || // space
-                            c == '\t'        // tab
-                    ).ToArray());
-            }
-            
+            // Sanitização leve
+            string linha = linhaOriginal.TrimStart('\uFEFF', '\u200B', '\u00A0', '\u2060', ' ', '\t');
+
+            // Ignorar comando SET SQL DIALECT
+            if (linha.StartsWith("SET SQL DIALECT", StringComparison.OrdinalIgnoreCase))
+                continue;
+
+            // Ignorar o SET NAMES porque já aplicamos no início
+            if (linha.StartsWith("SET NAMES", StringComparison.OrdinalIgnoreCase))
+                continue;
+
             try
             {
-               transacao = await ExecutorSql.ExecutarAsync(
+                transacao = await ExecutorSql.ExecutarAsync(
                     linha,
                     conexao,
                     transacao,
@@ -88,9 +124,6 @@ public static class ImportadorSql
                     $"Erro na linha {totalLinhas}: {ex.Message}{Environment.NewLine}");
             }
 
-            //
-            // 🔵 PROGRESSO
-            //
             if (opcoes.ProgressoACada > 0 &&
                 totalLinhas % opcoes.ProgressoACada == 0)
             {
@@ -98,25 +131,18 @@ public static class ImportadorSql
             }
         }
 
-        //
-        // 🔵 COMMIT FINAL (caso o arquivo não tenha colocado um)
-        //
+        // Commit final
         if (transacao != null)
         {
             await transacao.CommitAsync();
-            transacao.Dispose();
+            await transacao.DisposeAsync();
         }
 
-        Console.WriteLine();
-        Console.ForegroundColor = ConsoleColor.Green;
-        Console.WriteLine("Importação concluída com sucesso.");
-        Console.ResetColor();
-
+        Console.WriteLine("\nImportação concluída com sucesso.");
         Console.WriteLine($"Total de linhas processadas: {totalLinhas:N0}");
 
         if (opcoes.ContinuarEmCasoDeErro && File.Exists(caminhoLogErros))
         {
-            Console.WriteLine();
             Console.ForegroundColor = ConsoleColor.Yellow;
             Console.WriteLine("Atenção: ocorreram erros durante a importação.");
             Console.WriteLine($"Consulte o arquivo: {caminhoLogErros}");
