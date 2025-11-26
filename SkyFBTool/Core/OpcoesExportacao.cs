@@ -20,7 +20,7 @@ public class OpcoesExportacao
     public bool SanitizarTexto { get; set; }       // --sanitize-text
     public bool EscaparQuebrasDeLinha { get; set; }// --escape-newlines
 
-    public int CommitACada { get; set; } = 50000;     // --commit-every
+    public int CommitACada { get; set; } = 0;     // --commit-every
     public bool ContinuarEmCasoDeErro { get; set; }   // --continue-on-error
-    public int ProgressoACada { get; set; } = 1000;   // --progresso-cada
+    public int ProgressoACada { get; set; } = 10000;   // --progresso-cada
 }
