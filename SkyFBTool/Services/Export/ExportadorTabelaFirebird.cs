@@ -22,9 +22,18 @@ public static class ExportadorTabelaFirebird
             : opcoes.AliasTabela;
 
         Console.WriteLine($"Iniciando exportação da tabela '{tabelaOrigem}' para '{tabelaDestino}'...");
-
+        
         await destino.EscreverLinhaAsync($"SET SQL DIALECT 3;");
-        await destino.EscreverLinhaAsync($"SET NAMES {opcoes.Charset};");
+
+        if (opcoes.Charset == null && opcoes.ForcarWin1252)
+        {
+            await destino.EscreverLinhaAsync($"SET NAMES WIN1252;");
+        }
+        else
+        {
+            await destino.EscreverLinhaAsync($"SET NAMES {opcoes.Charset};");
+        }
+
         await destino.EscreverLinhaAsync(string.Empty);
 
         using var conexao = FabricaConexaoFirebird.CriarConexao(opcoes);
