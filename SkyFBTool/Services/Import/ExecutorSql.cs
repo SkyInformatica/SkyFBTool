@@ -73,14 +73,5 @@ public static class ExecutorSql
         }
         return transacao;
     }
-
-    //
-    // 🔧 Executa comandos internos sem gerar exceção na transação
-    //
-    private static async Task UsarComandoInterno(string sql, FbConnection conexao, FbTransaction trans)
-    {
-        await using var cmd = new FbCommand(sql, conexao, trans);
-        cmd.CommandTimeout = 0;
-        await cmd.ExecuteNonQueryAsync();
-    }
+    
 }
