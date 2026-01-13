@@ -12,6 +12,9 @@ public static class ExecutorSql
         OpcoesImportacao opcoes,
         string caminhoLogErros)
     {
+        if ((conexao == null) || (transacao == null))
+            throw new ArgumentNullException();
+
         string sql = comandoSql.Trim();
 
         // Ignorar linhas vazias
@@ -33,7 +36,7 @@ public static class ExecutorSql
         {
             await transacao.CommitAsync();
             await transacao.DisposeAsync();
-            
+
             // criar nova transação
             transacao = await conexao.BeginTransactionAsync();
             return transacao;
@@ -46,12 +49,13 @@ public static class ExecutorSql
             await cmdSemTransacao.ExecuteNonQueryAsync();
             return transacao;
         }
+
         //
         // 🔥 INSERTs precisam de transação ativa
         //
         if (transacao == null)
             transacao = await conexao.BeginTransactionAsync();
-        
+
         //
         // 🔥 DEMAIS COMANDOS (normalmente INSERT)
         //
@@ -71,7 +75,7 @@ public static class ExecutorSql
             File.AppendAllText(caminhoLogErros,
                 $"Erro ao executar SQL: {sql}{Environment.NewLine}Erro: {ex.Message}{Environment.NewLine}{Environment.NewLine}");
         }
+
         return transacao;
     }
-    
 }
