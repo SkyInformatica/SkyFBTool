@@ -9,18 +9,19 @@ public class OpcoesExportacao
     public string Senha { get; set; } = "masterkey";
 
     public string Tabela { get; set; } = string.Empty;
-    public string? AliasTabela { get; set; }       // --alias
+    public string? AliasTabela { get; set; }
     public string ArquivoSaida { get; set; } = string.Empty;
 
-    public string? Charset { get; set; }  // usado no SET NAMES do arquivo
-    public string? CondicaoWhere { get; set; }     // --where
+    public string? Charset { get; set; }
+    public string? CondicaoWhere { get; set; }
 
     public FormatoBlob FormatoBlob { get; set; } = FormatoBlob.Hex;
-    public bool ForcarWin1252 { get; set; }        // --force-win1252
-    public bool SanitizarTexto { get; set; }       // --sanitize-text
-    public bool EscaparQuebrasDeLinha { get; set; }// --escape-newlines
+    public bool ForcarWin1252 { get; set; }
+    public bool SanitizarTexto { get; set; }
+    public bool EscaparQuebrasDeLinha { get; set; }
 
-    public int CommitACada { get; set; } = 0;     // --commit-every
-    public bool ContinuarEmCasoDeErro { get; set; }   // --continue-on-error
-    public int ProgressoACada { get; set; } = 10000;   // --progresso-cada
+    public int CommitACada { get; set; } = 0;
+    public bool ContinuarEmCasoDeErro { get; set; }
+    public int ProgressoACada { get; set; } = 10000;
+    public int TamanhoMaximoArquivoMb { get; set; } = 100;
 }

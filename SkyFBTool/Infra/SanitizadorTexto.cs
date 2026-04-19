@@ -12,7 +12,6 @@ public static class SanitizadorTexto
 
         foreach (var c in texto)
         {
-            // Mantém basicamente ASCII + acentuação latina
             if (c == '\r' || c == '\n' || c == '\t' ||
                 (c >= ' ' && c <= '\u00FF'))
             {

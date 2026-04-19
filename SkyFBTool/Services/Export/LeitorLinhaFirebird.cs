@@ -11,11 +11,9 @@ public static class LeitorLinhaFirebird
 
         var tipo = leitor.GetFieldType(indice);
 
-        // BLOB binário normalmente vem como byte[]
         if (tipo == typeof(byte[]))
             return leitor.GetFieldValue<byte[]>(indice);
 
-        // BLOB text pode vir como string dependendo do mapeamento do provider
         return leitor.GetValue(indice);
     }
 }

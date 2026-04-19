@@ -2,6 +2,8 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SkyFBTool", "SkyFBTool\SkyFBTool.csproj", "{F02902E1-FC38-4C98-AFF3-E77DDA0A6F20}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SkyFBTool.Tests", "SkyFBTool.Tests\SkyFBTool.Tests.csproj", "{D6966F72-6D2F-4DB7-BB0F-2F7F2467AB79}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -12,5 +14,9 @@ Global
 		{F02902E1-FC38-4C98-AFF3-E77DDA0A6F20}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F02902E1-FC38-4C98-AFF3-E77DDA0A6F20}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F02902E1-FC38-4C98-AFF3-E77DDA0A6F20}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D6966F72-6D2F-4DB7-BB0F-2F7F2467AB79}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D6966F72-6D2F-4DB7-BB0F-2F7F2467AB79}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D6966F72-6D2F-4DB7-BB0F-2F7F2467AB79}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D6966F72-6D2F-4DB7-BB0F-2F7F2467AB79}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

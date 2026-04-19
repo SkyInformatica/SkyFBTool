@@ -1,4 +1,4 @@
-﻿using System.Diagnostics;
+using System.Diagnostics;
 using System.Text;
 using FirebirdSql.Data.FirebirdClient;
 using SkyFBTool.Core;
@@ -24,16 +24,11 @@ public static class ImportadorSql
         if (File.Exists(caminhoLogErros))
             File.Delete(caminhoLogErros);
 
-        // --------------------------------------------------------------------
-        // Detectar charset via SET NAMES
-        // --------------------------------------------------------------------
-        string charsetArquivo = DetectarCharsetDoArquivo(opcoes.ArquivoEntrada);
+        string charsetArquivo = CharsetSql.DetectarCharsetSetNames(opcoes.ArquivoEntrada);
+        Encoding encodingArquivo = CharsetSql.ResolverEncodingLeituraSql(charsetArquivo);
 
         Console.WriteLine($"Charset detectado para conexão: {charsetArquivo}\n");
 
-        // --------------------------------------------------------------------
-        // Abrir conexão
-        // --------------------------------------------------------------------
         var csb = new FbConnectionStringBuilder
         {
             DataSource = opcoes.Host,
@@ -52,14 +47,10 @@ public static class ImportadorSql
 
         var controleIndices = new ControleIndicesFirebird(conexao);
 
-        // --------------------------------------------------------------------
-        // Parser completo (SET TERM, multiline, comentários)
-        // --------------------------------------------------------------------
         long totalLinhas = 0;
         long totalComandos = 0;
         long comandosDesdeUltimoBatch = 0;
 
-        // MÉTRICA DE VELOCIDADE
         var cronometroVelocidade = Stopwatch.StartNew();
         long comandosDesdeUltimaMedicao = 0;
 
@@ -74,7 +65,7 @@ public static class ImportadorSql
 
         using var leitor = new StreamReader(
             opcoes.ArquivoEntrada,
-            new UTF8Encoding(false),
+            encodingArquivo,
             detectEncodingFromByteOrderMarks: true);
 
         string? linhaOriginal;
@@ -118,14 +109,10 @@ public static class ImportadorSql
             string linha = linhaOriginal;
             int i = 0;
 
-            // ----------------------------------------------------------------
-            // PARSER usando WHILE
-            // ----------------------------------------------------------------
             while (i < linha.Length)
             {
                 char c = linha[i];
 
-                // Comentário de BLOCO /* ... */
                 if (dentroComentarioBloco)
                 {
                     if (c == '*' && i + 1 < linha.Length && linha[i + 1] == '/')
@@ -138,7 +125,6 @@ public static class ImportadorSql
                     continue;
                 }
 
-                // Dentro de STRING
                 if (dentroString)
                 {
                     comandoAtual.Append(c);
@@ -163,14 +149,12 @@ public static class ImportadorSql
                     continue;
                 }
 
-                // Comentário de LINHA --
                 if (c == '-' && i + 1 < linha.Length && linha[i + 1] == '-')
                 {
                     dentroComentarioLinha = true;
                     break;
                 }
 
-                // Comentário de BLOCO
                 if (c == '/' && i + 1 < linha.Length && linha[i + 1] == '*')
                 {
                     dentroComentarioBloco = true;
@@ -178,7 +162,6 @@ public static class ImportadorSql
                     continue;
                 }
 
-                // Início STRING
                 if (c == '\'')
                 {
                     dentroString = true;
@@ -187,7 +170,6 @@ public static class ImportadorSql
                     continue;
                 }
 
-                // FIM DO COMANDO
                 if (c == delimitadorAtual)
                 {
                     string comandoCompleto = comandoAtual.ToString().Trim();
@@ -201,15 +183,15 @@ public static class ImportadorSql
                         string? tabela = DetectarTabela.Extrair(comandoCompleto);
                         if (tabela != null)
                             await controleIndices.DesativarIndicesAsync(tabela, transacao);
-                        
+
                         try
                         {
-                            await ExecutorSql.ExecutarAsync(
+                            transacao = (await ExecutorSql.ExecutarAsync(
                                 comandoCompleto,
                                 conexao,
                                 transacao,
                                 opcoes,
-                                caminhoLogErros);
+                                caminhoLogErros))!;
                         }
                         catch
                         {
@@ -221,7 +203,6 @@ public static class ImportadorSql
                             }
                         }
 
-                        // ---------- BATCH COMMIT ----------
                         if (opcoes.ProgressoACada > 0 &&
                             comandosDesdeUltimoBatch >= opcoes.ProgressoACada)
                         {
@@ -248,9 +229,6 @@ public static class ImportadorSql
             MostrarProgresso(totalLinhas, totalComandos, comandosDesdeUltimaMedicao, cronometroVelocidade, opcoes);
         }
 
-        // --------------------------------------------------------------------
-        // Comando final (sem delimitador)
-        // --------------------------------------------------------------------
         if (comandoAtual.Length > 0)
         {
             string comandoFinal = comandoAtual.ToString().Trim();
@@ -263,12 +241,12 @@ public static class ImportadorSql
 
                 try
                 {
-                    await ExecutorSql.ExecutarAsync(
+                    transacao = (await ExecutorSql.ExecutarAsync(
                         comandoFinal,
                         conexao,
                         transacao,
                         opcoes,
-                        caminhoLogErros);
+                        caminhoLogErros))!;
                 }
                 catch
                 {
@@ -283,14 +261,10 @@ public static class ImportadorSql
         }
 
         await controleIndices.ReativarTodosAsync(transacao);
-        
-        // Commit final
+
         await transacao.CommitAsync();
         await transacao.DisposeAsync();
 
-        // --------------------------------------------------------------------
-        // Tempo total
-        // --------------------------------------------------------------------
         var fimExecucao = DateTime.UtcNow;
         var duracao = fimExecucao - inicioExecucao;
 
@@ -312,9 +286,6 @@ public static class ImportadorSql
         }
     }
 
-    // ------------------------------------------------------------------------
-    // Helpers
-    // ------------------------------------------------------------------------
     private static void MostrarProgresso(
         long linhas,
         long comandos,
@@ -338,36 +309,6 @@ public static class ImportadorSql
 
             cronometroVelocidade.Restart();
         }
-    }
-
-    private static string DetectarCharsetDoArquivo(string caminhoArquivoSql)
-    {
-        string? charsetArquivo = null;
-
-        using var leitor = new StreamReader(
-            caminhoArquivoSql,
-            new UTF8Encoding(false),
-            detectEncodingFromByteOrderMarks: true);
-
-        string? linha;
-        int limite = 200;
-
-        while (limite-- > 0 && (linha = leitor.ReadLine()) != null)
-        {
-            string l = linha.Trim();
-
-            if (l.StartsWith("SET NAMES", StringComparison.OrdinalIgnoreCase))
-            {
-                var tokens = l.Split(' ', StringSplitOptions.RemoveEmptyEntries);
-                if (tokens.Length >= 3)
-                {
-                    charsetArquivo = tokens[2].Replace(";", "").Trim().ToUpperInvariant();
-                    break;
-                }
-            }
-        }
-
-        return charsetArquivo ?? "UTF8";
     }
 
     private static bool TentarProcessarSetTerm(string linha, ref char delimitadorAtual)

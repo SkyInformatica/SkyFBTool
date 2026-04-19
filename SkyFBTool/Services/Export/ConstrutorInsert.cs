@@ -14,7 +14,7 @@ public static class ConstrutorInsert
     public static string MontarInsert(
         FbDataReader leitor,
         string tabelaDestino,
-        string[] colunas,
+        (int Ordinal, string Nome)[] colunas,
         FormatoBlob formatoBlob,
         bool forcarWin1252,
         bool sanitizarTexto,
@@ -25,63 +25,61 @@ public static class ConstrutorInsert
         sb.Append("INSERT INTO ")
           .Append(tabelaDestino)
           .Append(" (")
-          .Append(string.Join(", ", colunas))
+          .Append(string.Join(", ", colunas.Select(c => c.Nome)))
           .Append(") VALUES (");
 
         for (int i = 0; i < colunas.Length; i++)
         {
+            int indiceLeitor = colunas[i].Ordinal;
+
             if (i > 0)
                 sb.Append(", ");
 
-            if (leitor.IsDBNull(i))
+            if (leitor.IsDBNull(indiceLeitor))
             {
                 sb.Append("NULL");
                 continue;
             }
 
-            var tipo = leitor.GetDataTypeName(i).ToUpperInvariant();
+            var tipo = leitor.GetDataTypeName(indiceLeitor).ToUpperInvariant();
 
             switch (tipo)
             {
                 case "SMALLINT":
                 case "INTEGER":
                 case "BIGINT":
-                    sb.Append(leitor.GetValue(i).ToString());
+                    sb.Append(leitor.GetValue(indiceLeitor).ToString());
                     break;
 
                 case "NUMERIC":
                 case "DECIMAL":
-                    var valorDecimal = Convert.ToDecimal(leitor.GetValue(i), CulturaInvariante);
+                    var valorDecimal = Convert.ToDecimal(leitor.GetValue(indiceLeitor), CulturaInvariante);
                     sb.Append(valorDecimal.ToString(CulturaInvariante));
                     break;
 
                 case "DATE":
-                    var data = leitor.GetDateTime(i);
+                    var data = leitor.GetDateTime(indiceLeitor);
                     sb.Append('\'')
                       .Append(data.ToString("yyyy-MM-dd", CulturaInvariante))
                       .Append('\'');
                     break;
 
                 case "TIMESTAMP":
-                    var dataHora = leitor.GetDateTime(i);
+                    var dataHora = leitor.GetDateTime(indiceLeitor);
                     sb.Append('\'')
                       .Append(dataHora.ToString("yyyy-MM-dd HH:mm:ss", CulturaInvariante))
                       .Append('\'');
                     break;
 
                 case "BLOB":
-
-                    // Detectar se este BLOB é texto ou binário
-                    var valor = leitor.GetValue(i);
+                    var valor = leitor.GetValue(indiceLeitor);
 
                     if (valor is byte[] bytesBlob)
                     {
-                        // BLOB binário
                         sb.Append(FormatarBlobBinario(bytesBlob, formatoBlob));
                     }
                     else if (valor is string textoBlob)
                     {
-                        // BLOB texto (SUB_TYPE 1)
                         textoBlob = textoBlob.Replace("'", "''");
                         sb.Append('\'').Append(textoBlob).Append('\'');
                     }
@@ -98,9 +96,9 @@ public static class ConstrutorInsert
                     string texto;
 
                     if (forcarWin1252)
-                        texto = LeitorRawWin1252.LerCampoTextoComoWin1252(leitor, i);
+                        texto = LeitorRawWin1252.LerCampoTextoComoWin1252(leitor, indiceLeitor);
                     else
-                        texto = leitor.GetString(i);
+                        texto = leitor.GetString(indiceLeitor);
 
                     if (sanitizarTexto)
                         texto = SanitizadorTexto.Sanitizar(texto);
@@ -124,18 +122,6 @@ public static class ConstrutorInsert
         return sb.ToString();
     }
 
-    private static string FormatarBlob(FbDataReader leitor, int indice, FormatoBlob formatoBlob)
-    {
-        var dados = leitor.GetFieldValue<byte[]>(indice);
-
-        return formatoBlob switch
-        {
-            FormatoBlob.Hex => "x'" + BitConverter.ToString(dados).Replace("-", "") + "'",
-            FormatoBlob.Base64 => "'" + Convert.ToBase64String(dados) + "'",
-            _ => "NULL"
-        };
-    }
-    
     private static string FormatarBlobBinario(byte[] dados, FormatoBlob formatoBlob)
     {
         return formatoBlob switch

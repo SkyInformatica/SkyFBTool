@@ -8,7 +8,6 @@ Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
 
 Console.OutputEncoding = Encoding.UTF8;
 
-// Mostrar ajuda se nenhum argumento for informado
 if (args.Length == 0 || args.Contains("--help") || args.Contains("-h"))
 {
     ExibirAjuda();
@@ -33,9 +32,6 @@ else
 return;
 
 
-// -----------------------------------------------------------------------------
-// FUNÇÃO: EXPORTAR
-// -----------------------------------------------------------------------------
 static async Task ExecutarExportacao(string[] args)
 {
     var op = new OpcoesExportacao();
@@ -44,70 +40,101 @@ static async Task ExecutarExportacao(string[] args)
     {
         string chave = args[i].TrimStart('-').ToLowerInvariant();
 
-        if (i + 1 < args.Length)
+        switch (chave)
         {
-            string valor = args[i + 1];
-
-            switch (chave)
-            {
-                case "database": op.Database = valor; break;
-                case "table": op.Tabela = valor; break;
-                case "alias": op.AliasTabela = valor; break;
-                case "output": op.ArquivoSaida = valor; break;
-
-                case "host": op.Host = valor; break;
-                case "port": op.Porta = int.Parse(valor); break;
-                case "user": op.Usuario = valor; break;
-                case "password": op.Senha = valor; break;
-
-                case "charset": op.Charset = valor; break;
-                case "where": op.CondicaoWhere = valor; break;
-
-                case "blob-format":
-                    op.FormatoBlob = Enum.TryParse<FormatoBlob>(valor, true, out var fmt)
-                        ? fmt : FormatoBlob.Hex;
-                    break;
-
-                case "commit-every":
-                    op.CommitACada = int.Parse(valor);
-                    break;
-
-                case "progresso-cada":
-                    op.ProgressoACada = int.Parse(valor);
-                    break;
-
-                case "force-win1252":
-                    op.ForcarWin1252 = true;
-                    break;
-
-                case "sanitize-text":
-                    op.SanitizarTexto = true;
-                    break;
-
-                case "escape-newlines":
-                    op.EscaparQuebrasDeLinha = true;
-                    break;
-
-                case "continue-on-error":
-                    op.ContinuarEmCasoDeErro = true;
-                    break;
-                
-            }
+            case "database":
+                op.Database = LerValorOpcao(args, ref i, chave);
+                break;
+            case "table":
+                op.Tabela = LerValorOpcao(args, ref i, chave);
+                break;
+            case "alias":
+                op.AliasTabela = LerValorOpcao(args, ref i, chave);
+                break;
+            case "output":
+                op.ArquivoSaida = LerValorOpcao(args, ref i, chave);
+                break;
+            case "host":
+                op.Host = LerValorOpcao(args, ref i, chave);
+                break;
+            case "port":
+                op.Porta = int.Parse(LerValorOpcao(args, ref i, chave));
+                break;
+            case "user":
+                op.Usuario = LerValorOpcao(args, ref i, chave);
+                break;
+            case "password":
+                op.Senha = LerValorOpcao(args, ref i, chave);
+                break;
+            case "charset":
+                op.Charset = LerValorOpcao(args, ref i, chave);
+                break;
+            case "where":
+                op.CondicaoWhere = LerValorOpcao(args, ref i, chave);
+                break;
+            case "blob-format":
+                var valorBlobFormat = LerValorOpcao(args, ref i, chave);
+                op.FormatoBlob = Enum.TryParse<FormatoBlob>(valorBlobFormat, true, out var fmt)
+                    ? fmt
+                    : FormatoBlob.Hex;
+                break;
+            case "commit-every":
+                op.CommitACada = int.Parse(LerValorOpcao(args, ref i, chave));
+                break;
+            case "progresso-cada":
+                op.ProgressoACada = int.Parse(LerValorOpcao(args, ref i, chave));
+                break;
+            case "max-file-size-mb":
+            case "split-size-mb":
+                op.TamanhoMaximoArquivoMb = int.Parse(LerValorOpcao(args, ref i, chave));
+                break;
+            case "force-win1252":
+                op.ForcarWin1252 = true;
+                break;
+            case "sanitize-text":
+                op.SanitizarTexto = true;
+                break;
+            case "escape-newlines":
+                op.EscaparQuebrasDeLinha = true;
+                break;
+            case "continue-on-error":
+                op.ContinuarEmCasoDeErro = true;
+                break;
         }
     }
 
+    var arquivoSaidaInformado = op.ArquivoSaida;
+    op.ArquivoSaida = ResolverArquivoSaidaExportacao(op);
+
+    if (string.IsNullOrWhiteSpace(arquivoSaidaInformado))
+    {
+        Console.WriteLine($"Arquivo de saída não informado. Usando: {op.ArquivoSaida}");
+    }
+    else if (EhDiretorio(arquivoSaidaInformado))
+    {
+        Console.WriteLine($"Diretório informado em --output. Arquivo gerado: {op.ArquivoSaida}");
+    }
+
+    if (op.TamanhoMaximoArquivoMb > 0)
+    {
+        Console.WriteLine($"Divisão de arquivo ativa: {op.TamanhoMaximoArquivoMb} MB por arquivo.");
+    }
+    else
+    {
+        Console.WriteLine("Divisão de arquivo desativada.");
+    }
+
     Console.WriteLine("Iniciando exportação...");
-    
-    await using var destino = new DestinoArquivo(op.ArquivoSaida);
+
+    var encodingSaida = ResolverEncodingSaidaExportacao(op);
+    await using var destino = new DestinoArquivo(op.ArquivoSaida, op.TamanhoMaximoArquivoMb, encodingSaida);
     await ExportadorTabelaFirebird.ExportarAsync(op, destino);
+    ExibirResumoArquivosExportacao(destino.ObterArquivosGerados());
 
 }
 
 
 
-// -----------------------------------------------------------------------------
-// FUNÇÃO: IMPORTAR
-// -----------------------------------------------------------------------------
 static async Task ExecutarImportacao(string[] args)
 {
     var op = new OpcoesImportacao();
@@ -116,28 +143,32 @@ static async Task ExecutarImportacao(string[] args)
     {
         string chave = args[i].TrimStart('-').ToLowerInvariant();
 
-        if (i + 1 < args.Length)
+        switch (chave)
         {
-            string valor = args[i + 1];
-
-            switch (chave)
-            {
-                case "database": op.Database = valor; break;
-                case "input": op.ArquivoEntrada = valor; break;
-
-                case "host": op.Host = valor; break;
-                case "port": op.Porta = int.Parse(valor); break;
-                case "user": op.Usuario = valor; break;
-                case "password": op.Senha = valor; break;
-
-                case "progresso-cada":
-                    op.ProgressoACada = int.Parse(valor);
-                    break;
-
-                case "continue-on-error":
-                    op.ContinuarEmCasoDeErro = true;
-                    break;
-            }
+            case "database":
+                op.Database = LerValorOpcao(args, ref i, chave);
+                break;
+            case "input":
+                op.ArquivoEntrada = LerValorOpcao(args, ref i, chave);
+                break;
+            case "host":
+                op.Host = LerValorOpcao(args, ref i, chave);
+                break;
+            case "port":
+                op.Porta = int.Parse(LerValorOpcao(args, ref i, chave));
+                break;
+            case "user":
+                op.Usuario = LerValorOpcao(args, ref i, chave);
+                break;
+            case "password":
+                op.Senha = LerValorOpcao(args, ref i, chave);
+                break;
+            case "progresso-cada":
+                op.ProgressoACada = int.Parse(LerValorOpcao(args, ref i, chave));
+                break;
+            case "continue-on-error":
+                op.ContinuarEmCasoDeErro = true;
+                break;
         }
     }
 
@@ -147,9 +178,6 @@ static async Task ExecutarImportacao(string[] args)
 
 
 
-// -----------------------------------------------------------------------------
-// AJUDA
-// -----------------------------------------------------------------------------
 static void ExibirAjuda()
 {
     Console.WriteLine(@"
@@ -169,18 +197,32 @@ OPÇÕES:
   --database CAMINHO          Caminho do banco .fdb
   --table TABELA              Nome da tabela a exportar
   --alias NOVO_NOME           Nome alternativo da tabela no arquivo SQL
-  --output ARQUIVO.SQL        Caminho do arquivo de saída
+  --output ARQUIVO.SQL        Caminho do arquivo de saída (opcional; aceita diretório)
   --charset CHARSET           WIN1252 | ISO8859_1 | UTF8 | NONE
   --blob-format FORMATO       Hex (padrão) | Base64
   --commit-every N            Insere COMMIT; a cada N linhas
+  --max-file-size-mb N        Divide o SQL em partes de até N MB (padrão: 100; 0 desativa)
   --progresso-cada N          Exibe progresso a cada N linhas
   --force-win1252             Leitura RAW em WIN1252
   --sanitize-text             Remove caracteres inválidos
   --escape-newlines           Escapa quebras de linha
+  --where CONDICAO            Condição WHERE (opcional; sem ';', '--', '/*' ou '*/')
   --continue-on-error         Não interrompe ao encontrar erros
 
 EXEMPLO:
   SkyFBTool export --database C:\banco.fdb --table PESSOAS --output PESSOAS.SQL --charset WIN1252
+
+VALIDAÇÕES:
+  --table aceita identificador simples ou entre aspas
+  --where pode começar com WHERE (o prefixo é removido automaticamente)
+
+PADRÃO DO ARQUIVO (quando --output não for informado):
+  <TABELA>_yyyyMMdd_HHmmss_fff.sql
+
+PADRÃO DE DIVISÃO DE ARQUIVO:
+  100 MB por arquivo (gera sufixo _part002, _part003...)
+  Parte 1 mantém o nome base informado em --output
+  Cada parte inicia com o mesmo cabeçalho SQL (SET SQL DIALECT / SET NAMES)
 
 
 
@@ -202,4 +244,103 @@ EXEMPLO:
   SkyFBTool import --database C:\banco.fdb --input PESSOAS.SQL
 
 ");
+}
+
+static string GerarNomeArquivoExportacao(OpcoesExportacao op)
+{
+    var baseNome = !string.IsNullOrWhiteSpace(op.AliasTabela)
+        ? op.AliasTabela
+        : op.Tabela;
+
+    if (string.IsNullOrWhiteSpace(baseNome))
+        baseNome = "exportacao";
+
+    foreach (char invalido in Path.GetInvalidFileNameChars())
+        baseNome = baseNome.Replace(invalido, '_');
+
+    var timestamp = DateTime.Now.ToString("yyyyMMdd_HHmmss_fff");
+    return $"{baseNome}_{timestamp}.sql";
+}
+
+static string ResolverArquivoSaidaExportacao(OpcoesExportacao op)
+{
+    var nomeGerado = GerarNomeArquivoExportacao(op);
+    var output = op.ArquivoSaida?.Trim();
+
+    if (string.IsNullOrWhiteSpace(output))
+        return Path.Combine(Directory.GetCurrentDirectory(), nomeGerado);
+
+    if (EhDiretorio(output))
+    {
+        var diretorio = Path.GetFullPath(output);
+        Directory.CreateDirectory(diretorio);
+        return Path.Combine(diretorio, nomeGerado);
+    }
+
+    return output;
+}
+
+static bool EhDiretorio(string caminho)
+{
+    if (Directory.Exists(caminho))
+        return true;
+
+    return caminho.EndsWith(Path.DirectorySeparatorChar)
+           || caminho.EndsWith(Path.AltDirectorySeparatorChar);
+}
+
+static string LerValorOpcao(string[] args, ref int indiceAtual, string chave)
+{
+    int proximoIndice = indiceAtual + 1;
+    if (proximoIndice >= args.Length)
+        throw new ArgumentException($"Valor não informado para --{chave}.");
+
+    string proximoValor = args[proximoIndice];
+    if (proximoValor.StartsWith("-"))
+        throw new ArgumentException($"Valor inválido para --{chave}: {proximoValor}");
+
+    indiceAtual = proximoIndice;
+    return proximoValor;
+}
+
+static Encoding ResolverEncodingSaidaExportacao(OpcoesExportacao op)
+{
+    string? charset = op.Charset;
+    if (string.IsNullOrWhiteSpace(charset) && op.ForcarWin1252)
+        charset = "WIN1252";
+
+    return CharsetSql.ResolverEncodingLeituraSql(charset);
+}
+
+static void ExibirResumoArquivosExportacao(IReadOnlyList<(string Caminho, long TamanhoBytes)> arquivosGerados)
+{
+    if (arquivosGerados.Count == 0)
+        return;
+
+    Console.WriteLine();
+    Console.WriteLine($"Arquivos gerados: {arquivosGerados.Count}");
+
+    for (int i = 0; i < arquivosGerados.Count; i++)
+    {
+        var arquivo = arquivosGerados[i];
+        Console.WriteLine(
+            $"[{i + 1}] {arquivo.Caminho} ({FormatarTamanhoBytes(arquivo.TamanhoBytes)})");
+    }
+
+    Console.WriteLine($"Arquivo final: {arquivosGerados[^1].Caminho}");
+}
+
+static string FormatarTamanhoBytes(long bytes)
+{
+    string[] sufixos = ["B", "KB", "MB", "GB", "TB"];
+    double valor = bytes;
+    int indice = 0;
+
+    while (valor >= 1024 && indice < sufixos.Length - 1)
+    {
+        valor /= 1024;
+        indice++;
+    }
+
+    return $"{valor:0.##} {sufixos[indice]}";
 }

@@ -23,15 +23,12 @@ public static class LeitorRawWin1252
         switch (valor)
         {
             case byte[] raw:
-                // Campo realmente binário → decodificar como Win1252
                 return EncodingWin1252.GetString(raw);
 
             case string s:
-                // Campo textual → retornar como está
                 return s;
 
             default:
-                // fallback seguro
                 return valor.ToString() ?? string.Empty;
         }
     }
