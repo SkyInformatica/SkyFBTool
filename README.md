@@ -105,7 +105,7 @@ Validações do `--where`:
 - Log de erros: `erros_importacao.log`
 - Progresso configurável:
   ```
-  --progresso-cada 1000
+  --progress-every 1000
   ```
 
 ---
@@ -172,7 +172,7 @@ SkyFBTool export [opções]
 | `--escape-newlines` | Converte quebras de linha |
 | `--where` | Condição WHERE (opcional; sem `;`, `--`, `/*`, `*/`) |
 | `--continue-on-error` | Não interrompe |
-| `--progresso-cada` | Progresso |
+| `--progress-every` | Progresso |
 
 ### Exemplo:
 
@@ -266,7 +266,7 @@ SkyFBTool import [opções]
 | `--user` | sysdba |
 | `--password` | masterkey |
 | `--continue-on-error` | Continua em erro |
-| `--progresso-cada` | Progresso |
+| `--progress-every` | Progresso |
 
 ### Exemplo:
 

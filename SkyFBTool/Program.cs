@@ -81,7 +81,7 @@ static async Task ExecutarExportacao(string[] args)
             case "commit-every":
                 op.CommitACada = int.Parse(LerValorOpcao(args, ref i, chave));
                 break;
-            case "progresso-cada":
+            case "progress-every":
                 op.ProgressoACada = int.Parse(LerValorOpcao(args, ref i, chave));
                 break;
             case "max-file-size-mb":
@@ -163,7 +163,7 @@ static async Task ExecutarImportacao(string[] args)
             case "password":
                 op.Senha = LerValorOpcao(args, ref i, chave);
                 break;
-            case "progresso-cada":
+            case "progress-every":
                 op.ProgressoACada = int.Parse(LerValorOpcao(args, ref i, chave));
                 break;
             case "continue-on-error":
@@ -202,7 +202,7 @@ OPÇÕES:
   --blob-format FORMATO       Hex (padrão) | Base64
   --commit-every N            Insere COMMIT; a cada N linhas
   --max-file-size-mb N        Divide o SQL em partes de até N MB (padrão: 100; 0 desativa)
-  --progresso-cada N          Exibe progresso a cada N linhas
+  --progress-every N          Exibe progresso a cada N linhas
   --force-win1252             Leitura RAW em WIN1252
   --sanitize-text             Remove caracteres inválidos
   --escape-newlines           Escapa quebras de linha
@@ -237,7 +237,7 @@ OPÇÕES:
   --port PORTA                (padrão: 3050)
   --user USUARIO              (padrão: sysdba)
   --password SENHA            (padrão: masterkey)
-  --progresso-cada N          Exibe progresso
+  --progress-every N          Exibe progresso
   --continue-on-error         Continua mesmo se ocorrer erro
 
 EXEMPLO:
