@@ -1,419 +1,94 @@
-﻿# SkyFBTool
+# SkyFBTool
 
-Ferramenta CLI para **exportação** e **importação** de dados no Firebird (2.5 / 3.0 / 4.0 / 5.0), desenvolvida em **.NET 8**, com foco em desempenho, segurança e compatibilidade com bancos de grande porte.
+English | [Português (Brasil)](./README.pt-BR.md)
 
-Ideal para:
+SkyFBTool is a .NET 8 CLI for Firebird data export/import (2.5 / 3.0 / 4.0 / 5.0), focused on large datasets, streaming execution, and charset-safe workflows.
 
-- migrações entre ambientes  
-- criação de tabelas espelho  
-- auditoria e saneamento  
-- backups lógicos  
-- replicações offline  
-- preparar dados para homologação/produção  
+## What's New
 
----
+- [CHANGELOG.md](./CHANGELOG.md)
+- [Releases](https://github.com/SkyInformatica/SkyFBTool/releases)
 
-## 🚀 Recursos Principais
+## Main Features
 
----
+- `export` and `import` commands
+- Streaming export/import for large SQL files
+- `--filter`, `--filter-file`, and advanced `--query-file`
+- Target table remap with `--target-table`
+- `--blob-format` (`Hex` or `Base64`)
+- Configurable `--commit-every` and `--progress-every`
+- File splitting with `--split-size-mb` (default: 100 MB)
+- Legacy charset mode for `CHARSET NONE` via `--legacy-win1252`
+- Warning for large filter/query files (> 64 KB)
 
-## 🔷 Exportação
+## Usage
 
-- Exporta uma tabela Firebird para arquivo `.sql` com apenas comandos `INSERT`.
-- Conversão de BLOBs para **Hex** (padrão) ou **Base64**.
-- Conversão correta de NUMERIC (sem notação científica).
-- Compatível com bases CHARSET NONE usando modo RAW Win1252.
-- Sanitização opcional de texto.
-- Escape opcional de quebras de linha.
-- Commit periódico configurável:
-  ```
-  --commit-every 5000
-  ```
-- Cabeçalho SQL seguro:
-  ```sql
-  SET SQL DIALECT 3;
-  SET NAMES <CHARSET>;
-  ```
-
-- Permite renomear a tabela destino:
-  ```
-  --target-table NOVA_TABELA
-  ```
-
-- Exporta por filtragem simples:
-  ```
-  --filter "CAMPO = VALOR"
-  ```
-  ou
-  ```
-  --filter-file "C:\filtros\where.txt"
-  ```
-
-- Suporte a arquivos extremamente grandes (streaming).
-- Log de erros em `erros_exportacao.log`.
-
----
-
-## 🔵 Filtro Simples / Simple Filter
-
-É possível exportar somente uma parte da tabela utilizando filtro simples:
-
-```
---filter "CAMPO = VALOR"
+```powershell
+SkyFBTool export [options]
+SkyFBTool import [options]
 ```
 
-Também é possível informar um arquivo com a condição:
+### Export example
 
-```
---filter-file "C:\filtros\where.txt"
-```
-
-Modo avançado com SELECT completo em arquivo:
-
-```
---query-file "C:\filtros\consulta_recibos.sql"
+```powershell
+SkyFBTool export --database "C:\data\sample.fdb" --table "SAMPLE_TABLE" --output "C:\exports\" --commit-every 10000
 ```
 
-Exemplo:
+### Import example
 
-```
-SkyFBTool export \
-  --database C:\dados\cartorio.fdb \
-  --table ENCAMINHALANCAMENTOSELOS \
-  --filter "NROLANCAMENTO = 12345" \
-  --output parcial.sql
+```powershell
+SkyFBTool import --database "C:\data\sample.fdb" --input "C:\exports\sample_table.sql" --continue-on-error
 ```
 
-Isso gera internamente o SELECT:
-
-```sql
-SELECT * FROM ENCAMINHALANCAMENTOSELOS
-WHERE NROLANCAMENTO = 12345
-```
-
-Você pode usar qualquer condição válida do Firebird:
-
-```
---filter "DATAUTILIZACAO >= '2024-01-01'"
---filter "SITUACAO <> 'C'"
---filter "VALORSELO > 100 AND COBRARSELO = 'S'"
---filter "UPPER(NOMEUSUARIO) LIKE '%JOAO%'"
-```
-
-Validações do `--filter`:
-
-- Se você informar `WHERE ...`, o prefixo `WHERE` é removido automaticamente.
-- Não é permitido usar `;`, `--`, `/*` ou `*/`.
-
-Validação do `--query-file`:
-
-- O arquivo deve conter um `SELECT` completo.
-- Arquivos de `--filter-file` e `--query-file` acima de 64 KB exibem aviso no console (execução continua).
-
----
-
-## 🔷 Importação
-
-- Executa arquivo `.sql` **linha por linha** (streaming).
-- Executa automaticamente:
-  - `SET SQL DIALECT`
-  - `SET NAMES`
-  - `INSERT`
-  - `COMMIT`
-- Transação totalmente controlada pelo arquivo exportado.
-- Aceita arquivos enormes (GBs).
-- Suporte a `--continue-on-error`.
-- Log de erros: `erros_importacao.log`
-- Progresso configurável:
-  ```
-  --progress-every 1000
-  ```
-
----
-
-## ⚠️ Observação importante sobre o charset **WIN1252**
-
-O Firebird suporta `WIN1252`, porém o **.NET 8** não possui encoding 1252 nativo.  
-O driver oficial `FirebirdSql.Data.FirebirdClient` depende do encoding do .NET e pode gerar:
-
-```
-Invalid character set specified.
-No data is available for encoding 1252.
-```
-
-### 🟦 `--legacy-win1252` (modo RAW / legacy mode)
-Modo especial criado para bases **CHARSET NONE** com dados gravados originalmente em `WIN1252`.
-
-Esse modo:
-
-- Lê campos como bytes (sem decodificação do .NET)
-- Reconstrói manualmente preservando os bytes originais
-- Evita perda de acentuação em bases legadas
-
-### ✔ Como usar corretamente:
-
-Base CHARSET NONE com dados WIN1252:
-```
---legacy-win1252
-```
-
-Base UTF8, ISO8859_1, ou convertida corretamente:
-```
---charset UTF8
-```
-
-Não use `--legacy-win1252` em bancos Unicode.
-
----
-
-## 🧭 Como Usar
-
----
-
-## 🔷 1) Exportar dados
-
-```
-SkyFBTool export [opções]
-```
-
-Modos de consulta / Query modes:
-
-- Simples / Simple: `--table` + `--filter` (ou `--filter-file`)
-- Avançado / Advanced: `--query-file` (SELECT completo)
-
-### Principais opções
-
-| Parâmetro | Descrição |
-|----------|-----------|
-| `--database` | Caminho do .fdb |
-| `--table` | Tabela de origem / Source table (identificador simples ou entre aspas) |
-| `--target-table` | Tabela destino dos INSERTs / Target table in INSERTs |
-| `--output` | Arquivo SQL (opcional; aceita diretório) / SQL output (file or directory) |
-| `--charset` | WIN1252, ISO8859_1, UTF8, NONE |
-| `--blob-format` | Hex (padrão) ou Base64 |
-| `--commit-every` | Insere COMMIT a cada N linhas |
-| `--split-size-mb` | Divide em múltiplos arquivos de até N MB (padrão: 100; 0 desativa) |
-| `--legacy-win1252` | Modo RAW para bases NONE |
-| `--sanitize-text` | Remove caracteres inválidos |
-| `--escape-newlines` | Converte quebras de linha |
-| `--filter` | Filtro simples inline (opcional) |
-| `--filter-file` | Caminho de arquivo contendo o filtro simples |
-| `--query-file` | Caminho de arquivo contendo um SELECT completo (modo avançado) |
-| `--continue-on-error` | Não interrompe |
-| `--progress-every` | Progresso |
-
-### Exemplo:
-
-```
-SkyFBTool export \
-  --database C:\db\cartorio.fdb \
-  --table ENCAMINHALANCAMENTOSELOS \
-  --charset WIN1252 \
-  --target-table ENCAMINHALANCAMENTOSELOS_BKP \
-  --commit-every 5000 \
-  --output selos.sql
-```
-
-### Nome padrao do arquivo (quando `--output` nao for informado)
-
-Se `--output` nao for passado, o SkyFBTool gera automaticamente:
-
-```
-<TABELA_OU_ALIAS>_yyyyMMdd_HHmmss_fff.sql
-```
-
-Exemplo:
-
-```
-ENCAMINHALANCAMENTOSELOS_20260418_153022_417.sql
-```
-
-Se `--output` for um diretorio, o arquivo tambem e gerado automaticamente dentro desse diretorio.
-
-Exemplo:
-
-```
---output C:\exports\
-```
-
-### Divisao automatica de arquivo (padrao: 100 MB)
-
-Por padrao, a exportacao e dividida em arquivos de ate 100 MB para facilitar importacoes e evitar arquivos unicos muito grandes.
-
-Se ultrapassar o limite, os proximos arquivos recebem sufixo:
-
-```
-_part002, _part003, ...
-```
-
-Contrato da rotacao:
-
-- A primeira parte usa exatamente o nome base definido em `--output`.
-- As partes seguintes usam sufixo incremental `_partNNN`.
-- Cada parte inicia com o mesmo cabecalho SQL (`SET SQL DIALECT` e `SET NAMES`).
-
-Para alterar:
-
-```
---split-size-mb 250
-```
-
-Para desativar:
-
-```
---split-size-mb 0
-```
-
-### Início do arquivo gerado:
-
-```sql
-SET SQL DIALECT 3;
-SET NAMES WIN1252;
-
-INSERT INTO ENCAMINHALANCAMENTOSELOS_BKP (...) VALUES (...);
-INSERT INTO ENCAMINHALANCAMENTOSELOS_BKP (...) VALUES (...);
-COMMIT;
-```
-
----
-
-## 🔷 2) Importar dados
-
-```
-SkyFBTool import [opções]
-```
-
-### Principais opções
-
-| Parâmetro | Descrição |
-|----------|-----------|
-| `--database` | Caminho do .fdb |
-| `--input` | Arquivo SQL |
-| `--host` | Servidor |
-| `--port` | Porta (3050) |
-| `--user` | sysdba |
-| `--password` | masterkey |
-| `--continue-on-error` | Continua em erro |
-| `--progress-every` | Progresso |
-
-### Exemplo:
-
-```
-SkyFBTool import \
-  --database C:\db\cartorio.fdb \
-  --input selos.sql \
-  --continue-on-error
-```
-
----
-
-## 🧪 Testes
-
-Projeto de testes:
-
-```
-SkyFBTool.Tests
-```
-
-Executar testes:
+## Key Export Options
+
+- `--database` Firebird database path
+- `--table` source table
+- `--target-table` target table in generated `INSERT`s
+- `--output` output file or directory
+- `--charset` `WIN1252 | ISO8859_1 | UTF8 | NONE`
+- `--filter` simple condition (optional)
+- `--filter-file` read simple condition from file
+- `--query-file` read full `SELECT` from file (advanced mode)
+- `--split-size-mb` output split size in MB (`0` disables)
+- `--legacy-win1252` legacy mode for `CHARSET NONE`
+
+Rules:
+- Do not combine `--query-file` with `--filter` or `--filter-file`.
+- `--query-file` must contain a full `SELECT`.
+- `--filter` accepts optional `WHERE` prefix (automatically removed).
+
+## Tests
 
 ```powershell
 dotnet test SkyFBTool.Tests\SkyFBTool.Tests.csproj -p:RestoreSources=https://api.nuget.org/v3/index.json
 ```
 
-Testes de integracao (export + import em banco Firebird real):
+Integration tests:
 
 ```powershell
 $env:SKYFBTOOL_TEST_RUN_INTEGRATION="true"
-$env:SKYFBTOOL_TEST_DB_HOST="localhost"
-$env:SKYFBTOOL_TEST_DB_PORT="3050"
-$env:SKYFBTOOL_TEST_DB_USER="sysdba"
-$env:SKYFBTOOL_TEST_DB_PASSWORD="masterkey"
-dotnet test SkyFBTool.Tests\SkyFBTool.Tests.csproj -p:RestoreSources=https://api.nuget.org/v3/index.json
-```
-
-Sem `SKYFBTOOL_TEST_RUN_INTEGRATION=true`, os testes de integracao nao executam.
-
-Cobertura atual dos testes de integracao:
-
-- Round-trip export/import com `UTF8` e `WIN1252`.
-- Campo calculado/somente leitura nao incluído no SQL de exportacao.
-- `--continue-on-error` em importacao e exportacao (com validacao de log de erro).
-- Parser de importacao com `SET TERM`, comentarios SQL e strings com `;`.
-- `--commit-every` com volume alto (mais de 1000 linhas).
-- `--escape-newlines` no SQL gerado.
-- `--blob-format` para `Hex` e `Base64`.
-- `--legacy-win1252` em base `CHARSET NONE`.
-
-Script pronto para executar:
-
-```powershell
 .\SkyFBTool.Tests\run-integration-tests.ps1
 ```
 
-Com parametros customizados:
+## Documentation Standard
 
-```powershell
-.\SkyFBTool.Tests\run-integration-tests.ps1 -HostName "localhost" -Port 3050 -User "sysdba" -Password "masterkey"
-```
+- [DOCS_STANDARD.md](./DOCS_STANDARD.md)
 
----
+## Disclaimer
 
-## 📁 Estrutura do Projeto
+SkyFBTool is provided under the MIT license, "AS IS", without warranties of any kind.
 
-```
-SkyFBTool/
-│
-├── Core/
-│   ├── OpcoesExportacao.cs
-│   ├── OpcoesImportacao.cs
-│   ├── FormatoBlob.cs
-│   ├── IDestinoArquivo.cs
-│
-├── SkyFBTool.Tests/
-│   ├── Infra/
-│   ├── Services/
-│
-├── Infra/
-│   ├── FabricaConexaoFirebird.cs
-│   ├── DestinoArquivo.cs
-│   ├── ConversorHex.cs
-│   ├── LeitorRawWin1252.cs
-│   ├── SanitizadorTexto.cs
-│
-├── Services/
-│   ├── Export/
-│   │   ├── ExportadorTabelaFirebird.cs
-│   │   ├── ConstrutorInsert.cs
-│   │   ├── ConstrutorConsultaFirebird.cs
-│   │   ├── LeitorLinhaFirebird.cs
-│   │
-│   ├── Import/
-│       ├── ImportadorSql.cs
-│       ├── ExecutorSql.cs
-│
-└── Program.cs
-```
+The authors are not liable for:
+- data loss
+- database corruption
+- execution failures
+- direct or indirect damages
+- misuse
+- third-party impacts
 
----
+Always validate in a staging/homologation environment before production use.
 
-## ⚠️ Declaração de Isenção de Responsabilidade
+## License
 
-O SkyFBTool é distribuído sob a licença **MIT**, sendo fornecido **"NO ESTADO EM QUE SE ENCONTRA"**, sem garantias.
-
-Os autores não se responsabilizam por:
-
-- perda de dados
-- corrupção de bancos
-- falhas de execução
-- danos diretos ou indiretos
-- uso incorreto
-- impactos causados a terceiros
-
-Recomenda-se **testar em homologação** antes de uso em produção.
-
----
-
-## 📄 Licença
-
-MIT — livre para uso pessoal, comercial e corporativo.
+MIT

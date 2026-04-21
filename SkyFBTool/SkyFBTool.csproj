@@ -18,5 +18,17 @@
       <Content Include="..\README.md">
         <Link>README.md</Link>
       </Content>
+      <Content Include="..\README.pt-BR.md">
+        <Link>README.pt-BR.md</Link>
+      </Content>
+      <Content Include="..\CHANGELOG.md">
+        <Link>CHANGELOG.md</Link>
+      </Content>
+      <Content Include="..\CHANGELOG.pt-BR.md">
+        <Link>CHANGELOG.pt-BR.md</Link>
+      </Content>
+      <Content Include="..\DOCS_STANDARD.md">
+        <Link>DOCS_STANDARD.md</Link>
+      </Content>
     </ItemGroup>
 </Project>
