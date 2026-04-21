@@ -1,0 +1,51 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "8.0.x"
+
+      - name: Restore
+        run: dotnet restore SkyFBTool.sln
+
+      - name: Build
+        run: dotnet build SkyFBTool.sln -c Release --no-restore
+
+      - name: Test
+        run: dotnet test SkyFBTool.Tests/SkyFBTool.Tests.csproj -c Release --no-build
+
+      - name: Publish win-x64
+        run: dotnet publish SkyFBTool/SkyFBTool.csproj -c Release -r win-x64 --self-contained true /p:PublishSingleFile=true /p:PublishTrimmed=false -o artifacts/win-x64
+
+      - name: Publish linux-x64
+        run: dotnet publish SkyFBTool/SkyFBTool.csproj -c Release -r linux-x64 --self-contained true /p:PublishSingleFile=true /p:PublishTrimmed=false -o artifacts/linux-x64
+
+      - name: Package artifacts
+        run: |
+          mkdir -p dist
+          tar -czf dist/SkyFBTool-${{ github.ref_name }}-win-x64.tar.gz -C artifacts win-x64
+          tar -czf dist/SkyFBTool-${{ github.ref_name }}-linux-x64.tar.gz -C artifacts linux-x64
+
+      - name: Create GitHub release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            dist/SkyFBTool-${{ github.ref_name }}-win-x64.tar.gz
+            dist/SkyFBTool-${{ github.ref_name }}-linux-x64.tar.gz
+          generate_release_notes: true

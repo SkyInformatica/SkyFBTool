@@ -15,13 +15,16 @@
 - Keep sections equivalent across languages.
 - Update both language files in the same pull request whenever behavior changes.
 - Keep commands/flags exactly the same in all language variants.
+- Review Portuguese mirror files for correct spelling and accentuation before commit.
 - Keep the liability disclaimer section mandatory and synchronized in both READMEs.
   - `README.md`: `## Disclaimer`
   - `README.pt-BR.md`: `## Isencao de Responsabilidade`
 
 ## Changelog Rules
 - Follow Keep a Changelog + Semantic Versioning.
-- Keep `## [Unreleased]` always present.
+- Keep pending-version section always present:
+  - English: `## [Unreleased]`
+  - Portuguese: `## [Não Lançado]`
 - Allowed sections: `Added`, `Changed`, `Fixed`, `Removed`, `Security`.
 
 ## Encoding Rules
