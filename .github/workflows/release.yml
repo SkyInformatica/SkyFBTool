@@ -39,13 +39,15 @@ jobs:
       - name: Package artifacts
         run: |
           mkdir -p dist
-          tar -czf dist/SkyFBTool-${{ github.ref_name }}-win-x64.tar.gz -C artifacts win-x64
+          cd artifacts
+          zip -r ../dist/SkyFBTool-${{ github.ref_name }}-win-x64.zip win-x64
+          cd ..
           tar -czf dist/SkyFBTool-${{ github.ref_name }}-linux-x64.tar.gz -C artifacts linux-x64
 
       - name: Create GitHub release
         uses: softprops/action-gh-release@v2
         with:
           files: |
-            dist/SkyFBTool-${{ github.ref_name }}-win-x64.tar.gz
+            dist/SkyFBTool-${{ github.ref_name }}-win-x64.zip
             dist/SkyFBTool-${{ github.ref_name }}-linux-x64.tar.gz
           generate_release_notes: true
