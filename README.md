@@ -46,17 +46,38 @@ SkyFBTool import --database "C:\data\sample.fdb" --input "C:\exports\sample_tabl
 - `--table` source table
 - `--target-table` target table in generated `INSERT`s
 - `--output` output file or directory
+- `--host` Firebird host (default: `localhost`)
+- `--port` Firebird port (default: `3050`)
+- `--user` Firebird user (default: `sysdba`)
+- `--password` Firebird password (default: `masterkey`)
 - `--charset` `WIN1252 | ISO8859_1 | UTF8 | NONE`
 - `--filter` simple condition (optional)
 - `--filter-file` read simple condition from file
 - `--query-file` read full `SELECT` from file (advanced mode)
+- `--blob-format` `Hex | Base64`
+- `--commit-every` add `COMMIT` every N rows
+- `--progress-every` progress interval
 - `--split-size-mb` output split size in MB (`0` disables)
 - `--legacy-win1252` legacy mode for `CHARSET NONE`
+- `--sanitize-text` sanitize text values before writing SQL
+- `--escape-newlines` escape line breaks in text fields
+- `--continue-on-error` keep exporting even if one row fails
 
 Rules:
 - Do not combine `--query-file` with `--filter` or `--filter-file`.
 - `--query-file` must contain a full `SELECT`.
 - `--filter` accepts optional `WHERE` prefix (automatically removed).
+
+## Key Import Options
+
+- `--database` Firebird database path
+- `--input` SQL file to import
+- `--host` Firebird host (default: `localhost`)
+- `--port` Firebird port (default: `3050`)
+- `--user` Firebird user (default: `sysdba`)
+- `--password` Firebird password (default: `masterkey`)
+- `--progress-every` progress interval
+- `--continue-on-error` keep importing after command errors
 
 ## Tests
 

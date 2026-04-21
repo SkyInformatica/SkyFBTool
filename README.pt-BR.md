@@ -46,17 +46,38 @@ SkyFBTool import --database "C:\dados\exemplo.fdb" --input "C:\exports\tabela_ex
 - `--table` tabela de origem
 - `--target-table` tabela destino nos `INSERT`s gerados
 - `--output` arquivo ou diretório de saída
+- `--host` host do Firebird (padrão: `localhost`)
+- `--port` porta do Firebird (padrão: `3050`)
+- `--user` usuário do Firebird (padrão: `sysdba`)
+- `--password` senha do Firebird (padrão: `masterkey`)
 - `--charset` `WIN1252 | ISO8859_1 | UTF8 | NONE`
 - `--filter` condição simples (opcional)
 - `--filter-file` lê condição simples de arquivo
 - `--query-file` lê `SELECT` completo de arquivo (modo avançado)
+- `--blob-format` `Hex | Base64`
+- `--commit-every` adiciona `COMMIT` a cada N linhas
+- `--progress-every` intervalo de progresso
 - `--split-size-mb` tamanho da divisão em MB (`0` desativa)
 - `--legacy-win1252` modo legado para `CHARSET NONE`
+- `--sanitize-text` sanitiza textos antes de escrever o SQL
+- `--escape-newlines` escapa quebras de linha em campos texto
+- `--continue-on-error` continua exportando se uma linha falhar
 
 Regras:
 - Não combinar `--query-file` com `--filter` ou `--filter-file`.
 - `--query-file` deve conter um `SELECT` completo.
 - `--filter` aceita prefixo `WHERE` (removido automaticamente).
+
+## Principais Opções de Importação
+
+- `--database` caminho do banco Firebird
+- `--input` arquivo SQL de entrada
+- `--host` host do Firebird (padrão: `localhost`)
+- `--port` porta do Firebird (padrão: `3050`)
+- `--user` usuário do Firebird (padrão: `sysdba`)
+- `--password` senha do Firebird (padrão: `masterkey`)
+- `--progress-every` intervalo de progresso
+- `--continue-on-error` continua importando após erros de comando
 
 ## Testes
 
