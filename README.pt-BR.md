@@ -9,6 +9,22 @@ SkyFBTool é uma CLI em .NET 8 para exportação/importação de dados Firebird 
 - [CHANGELOG.pt-BR.md](./CHANGELOG.pt-BR.md)
 - [Releases](https://github.com/SkyInformatica/SkyFBTool/releases)
 
+## Releases Automatizadas
+
+Este repositório possui um pipeline GitHub Actions em `.github/workflows/release.yml`.
+
+Como funciona:
+- Disparo: push de tag no formato `v*` (exemplo: `v0.1.0`)
+- Pipeline: restore, build, testes, publish (`win-x64` e `linux-x64`)
+- Saída: GitHub Release com artefatos compilados (`.tar.gz`)
+
+Exemplo de comando para tag:
+
+```bash
+git tag v0.1.0
+git push origin v0.1.0
+```
+
 ## Recursos Principais
 
 - Comandos `export` e `import`
