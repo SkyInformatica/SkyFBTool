@@ -108,6 +108,7 @@ Validações do `--filter`:
 Validação do `--query-file`:
 
 - O arquivo deve conter um `SELECT` completo.
+- Arquivos de `--filter-file` e `--query-file` acima de 64 KB exibem aviso no console (execução continua).
 
 ---
 

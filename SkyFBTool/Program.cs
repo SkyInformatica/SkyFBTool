@@ -4,11 +4,12 @@ using SkyFBTool.Infra;
 using SkyFBTool.Services.Export;
 using SkyFBTool.Services.Import;
 
-const long LimiteTecnicoWhereArquivoBytes = 100L * 1024 * 1024;
+const long LimiteAvisoArquivoBytes = 64L * 1024;
 
 Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
 
 Console.OutputEncoding = Encoding.UTF8;
+args = NormalizarArgs(args);
 
 if (args.Length == 0 || args.Contains("--help") || args.Contains("-h"))
 {
@@ -229,6 +230,7 @@ VALIDAÇÕES:
   --filter pode começar com WHERE (o prefixo é removido) / WHERE prefix is removed
   --query-file deve conter SELECT completo / must contain full SELECT
   --query-file nao pode ser usado com --filter ou --filter-file
+  --filter-file/--query-file acima de 64 KB emitem aviso de desempenho/estabilidade
 
 PADRÃO DO ARQUIVO (quando --output não for informado):
   <TABELA>_yyyyMMdd_HHmmss_fff.sql
@@ -309,7 +311,7 @@ static string LerValorOpcao(string[] args, ref int indiceAtual, string chave)
     if (proximoIndice >= args.Length)
         throw new ArgumentException($"Valor não informado para --{chave}.");
 
-    string proximoValor = args[proximoIndice];
+    string proximoValor = args[proximoIndice].Trim().Trim('"');
     if (proximoValor.StartsWith("-"))
         throw new ArgumentException($"Valor inválido para --{chave}: {proximoValor}");
 
@@ -332,16 +334,7 @@ static string LerCondicaoWhereDeArquivo(string caminhoArquivo)
     if (!File.Exists(caminhoArquivo))
         throw new FileNotFoundException($"Arquivo de condição WHERE não encontrado: {caminhoArquivo}");
 
-    var info = new FileInfo(caminhoArquivo);
-    if (info.Length > LimiteTecnicoWhereArquivoBytes)
-    {
-        Console.ForegroundColor = ConsoleColor.Yellow;
-        Console.WriteLine(
-            $"Aviso: o arquivo de condição WHERE tem {FormatarTamanhoBytes(info.Length)} " +
-            $"e excede o limite técnico recomendado de {FormatarTamanhoBytes(LimiteTecnicoWhereArquivoBytes)}.");
-        Console.WriteLine("Isso pode deixar a exportação lenta ou travar o processo.");
-        Console.ResetColor();
-    }
+    ExibirAvisoArquivoGrande(caminhoArquivo, "condição WHERE");
 
     string conteudo = File.ReadAllText(caminhoArquivo).Trim();
     if (string.IsNullOrWhiteSpace(conteudo))
@@ -355,11 +348,27 @@ static string LerConsultaSqlDeArquivo(string caminhoArquivo)
     if (!File.Exists(caminhoArquivo))
         throw new FileNotFoundException($"Arquivo de consulta SQL não encontrado: {caminhoArquivo}");
 
+    ExibirAvisoArquivoGrande(caminhoArquivo, "consulta SQL");
+
     string conteudo = File.ReadAllText(caminhoArquivo).Trim();
     if (string.IsNullOrWhiteSpace(conteudo))
         throw new ArgumentException($"Arquivo de consulta SQL vazio: {caminhoArquivo}");
 
     return conteudo;
+}
+
+static void ExibirAvisoArquivoGrande(string caminhoArquivo, string tipoConteudo)
+{
+    var info = new FileInfo(caminhoArquivo);
+    if (info.Length <= LimiteAvisoArquivoBytes)
+        return;
+
+    Console.ForegroundColor = ConsoleColor.Yellow;
+    Console.WriteLine(
+        $"Aviso: o arquivo de {tipoConteudo} tem {FormatarTamanhoBytes(info.Length)} " +
+        $"e ultrapassa {FormatarTamanhoBytes(LimiteAvisoArquivoBytes)}.");
+    Console.WriteLine("Arquivos grandes podem deixar a exportação lenta ou instável.");
+    Console.ResetColor();
 }
 
 static Encoding ResolverEncodingSaidaExportacao(OpcoesExportacao op)
@@ -374,7 +383,9 @@ static Encoding ResolverEncodingSaidaExportacao(OpcoesExportacao op)
 static void ValidarCombinacaoOpcoesExportacao(OpcoesExportacao op)
 {
     if (string.IsNullOrWhiteSpace(op.Tabela))
-        throw new ArgumentException("Tabela nao informada (--table).");
+        throw new ArgumentException(
+            "Tabela nao informada (--table). " +
+            "Se estiver usando --output com barra final no PowerShell, remova a barra final ou use \\\\ no final.");
 
     if (!string.IsNullOrWhiteSpace(op.ConsultaSqlCompleta) &&
         !string.IsNullOrWhiteSpace(op.CondicaoWhere))
@@ -399,16 +410,28 @@ static void ExibirResumoArquivosExportacao(IReadOnlyList<(string Caminho, long T
         return;
 
     Console.WriteLine();
-    Console.WriteLine($"Arquivos gerados: {arquivosGerados.Count}");
+    Console.WriteLine("Resumo da exportação");
+    Console.WriteLine(new string('-', 72));
+    Console.WriteLine($"Arquivos gerados : {arquivosGerados.Count}");
+    Console.WriteLine();
+
+    int larguraIndice = arquivosGerados.Count.ToString().Length;
+    int larguraTamanho = arquivosGerados
+        .Select(a => FormatarTamanhoBytes(a.TamanhoBytes).Length)
+        .Max();
 
     for (int i = 0; i < arquivosGerados.Count; i++)
     {
         var arquivo = arquivosGerados[i];
+        string tamanhoFormatado = FormatarTamanhoBytes(arquivo.TamanhoBytes).PadLeft(larguraTamanho);
         Console.WriteLine(
-            $"[{i + 1}] {arquivo.Caminho} ({FormatarTamanhoBytes(arquivo.TamanhoBytes)})");
+            $"[{(i + 1).ToString().PadLeft(larguraIndice)}] {tamanhoFormatado}  {arquivo.Caminho}");
     }
 
-    Console.WriteLine($"Arquivo final: {arquivosGerados[^1].Caminho}");
+    Console.WriteLine();
+    Console.WriteLine($"Arquivo final    : {arquivosGerados[^1].Caminho}");
+    Console.WriteLine(new string('-', 72));
+    Console.WriteLine();
 }
 
 static string FormatarTamanhoBytes(long bytes)
@@ -424,4 +447,103 @@ static string FormatarTamanhoBytes(long bytes)
     }
 
     return $"{valor:0.##} {sufixos[indice]}";
+}
+
+static string[] NormalizarArgs(string[] args)
+{
+    if (args.Length == 0)
+        return args;
+
+    var normalizados = new List<string>(args.Length);
+
+    foreach (var arg in args)
+    {
+        if (string.IsNullOrWhiteSpace(arg))
+            continue;
+
+        if (!PossuiSegmentosMesclados(arg))
+        {
+            normalizados.Add(arg);
+            continue;
+        }
+
+        foreach (var token in SepararArgumentoMesclado(arg))
+            normalizados.Add(token);
+    }
+
+    return normalizados.ToArray();
+}
+
+static bool PossuiSegmentosMesclados(string valor)
+{
+    return valor.Contains(" --", StringComparison.Ordinal) ||
+           valor.Contains("\t--", StringComparison.Ordinal);
+}
+
+static IEnumerable<string> SepararArgumentoMesclado(string valor)
+{
+    int indicePrimeiraOpcao = EncontrarInicioOpcaoMesclada(valor);
+    if (indicePrimeiraOpcao < 0)
+        return TokenizarArgumentoComposto(valor);
+
+    var resultado = new List<string>();
+    var prefixo = valor[..indicePrimeiraOpcao].Trim();
+    if (!string.IsNullOrWhiteSpace(prefixo))
+        resultado.Add(prefixo);
+
+    var sufixo = valor[indicePrimeiraOpcao..].Trim();
+    foreach (var token in TokenizarArgumentoComposto(sufixo))
+        resultado.Add(token);
+
+    return resultado;
+}
+
+static int EncontrarInicioOpcaoMesclada(string valor)
+{
+    for (int i = 1; i < valor.Length - 2; i++)
+    {
+        if (!char.IsWhiteSpace(valor[i]))
+            continue;
+
+        if (valor[i + 1] == '-' && valor[i + 2] == '-')
+            return i + 1;
+    }
+
+    return -1;
+}
+
+static IEnumerable<string> TokenizarArgumentoComposto(string valor)
+{
+    var tokens = new List<string>();
+    var atual = new StringBuilder();
+    bool dentroAspas = false;
+
+    foreach (char c in valor)
+    {
+        if (c == '"')
+        {
+            dentroAspas = !dentroAspas;
+            continue;
+        }
+
+        if (!dentroAspas && char.IsWhiteSpace(c))
+        {
+            AdicionarToken(atual, tokens);
+            continue;
+        }
+
+        atual.Append(c);
+    }
+
+    AdicionarToken(atual, tokens);
+    return tokens;
+}
+
+static void AdicionarToken(StringBuilder atual, List<string> tokens)
+{
+    if (atual.Length == 0)
+        return;
+
+    tokens.Add(atual.ToString());
+    atual.Clear();
 }
