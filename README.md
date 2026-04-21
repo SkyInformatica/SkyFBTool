@@ -37,12 +37,16 @@ Ideal para:
 
 - Permite renomear a tabela destino:
   ```
-  --alias NOVA_TABELA
+  --target-table NOVA_TABELA
   ```
 
-- Exporta por filtragem com cláusula WHERE:
+- Exporta por filtragem simples:
   ```
-  --where "CAMPO = VALOR"
+  --filter "CAMPO = VALOR"
+  ```
+  ou
+  ```
+  --filter-file "C:\filtros\where.txt"
   ```
 
 - Suporte a arquivos extremamente grandes (streaming).
@@ -50,12 +54,24 @@ Ideal para:
 
 ---
 
-## 🔵 Filtro WHERE na exportação
+## 🔵 Filtro Simples / Simple Filter
 
-É possível exportar somente uma parte da tabela utilizando:
+É possível exportar somente uma parte da tabela utilizando filtro simples:
 
 ```
---where "CAMPO = VALOR"
+--filter "CAMPO = VALOR"
+```
+
+Também é possível informar um arquivo com a condição:
+
+```
+--filter-file "C:\filtros\where.txt"
+```
+
+Modo avançado com SELECT completo em arquivo:
+
+```
+--query-file "C:\filtros\consulta_recibos.sql"
 ```
 
 Exemplo:
@@ -64,7 +80,7 @@ Exemplo:
 SkyFBTool export \
   --database C:\dados\cartorio.fdb \
   --table ENCAMINHALANCAMENTOSELOS \
-  --where "NROLANCAMENTO = 12345" \
+  --filter "NROLANCAMENTO = 12345" \
   --output parcial.sql
 ```
 
@@ -78,16 +94,20 @@ WHERE NROLANCAMENTO = 12345
 Você pode usar qualquer condição válida do Firebird:
 
 ```
---where "DATAUTILIZACAO >= '2024-01-01'"
---where "SITUACAO <> 'C'"
---where "VALORSELO > 100 AND COBRARSELO = 'S'"
---where "UPPER(NOMEUSUARIO) LIKE '%JOAO%'"
+--filter "DATAUTILIZACAO >= '2024-01-01'"
+--filter "SITUACAO <> 'C'"
+--filter "VALORSELO > 100 AND COBRARSELO = 'S'"
+--filter "UPPER(NOMEUSUARIO) LIKE '%JOAO%'"
 ```
 
-Validações do `--where`:
+Validações do `--filter`:
 
 - Se você informar `WHERE ...`, o prefixo `WHERE` é removido automaticamente.
 - Não é permitido usar `;`, `--`, `/*` ou `*/`.
+
+Validação do `--query-file`:
+
+- O arquivo deve conter um `SELECT` completo.
 
 ---
 
@@ -120,7 +140,7 @@ Invalid character set specified.
 No data is available for encoding 1252.
 ```
 
-### 🟦 `--force-win1252` (modo RAW)
+### 🟦 `--legacy-win1252` (modo RAW / legacy mode)
 Modo especial criado para bases **CHARSET NONE** com dados gravados originalmente em `WIN1252`.
 
 Esse modo:
@@ -133,7 +153,7 @@ Esse modo:
 
 Base CHARSET NONE com dados WIN1252:
 ```
---force-win1252
+--legacy-win1252
 ```
 
 Base UTF8, ISO8859_1, ou convertida corretamente:
@@ -141,7 +161,7 @@ Base UTF8, ISO8859_1, ou convertida corretamente:
 --charset UTF8
 ```
 
-Não use `--force-win1252` em bancos Unicode.
+Não use `--legacy-win1252` em bancos Unicode.
 
 ---
 
@@ -155,22 +175,29 @@ Não use `--force-win1252` em bancos Unicode.
 SkyFBTool export [opções]
 ```
 
+Modos de consulta / Query modes:
+
+- Simples / Simple: `--table` + `--filter` (ou `--filter-file`)
+- Avançado / Advanced: `--query-file` (SELECT completo)
+
 ### Principais opções
 
 | Parâmetro | Descrição |
 |----------|-----------|
 | `--database` | Caminho do .fdb |
-| `--table` | Nome da tabela (identificador simples ou entre aspas) |
-| `--alias` | Nome alternativo nos INSERTs |
-| `--output` | Arquivo SQL (opcional; aceita diretório) |
+| `--table` | Tabela de origem / Source table (identificador simples ou entre aspas) |
+| `--target-table` | Tabela destino dos INSERTs / Target table in INSERTs |
+| `--output` | Arquivo SQL (opcional; aceita diretório) / SQL output (file or directory) |
 | `--charset` | WIN1252, ISO8859_1, UTF8, NONE |
 | `--blob-format` | Hex (padrão) ou Base64 |
 | `--commit-every` | Insere COMMIT a cada N linhas |
-| `--max-file-size-mb` | Divide em múltiplos arquivos de até N MB (padrão: 100; 0 desativa) |
-| `--force-win1252` | Modo RAW para bases NONE |
+| `--split-size-mb` | Divide em múltiplos arquivos de até N MB (padrão: 100; 0 desativa) |
+| `--legacy-win1252` | Modo RAW para bases NONE |
 | `--sanitize-text` | Remove caracteres inválidos |
 | `--escape-newlines` | Converte quebras de linha |
-| `--where` | Condição WHERE (opcional; sem `;`, `--`, `/*`, `*/`) |
+| `--filter` | Filtro simples inline (opcional) |
+| `--filter-file` | Caminho de arquivo contendo o filtro simples |
+| `--query-file` | Caminho de arquivo contendo um SELECT completo (modo avançado) |
 | `--continue-on-error` | Não interrompe |
 | `--progress-every` | Progresso |
 
@@ -181,7 +208,7 @@ SkyFBTool export \
   --database C:\db\cartorio.fdb \
   --table ENCAMINHALANCAMENTOSELOS \
   --charset WIN1252 \
-  --alias ENCAMINHALANCAMENTOSELOS_BKP \
+  --target-table ENCAMINHALANCAMENTOSELOS_BKP \
   --commit-every 5000 \
   --output selos.sql
 ```
@@ -227,13 +254,13 @@ Contrato da rotacao:
 Para alterar:
 
 ```
---max-file-size-mb 250
+--split-size-mb 250
 ```
 
 Para desativar:
 
 ```
---max-file-size-mb 0
+--split-size-mb 0
 ```
 
 ### Início do arquivo gerado:
@@ -315,7 +342,7 @@ Cobertura atual dos testes de integracao:
 - `--commit-every` com volume alto (mais de 1000 linhas).
 - `--escape-newlines` no SQL gerado.
 - `--blob-format` para `Hex` e `Base64`.
-- `--force-win1252` em base `CHARSET NONE`.
+- `--legacy-win1252` em base `CHARSET NONE`.
 
 Script pronto para executar:
 

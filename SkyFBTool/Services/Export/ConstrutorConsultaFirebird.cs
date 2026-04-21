@@ -14,6 +14,9 @@ public static class ConstrutorConsultaFirebird
 
     public static string MontarSelect(OpcoesExportacao opcoes)
     {
+        if (!string.IsNullOrWhiteSpace(opcoes.ConsultaSqlCompleta))
+            return ValidarSelectCompleto(opcoes.ConsultaSqlCompleta);
+
         var nomeTabela = ValidarNomeTabela(opcoes.Tabela);
         var where = NormalizarEValidarWhere(opcoes.CondicaoWhere);
 
@@ -24,6 +27,18 @@ public static class ConstrutorConsultaFirebird
             sb.Append(" WHERE ").Append(where);
 
         return sb.ToString();
+    }
+
+    private static string ValidarSelectCompleto(string sql)
+    {
+        string texto = sql.Trim();
+        if (texto.EndsWith(";"))
+            texto = texto[..^1].TrimEnd();
+
+        if (!texto.StartsWith("SELECT", StringComparison.OrdinalIgnoreCase))
+            throw new ArgumentException("Consulta SQL inválida: o arquivo deve conter um SELECT.");
+
+        return texto;
     }
 
     private static string ValidarNomeTabela(string? nomeTabela)
@@ -48,8 +63,7 @@ public static class ConstrutorConsultaFirebird
             return null;
 
         string where = condicaoWhere.Trim();
-        if (where.StartsWith("WHERE ", StringComparison.OrdinalIgnoreCase))
-            where = where[6..].TrimStart();
+        where = RemoverPrefixoWhere(where);
 
         if (string.IsNullOrWhiteSpace(where))
             throw new ArgumentException("Condição WHERE inválida: vazia.");
@@ -58,6 +72,20 @@ public static class ConstrutorConsultaFirebird
             throw new ArgumentException("Condição WHERE inválida: contém tokens SQL não permitidos.");
 
         return where;
+    }
+
+    private static string RemoverPrefixoWhere(string where)
+    {
+        if (!where.StartsWith("WHERE", StringComparison.OrdinalIgnoreCase))
+            return where;
+
+        if (where.Length == 5)
+            return string.Empty;
+
+        if (!char.IsWhiteSpace(where[5]))
+            return where;
+
+        return where[5..].TrimStart();
     }
 
     private static bool ContemTokenPerigoso(string valor)

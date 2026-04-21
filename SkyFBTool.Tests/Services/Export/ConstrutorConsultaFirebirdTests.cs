@@ -21,6 +21,34 @@ public class ConstrutorConsultaFirebirdTests
     }
 
     [Fact]
+    public void MontarSelect_ComQueryCompleta_UsaSelectDoArquivo()
+    {
+        var opcoes = new OpcoesExportacao
+        {
+            Tabela = "PAGAMENTOS",
+            ConsultaSqlCompleta = "SELECT r.* FROM RECIBOS r WHERE r.NUMERORECIBO = 1;"
+        };
+
+        var sql = ConstrutorConsultaFirebird.MontarSelect(opcoes);
+
+        Assert.Equal("SELECT r.* FROM RECIBOS r WHERE r.NUMERORECIBO = 1", sql);
+    }
+
+    [Fact]
+    public void MontarSelect_ComQueryCompletaNaoSelect_DisparaErro()
+    {
+        var opcoes = new OpcoesExportacao
+        {
+            Tabela = "PAGAMENTOS",
+            ConsultaSqlCompleta = "DELETE FROM RECIBOS"
+        };
+
+        var ex = Assert.Throws<ArgumentException>(() => ConstrutorConsultaFirebird.MontarSelect(opcoes));
+
+        Assert.Contains("Consulta SQL inválida", ex.Message);
+    }
+
+    [Fact]
     public void MontarSelect_WhereComPrefixoWhere_RemovePrefixo()
     {
         var opcoes = new OpcoesExportacao
@@ -32,6 +60,34 @@ public class ConstrutorConsultaFirebirdTests
         var sql = ConstrutorConsultaFirebird.MontarSelect(opcoes);
 
         Assert.Equal("SELECT * FROM PAGAMENTOS WHERE CODIGO = 10", sql);
+    }
+
+    [Fact]
+    public void MontarSelect_WhereComPrefixoWhereEQuebraLinha_RemovePrefixo()
+    {
+        var opcoes = new OpcoesExportacao
+        {
+            Tabela = "PAGAMENTOS",
+            CondicaoWhere = "WHERE\r\nCODIGO = 10"
+        };
+
+        var sql = ConstrutorConsultaFirebird.MontarSelect(opcoes);
+
+        Assert.Equal("SELECT * FROM PAGAMENTOS WHERE CODIGO = 10", sql);
+    }
+
+    [Fact]
+    public void MontarSelect_WhereSomenteComPalavraWhere_DisparaErro()
+    {
+        var opcoes = new OpcoesExportacao
+        {
+            Tabela = "PAGAMENTOS",
+            CondicaoWhere = "WHERE"
+        };
+
+        var ex = Assert.Throws<ArgumentException>(() => ConstrutorConsultaFirebird.MontarSelect(opcoes));
+
+        Assert.Contains("Condição WHERE inválida", ex.Message);
     }
 
     [Theory]

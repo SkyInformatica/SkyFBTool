@@ -14,6 +14,7 @@ public class OpcoesExportacao
 
     public string? Charset { get; set; }
     public string? CondicaoWhere { get; set; }
+    public string? ConsultaSqlCompleta { get; set; }
 
     public FormatoBlob FormatoBlob { get; set; } = FormatoBlob.Hex;
     public bool ForcarWin1252 { get; set; }

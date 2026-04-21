@@ -4,6 +4,8 @@ using SkyFBTool.Infra;
 using SkyFBTool.Services.Export;
 using SkyFBTool.Services.Import;
 
+const long LimiteTecnicoWhereArquivoBytes = 100L * 1024 * 1024;
+
 Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
 
 Console.OutputEncoding = Encoding.UTF8;
@@ -16,11 +18,11 @@ if (args.Length == 0 || args.Contains("--help") || args.Contains("-h"))
 
 string comando = args[0].ToLowerInvariant();
 
-if (comando == "export" || comando == "exportar")
+if (comando == "export")
 {
     await ExecutarExportacao(args.Skip(1).ToArray());
 }
-else if (comando == "import" || comando == "importar")
+else if (comando == "import")
 {
     await ExecutarImportacao(args.Skip(1).ToArray());
 }
@@ -48,7 +50,7 @@ static async Task ExecutarExportacao(string[] args)
             case "table":
                 op.Tabela = LerValorOpcao(args, ref i, chave);
                 break;
-            case "alias":
+            case "target-table":
                 op.AliasTabela = LerValorOpcao(args, ref i, chave);
                 break;
             case "output":
@@ -69,8 +71,14 @@ static async Task ExecutarExportacao(string[] args)
             case "charset":
                 op.Charset = LerValorOpcao(args, ref i, chave);
                 break;
-            case "where":
-                op.CondicaoWhere = LerValorOpcao(args, ref i, chave);
+            case "filter":
+                op.CondicaoWhere = ResolverCondicaoWhere(LerValorOpcao(args, ref i, chave));
+                break;
+            case "filter-file":
+                op.CondicaoWhere = LerCondicaoWhereDeArquivo(LerValorOpcao(args, ref i, chave));
+                break;
+            case "query-file":
+                op.ConsultaSqlCompleta = LerConsultaSqlDeArquivo(LerValorOpcao(args, ref i, chave));
                 break;
             case "blob-format":
                 var valorBlobFormat = LerValorOpcao(args, ref i, chave);
@@ -84,11 +92,10 @@ static async Task ExecutarExportacao(string[] args)
             case "progress-every":
                 op.ProgressoACada = int.Parse(LerValorOpcao(args, ref i, chave));
                 break;
-            case "max-file-size-mb":
             case "split-size-mb":
                 op.TamanhoMaximoArquivoMb = int.Parse(LerValorOpcao(args, ref i, chave));
                 break;
-            case "force-win1252":
+            case "legacy-win1252":
                 op.ForcarWin1252 = true;
                 break;
             case "sanitize-text":
@@ -102,6 +109,9 @@ static async Task ExecutarExportacao(string[] args)
                 break;
         }
     }
+
+    ValidarCombinacaoOpcoesExportacao(op);
+    ExibirResumoModoExportacao(op);
 
     var arquivoSaidaInformado = op.ArquivoSaida;
     op.ArquivoSaida = ResolverArquivoSaidaExportacao(op);
@@ -194,27 +204,31 @@ USO:
 ======================
 
 OPÇÕES:
-  --database CAMINHO          Caminho do banco .fdb
-  --table TABELA              Nome da tabela a exportar
-  --alias NOVO_NOME           Nome alternativo da tabela no arquivo SQL
-  --output ARQUIVO.SQL        Caminho do arquivo de saída (opcional; aceita diretório)
+  --database CAMINHO          Caminho do banco .fdb / Database path
+  --table TABELA              Tabela de origem / Source table
+  --target-table NOME         Tabela destino no INSERT / Target table in INSERT
+  --output ARQUIVO.SQL        Saida SQL (arquivo ou diretorio) / SQL output (file or directory)
   --charset CHARSET           WIN1252 | ISO8859_1 | UTF8 | NONE
-  --blob-format FORMATO       Hex (padrão) | Base64
-  --commit-every N            Insere COMMIT; a cada N linhas
-  --max-file-size-mb N        Divide o SQL em partes de até N MB (padrão: 100; 0 desativa)
-  --progress-every N          Exibe progresso a cada N linhas
-  --force-win1252             Leitura RAW em WIN1252
-  --sanitize-text             Remove caracteres inválidos
-  --escape-newlines           Escapa quebras de linha
-  --where CONDICAO            Condição WHERE (opcional; sem ';', '--', '/*' ou '*/')
-  --continue-on-error         Não interrompe ao encontrar erros
+  --blob-format FORMATO       Hex (padrao) | Base64
+  --commit-every N            COMMIT a cada N linhas / COMMIT every N rows
+  --split-size-mb N           Divide em partes de N MB (padrao: 100; 0 desativa)
+  --progress-every N          Exibe progresso / Progress interval
+  --legacy-win1252            Modo legado WIN1252 para bases NONE / Legacy mode for NONE
+  --sanitize-text             Sanitiza texto / Sanitize text
+  --escape-newlines           Escapa quebras de linha / Escape newlines
+  --filter CONDICAO           Filtro simples inline ou arquivo / Simple inline filter or file
+  --filter-file CAMINHO       Filtro simples em arquivo / Simple filter from file
+  --query-file CAMINHO        SELECT completo em arquivo / Full SELECT from file
+  --continue-on-error         Continua em erro / Continue on error
 
 EXEMPLO:
   SkyFBTool export --database C:\banco.fdb --table PESSOAS --output PESSOAS.SQL --charset WIN1252
 
 VALIDAÇÕES:
-  --table aceita identificador simples ou entre aspas
-  --where pode começar com WHERE (o prefixo é removido automaticamente)
+  --table aceita identificador simples ou entre aspas / simple or quoted identifier
+  --filter pode começar com WHERE (o prefixo é removido) / WHERE prefix is removed
+  --query-file deve conter SELECT completo / must contain full SELECT
+  --query-file nao pode ser usado com --filter ou --filter-file
 
 PADRÃO DO ARQUIVO (quando --output não for informado):
   <TABELA>_yyyyMMdd_HHmmss_fff.sql
@@ -303,6 +317,51 @@ static string LerValorOpcao(string[] args, ref int indiceAtual, string chave)
     return proximoValor;
 }
 
+static string? ResolverCondicaoWhere(string valor)
+{
+    string candidato = valor.Trim();
+
+    if (File.Exists(candidato))
+        return LerCondicaoWhereDeArquivo(candidato);
+
+    return candidato;
+}
+
+static string LerCondicaoWhereDeArquivo(string caminhoArquivo)
+{
+    if (!File.Exists(caminhoArquivo))
+        throw new FileNotFoundException($"Arquivo de condição WHERE não encontrado: {caminhoArquivo}");
+
+    var info = new FileInfo(caminhoArquivo);
+    if (info.Length > LimiteTecnicoWhereArquivoBytes)
+    {
+        Console.ForegroundColor = ConsoleColor.Yellow;
+        Console.WriteLine(
+            $"Aviso: o arquivo de condição WHERE tem {FormatarTamanhoBytes(info.Length)} " +
+            $"e excede o limite técnico recomendado de {FormatarTamanhoBytes(LimiteTecnicoWhereArquivoBytes)}.");
+        Console.WriteLine("Isso pode deixar a exportação lenta ou travar o processo.");
+        Console.ResetColor();
+    }
+
+    string conteudo = File.ReadAllText(caminhoArquivo).Trim();
+    if (string.IsNullOrWhiteSpace(conteudo))
+        throw new ArgumentException($"Arquivo de condição WHERE vazio: {caminhoArquivo}");
+
+    return conteudo;
+}
+
+static string LerConsultaSqlDeArquivo(string caminhoArquivo)
+{
+    if (!File.Exists(caminhoArquivo))
+        throw new FileNotFoundException($"Arquivo de consulta SQL não encontrado: {caminhoArquivo}");
+
+    string conteudo = File.ReadAllText(caminhoArquivo).Trim();
+    if (string.IsNullOrWhiteSpace(conteudo))
+        throw new ArgumentException($"Arquivo de consulta SQL vazio: {caminhoArquivo}");
+
+    return conteudo;
+}
+
 static Encoding ResolverEncodingSaidaExportacao(OpcoesExportacao op)
 {
     string? charset = op.Charset;
@@ -310,6 +369,28 @@ static Encoding ResolverEncodingSaidaExportacao(OpcoesExportacao op)
         charset = "WIN1252";
 
     return CharsetSql.ResolverEncodingLeituraSql(charset);
+}
+
+static void ValidarCombinacaoOpcoesExportacao(OpcoesExportacao op)
+{
+    if (string.IsNullOrWhiteSpace(op.Tabela))
+        throw new ArgumentException("Tabela nao informada (--table).");
+
+    if (!string.IsNullOrWhiteSpace(op.ConsultaSqlCompleta) &&
+        !string.IsNullOrWhiteSpace(op.CondicaoWhere))
+    {
+        throw new ArgumentException(
+            "Nao use --query-file junto com --filter/--filter-file. Escolha apenas um modo.");
+    }
+}
+
+static void ExibirResumoModoExportacao(OpcoesExportacao op)
+{
+    string modo = string.IsNullOrWhiteSpace(op.ConsultaSqlCompleta)
+        ? "Simple/Simples (--table + --filter)"
+        : "Advanced/Avancado (--query-file)";
+
+    Console.WriteLine($"Modo de consulta / Query mode: {modo}");
 }
 
 static void ExibirResumoArquivosExportacao(IReadOnlyList<(string Caminho, long TamanhoBytes)> arquivosGerados)
