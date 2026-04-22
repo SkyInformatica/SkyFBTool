@@ -18,6 +18,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - Export summary output is now aligned and easier to read.
 - Missing `--table` error now includes guidance for trailing backslash usage in PowerShell.
+- CLI was reorganized by context (`Cli/Commands` and `Cli/Common`) with a minimal `Program.cs` entrypoint.
 
 ## [0.1.0] - 2026-04-21
 

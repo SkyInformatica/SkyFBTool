@@ -38,6 +38,15 @@ git push origin v0.1.0
 - Modo legado de charset para `CHARSET NONE` com `--legacy-win1252`
 - Aviso para arquivos grandes de filtro/consulta (> 64 KB)
 
+## Organização do Código
+
+- `Program.cs`: ponto de entrada mínimo
+- `Cli/CliApp.cs`: roteamento da CLI + ajuda
+- `Cli/Commands/*`: um arquivo por comando (`export`, `import`, `ddl-extract`, `ddl-diff`)
+- `Cli/Common/*`: utilitários compartilhados de parsing de argumentos
+- `Services/*`: lógica por contexto (Export, Import, Ddl)
+- `Infra/*`: adaptadores técnicos (conexão, encoding, arquivos)
+
 ## Uso
 
 ```powershell

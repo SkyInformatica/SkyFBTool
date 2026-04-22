@@ -18,6 +18,7 @@ e o projeto adota [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ### Alterado
 - Resumo da exportacao com layout alinhado e mais legivel.
 - Mensagem de erro para ausencia de `--table` com orientacao para barra final no PowerShell.
+- CLI reorganizada por contexto (`Cli/Commands` e `Cli/Common`) com `Program.cs` mínimo.
 
 ## [0.1.0] - 2026-04-21
 
