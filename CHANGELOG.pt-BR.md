@@ -12,6 +12,8 @@ e o projeto adota [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ### Adicionado
 - Aviso no console para `--filter-file` e `--query-file` quando o arquivo ultrapassa 64 KB.
 - Tratamento mais resiliente de argumentos CLI para casos de PowerShell com `--output` terminando em barra invertida.
+- Novo comando `ddl-extract` para extrair schema normalizado (`.sql` + `.schema.json`).
+- Novo comando `ddl-diff` para comparar origem/alvo e gerar relatório (`.sql`, `.json` e `.md`).
 
 ### Alterado
 - Resumo da exportacao com layout alinhado e mais legivel.

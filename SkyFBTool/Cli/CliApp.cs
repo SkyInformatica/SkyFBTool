@@ -1,0 +1,675 @@
+using System.Text;
+using SkyFBTool.Core;
+using SkyFBTool.Infra;
+using SkyFBTool.Services.Ddl;
+using SkyFBTool.Services.Export;
+using SkyFBTool.Services.Import;
+
+namespace SkyFBTool.Cli;
+
+public static class CliApp
+{
+    private const long LimiteAvisoArquivoBytes = 64L * 1024;
+
+    public static async Task RunAsync(string[] args)
+    {
+        Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
+        Console.OutputEncoding = Encoding.UTF8;
+
+        args = NormalizarArgs(args);
+
+        if (args.Length == 0 || args.Contains("--help") || args.Contains("-h"))
+        {
+            ExibirAjuda();
+            return;
+        }
+
+        string comando = args[0].ToLowerInvariant();
+
+        switch (comando)
+        {
+            case "export":
+                await ExecutarExportacao(args.Skip(1).ToArray());
+                break;
+            case "import":
+                await ExecutarImportacao(args.Skip(1).ToArray());
+                break;
+            case "ddl-extract":
+                await ExecutarDdlExtract(args.Skip(1).ToArray());
+                break;
+            case "ddl-diff":
+                await ExecutarDdlDiff(args.Skip(1).ToArray());
+                break;
+            default:
+                Console.WriteLine($"Comando desconhecido: {comando}");
+                ExibirAjuda();
+                break;
+        }
+    }
+
+    private static async Task ExecutarExportacao(string[] args)
+    {
+        var op = new OpcoesExportacao();
+
+        for (int i = 0; i < args.Length; i++)
+        {
+            string chave = args[i].TrimStart('-').ToLowerInvariant();
+
+            switch (chave)
+            {
+                case "database":
+                    op.Database = LerValorOpcao(args, ref i, chave);
+                    break;
+                case "table":
+                    op.Tabela = LerValorOpcao(args, ref i, chave);
+                    break;
+                case "target-table":
+                    op.AliasTabela = LerValorOpcao(args, ref i, chave);
+                    break;
+                case "output":
+                    op.ArquivoSaida = LerValorOpcao(args, ref i, chave);
+                    break;
+                case "host":
+                    op.Host = LerValorOpcao(args, ref i, chave);
+                    break;
+                case "port":
+                    op.Porta = int.Parse(LerValorOpcao(args, ref i, chave));
+                    break;
+                case "user":
+                    op.Usuario = LerValorOpcao(args, ref i, chave);
+                    break;
+                case "password":
+                    op.Senha = LerValorOpcao(args, ref i, chave);
+                    break;
+                case "charset":
+                    op.Charset = LerValorOpcao(args, ref i, chave);
+                    break;
+                case "filter":
+                    op.CondicaoWhere = ResolverCondicaoWhere(LerValorOpcao(args, ref i, chave));
+                    break;
+                case "filter-file":
+                    op.CondicaoWhere = LerCondicaoWhereDeArquivo(LerValorOpcao(args, ref i, chave));
+                    break;
+                case "query-file":
+                    op.ConsultaSqlCompleta = LerConsultaSqlDeArquivo(LerValorOpcao(args, ref i, chave));
+                    break;
+                case "blob-format":
+                    var valorBlobFormat = LerValorOpcao(args, ref i, chave);
+                    op.FormatoBlob = Enum.TryParse<FormatoBlob>(valorBlobFormat, true, out var fmt)
+                        ? fmt
+                        : FormatoBlob.Hex;
+                    break;
+                case "commit-every":
+                    op.CommitACada = int.Parse(LerValorOpcao(args, ref i, chave));
+                    break;
+                case "progress-every":
+                    op.ProgressoACada = int.Parse(LerValorOpcao(args, ref i, chave));
+                    break;
+                case "split-size-mb":
+                    op.TamanhoMaximoArquivoMb = int.Parse(LerValorOpcao(args, ref i, chave));
+                    break;
+                case "legacy-win1252":
+                    op.ForcarWin1252 = true;
+                    break;
+                case "sanitize-text":
+                    op.SanitizarTexto = true;
+                    break;
+                case "escape-newlines":
+                    op.EscaparQuebrasDeLinha = true;
+                    break;
+                case "continue-on-error":
+                    op.ContinuarEmCasoDeErro = true;
+                    break;
+            }
+        }
+
+        ValidarCombinacaoOpcoesExportacao(op);
+        ExibirResumoModoExportacao(op);
+
+        var arquivoSaidaInformado = op.ArquivoSaida;
+        op.ArquivoSaida = ResolverArquivoSaidaExportacao(op);
+
+        if (string.IsNullOrWhiteSpace(arquivoSaidaInformado))
+        {
+            Console.WriteLine($"Arquivo de saída não informado. Usando: {op.ArquivoSaida}");
+        }
+        else if (EhDiretorio(arquivoSaidaInformado))
+        {
+            Console.WriteLine($"Diretório informado em --output. Arquivo gerado: {op.ArquivoSaida}");
+        }
+
+        if (op.TamanhoMaximoArquivoMb > 0)
+        {
+            Console.WriteLine($"Divisão de arquivo ativa: {op.TamanhoMaximoArquivoMb} MB por arquivo.");
+        }
+        else
+        {
+            Console.WriteLine("Divisão de arquivo desativada.");
+        }
+
+        Console.WriteLine("Iniciando exportação...");
+
+        var encodingSaida = ResolverEncodingSaidaExportacao(op);
+        await using var destino = new DestinoArquivo(op.ArquivoSaida, op.TamanhoMaximoArquivoMb, encodingSaida);
+        await ExportadorTabelaFirebird.ExportarAsync(op, destino);
+        ExibirResumoArquivosExportacao(destino.ObterArquivosGerados());
+    }
+
+    private static async Task ExecutarImportacao(string[] args)
+    {
+        var op = new OpcoesImportacao();
+
+        for (int i = 0; i < args.Length; i++)
+        {
+            string chave = args[i].TrimStart('-').ToLowerInvariant();
+
+            switch (chave)
+            {
+                case "database":
+                    op.Database = LerValorOpcao(args, ref i, chave);
+                    break;
+                case "input":
+                    op.ArquivoEntrada = LerValorOpcao(args, ref i, chave);
+                    break;
+                case "host":
+                    op.Host = LerValorOpcao(args, ref i, chave);
+                    break;
+                case "port":
+                    op.Porta = int.Parse(LerValorOpcao(args, ref i, chave));
+                    break;
+                case "user":
+                    op.Usuario = LerValorOpcao(args, ref i, chave);
+                    break;
+                case "password":
+                    op.Senha = LerValorOpcao(args, ref i, chave);
+                    break;
+                case "progress-every":
+                    op.ProgressoACada = int.Parse(LerValorOpcao(args, ref i, chave));
+                    break;
+                case "continue-on-error":
+                    op.ContinuarEmCasoDeErro = true;
+                    break;
+            }
+        }
+
+        Console.WriteLine("Iniciando importação...");
+        await ImportadorSql.ImportarAsync(op);
+    }
+
+    private static async Task ExecutarDdlExtract(string[] args)
+    {
+        var op = new OpcoesDdlExtracao();
+
+        for (int i = 0; i < args.Length; i++)
+        {
+            string chave = args[i].TrimStart('-').ToLowerInvariant();
+
+            switch (chave)
+            {
+                case "database":
+                    op.Database = LerValorOpcao(args, ref i, chave);
+                    break;
+                case "output":
+                    op.Saida = LerValorOpcao(args, ref i, chave);
+                    break;
+                case "host":
+                    op.Host = LerValorOpcao(args, ref i, chave);
+                    break;
+                case "port":
+                    op.Porta = int.Parse(LerValorOpcao(args, ref i, chave));
+                    break;
+                case "user":
+                    op.Usuario = LerValorOpcao(args, ref i, chave);
+                    break;
+                case "password":
+                    op.Senha = LerValorOpcao(args, ref i, chave);
+                    break;
+                case "charset":
+                    op.Charset = LerValorOpcao(args, ref i, chave);
+                    break;
+            }
+        }
+
+        Console.WriteLine("Iniciando extração de DDL...");
+        var (arquivoSql, arquivoJson) = await ExtratorDdlFirebird.ExtrairAsync(op);
+
+        Console.WriteLine();
+        Console.WriteLine("Extração concluída.");
+        Console.WriteLine($"DDL SQL    : {arquivoSql}");
+        Console.WriteLine($"Schema JSON: {arquivoJson}");
+    }
+
+    private static async Task ExecutarDdlDiff(string[] args)
+    {
+        var op = new OpcoesDdlDiff();
+
+        for (int i = 0; i < args.Length; i++)
+        {
+            string chave = args[i].TrimStart('-').ToLowerInvariant();
+
+            switch (chave)
+            {
+                case "source":
+                case "source-ddl":
+                    op.Origem = LerValorOpcao(args, ref i, chave);
+                    break;
+                case "target":
+                case "target-ddl":
+                    op.Alvo = LerValorOpcao(args, ref i, chave);
+                    break;
+                case "output":
+                    op.Saida = LerValorOpcao(args, ref i, chave);
+                    break;
+            }
+        }
+
+        Console.WriteLine("Iniciando comparação de DDL...");
+        var (arquivoSql, arquivoJson, arquivoMarkdown) = await ComparadorSchema.CompararAsync(op);
+
+        Console.WriteLine();
+        Console.WriteLine("Comparação concluída.");
+        Console.WriteLine($"Diff SQL   : {arquivoSql}");
+        Console.WriteLine($"Diff JSON  : {arquivoJson}");
+        Console.WriteLine($"Relatório  : {arquivoMarkdown}");
+    }
+
+    private static void ExibirAjuda()
+    {
+        Console.WriteLine(@"
+SkyFBTool - Ferramenta de Exportação/Importação Firebird
+--------------------------------------------------------
+
+USO:
+  SkyFBTool export   [opções]
+  SkyFBTool import   [opções]
+  SkyFBTool ddl-extract [opções]
+  SkyFBTool ddl-diff    [opções]
+
+
+======================
+ COMANDO: EXPORT
+======================
+
+OPÇÕES:
+  --database CAMINHO          Caminho do banco .fdb / Database path
+  --table TABELA              Tabela de origem / Source table
+  --target-table NOME         Tabela destino no INSERT / Target table in INSERT
+  --output ARQUIVO.SQL        Saida SQL (arquivo ou diretorio) / SQL output (file or directory)
+  --charset CHARSET           WIN1252 | ISO8859_1 | UTF8 | NONE
+  --blob-format FORMATO       Hex (padrao) | Base64
+  --commit-every N            COMMIT a cada N linhas / COMMIT every N rows
+  --split-size-mb N           Divide em partes de N MB (padrao: 100; 0 desativa)
+  --progress-every N          Exibe progresso / Progress interval
+  --legacy-win1252            Modo legado WIN1252 para bases NONE / Legacy mode for NONE
+  --sanitize-text             Sanitiza texto / Sanitize text
+  --escape-newlines           Escapa quebras de linha / Escape newlines
+  --filter CONDICAO           Filtro simples inline ou arquivo / Simple inline filter or file
+  --filter-file CAMINHO       Filtro simples em arquivo / Simple filter from file
+  --query-file CAMINHO        SELECT completo em arquivo / Full SELECT from file
+  --continue-on-error         Continua em erro / Continue on error
+
+EXEMPLO:
+  SkyFBTool export --database C:\banco.fdb --table PESSOAS --output PESSOAS.SQL --charset WIN1252
+
+VALIDAÇÕES:
+  --table aceita identificador simples ou entre aspas / simple or quoted identifier
+  --filter pode começar com WHERE (o prefixo é removido) / WHERE prefix is removed
+  --query-file deve conter SELECT completo / must contain full SELECT
+  --query-file nao pode ser usado com --filter ou --filter-file
+  --filter-file/--query-file acima de 64 KB emitem aviso de desempenho/estabilidade
+
+PADRÃO DO ARQUIVO (quando --output não for informado):
+  <TABELA>_yyyyMMdd_HHmmss_fff.sql
+
+PADRÃO DE DIVISÃO DE ARQUIVO:
+  100 MB por arquivo (gera sufixo _part002, _part003...)
+  Parte 1 mantém o nome base informado em --output
+  Cada parte inicia com o mesmo cabeçalho SQL (SET SQL DIALECT / SET NAMES)
+
+
+
+======================
+ COMANDO: IMPORT
+======================
+
+OPÇÕES:
+  --database CAMINHO          Caminho do banco .fdb
+  --input ARQUIVO.SQL         Arquivo SQL a importar
+  --host SERVIDOR             (padrão: localhost)
+  --port PORTA                (padrão: 3050)
+  --user USUARIO              (padrão: sysdba)
+  --password SENHA            (padrão: masterkey)
+  --progress-every N          Exibe progresso
+  --continue-on-error         Continua mesmo se ocorrer erro
+
+EXEMPLO:
+  SkyFBTool import --database C:\banco.fdb --input PESSOAS.SQL
+
+
+===========================
+ COMANDO: DDL-EXTRACT
+===========================
+
+OPÇÕES:
+  --database CAMINHO          Caminho do banco .fdb
+  --output CAMINHO            Prefixo/arquivo/diretório de saída
+  --host SERVIDOR             (padrão: localhost)
+  --port PORTA                (padrão: 3050)
+  --user USUARIO              (padrão: sysdba)
+  --password SENHA            (padrão: masterkey)
+  --charset CHARSET           (opcional)
+
+SAÍDA:
+  <prefixo>.sql               DDL legível
+  <prefixo>.schema.json       Snapshot normalizado
+
+EXEMPLO:
+  SkyFBTool ddl-extract --database C:\banco.fdb --output C:\ddl\origem
+
+
+========================
+ COMANDO: DDL-DIFF
+========================
+
+OPÇÕES:
+  --source ARQUIVO            Origem (.schema.json ou .sql gerado no extract)
+  --target ARQUIVO            Alvo (.schema.json ou .sql gerado no extract)
+  --output CAMINHO            Prefixo/arquivo/diretório de saída
+
+SAÍDA:
+  <prefixo>.sql               Script de ajuste do alvo para origem
+  <prefixo>.json              Diferenças estruturadas
+  <prefixo>.md                Relatório de diferenças
+
+EXEMPLO:
+  SkyFBTool ddl-diff --source C:\ddl\origem.schema.json --target C:\ddl\alvo.schema.json --output C:\ddl\comparacao
+
+");
+    }
+
+    private static string GerarNomeArquivoExportacao(OpcoesExportacao op)
+    {
+        var baseNome = !string.IsNullOrWhiteSpace(op.AliasTabela)
+            ? op.AliasTabela
+            : op.Tabela;
+
+        if (string.IsNullOrWhiteSpace(baseNome))
+            baseNome = "exportacao";
+
+        foreach (char invalido in Path.GetInvalidFileNameChars())
+            baseNome = baseNome.Replace(invalido, '_');
+
+        var timestamp = DateTime.Now.ToString("yyyyMMdd_HHmmss_fff");
+        return $"{baseNome}_{timestamp}.sql";
+    }
+
+    private static string ResolverArquivoSaidaExportacao(OpcoesExportacao op)
+    {
+        var nomeGerado = GerarNomeArquivoExportacao(op);
+        var output = op.ArquivoSaida?.Trim();
+
+        if (string.IsNullOrWhiteSpace(output))
+            return Path.Combine(Directory.GetCurrentDirectory(), nomeGerado);
+
+        if (EhDiretorio(output))
+        {
+            var diretorio = Path.GetFullPath(output);
+            Directory.CreateDirectory(diretorio);
+            return Path.Combine(diretorio, nomeGerado);
+        }
+
+        return output;
+    }
+
+    private static bool EhDiretorio(string caminho)
+    {
+        if (Directory.Exists(caminho))
+            return true;
+
+        return caminho.EndsWith(Path.DirectorySeparatorChar)
+               || caminho.EndsWith(Path.AltDirectorySeparatorChar);
+    }
+
+    private static string LerValorOpcao(string[] args, ref int indiceAtual, string chave)
+    {
+        int proximoIndice = indiceAtual + 1;
+        if (proximoIndice >= args.Length)
+            throw new ArgumentException($"Valor não informado para --{chave}.");
+
+        string proximoValor = args[proximoIndice].Trim().Trim('"');
+        if (proximoValor.StartsWith("-"))
+            throw new ArgumentException($"Valor inválido para --{chave}: {proximoValor}");
+
+        indiceAtual = proximoIndice;
+        return proximoValor;
+    }
+
+    private static string? ResolverCondicaoWhere(string valor)
+    {
+        string candidato = valor.Trim();
+
+        if (File.Exists(candidato))
+            return LerCondicaoWhereDeArquivo(candidato);
+
+        return candidato;
+    }
+
+    private static string LerCondicaoWhereDeArquivo(string caminhoArquivo)
+    {
+        if (!File.Exists(caminhoArquivo))
+            throw new FileNotFoundException($"Arquivo de condição WHERE não encontrado: {caminhoArquivo}");
+
+        ExibirAvisoArquivoGrande(caminhoArquivo, "condição WHERE");
+
+        string conteudo = File.ReadAllText(caminhoArquivo).Trim();
+        if (string.IsNullOrWhiteSpace(conteudo))
+            throw new ArgumentException($"Arquivo de condição WHERE vazio: {caminhoArquivo}");
+
+        return conteudo;
+    }
+
+    private static string LerConsultaSqlDeArquivo(string caminhoArquivo)
+    {
+        if (!File.Exists(caminhoArquivo))
+            throw new FileNotFoundException($"Arquivo de consulta SQL não encontrado: {caminhoArquivo}");
+
+        ExibirAvisoArquivoGrande(caminhoArquivo, "consulta SQL");
+
+        string conteudo = File.ReadAllText(caminhoArquivo).Trim();
+        if (string.IsNullOrWhiteSpace(conteudo))
+            throw new ArgumentException($"Arquivo de consulta SQL vazio: {caminhoArquivo}");
+
+        return conteudo;
+    }
+
+    private static void ExibirAvisoArquivoGrande(string caminhoArquivo, string tipoConteudo)
+    {
+        var info = new FileInfo(caminhoArquivo);
+        if (info.Length <= LimiteAvisoArquivoBytes)
+            return;
+
+        Console.ForegroundColor = ConsoleColor.Yellow;
+        Console.WriteLine(
+            $"Aviso: o arquivo de {tipoConteudo} tem {FormatarTamanhoBytes(info.Length)} " +
+            $"e ultrapassa {FormatarTamanhoBytes(LimiteAvisoArquivoBytes)}.");
+        Console.WriteLine("Arquivos grandes podem deixar a exportação lenta ou instável.");
+        Console.ResetColor();
+    }
+
+    private static Encoding ResolverEncodingSaidaExportacao(OpcoesExportacao op)
+    {
+        string? charset = op.Charset;
+        if (string.IsNullOrWhiteSpace(charset) && op.ForcarWin1252)
+            charset = "WIN1252";
+
+        return CharsetSql.ResolverEncodingLeituraSql(charset);
+    }
+
+    private static void ValidarCombinacaoOpcoesExportacao(OpcoesExportacao op)
+    {
+        if (string.IsNullOrWhiteSpace(op.Tabela))
+            throw new ArgumentException(
+                "Tabela nao informada (--table). " +
+                "Se estiver usando --output com barra final no PowerShell, remova a barra final ou use \\\\ no final.");
+
+        if (!string.IsNullOrWhiteSpace(op.ConsultaSqlCompleta) &&
+            !string.IsNullOrWhiteSpace(op.CondicaoWhere))
+        {
+            throw new ArgumentException(
+                "Nao use --query-file junto com --filter/--filter-file. Escolha apenas um modo.");
+        }
+    }
+
+    private static void ExibirResumoModoExportacao(OpcoesExportacao op)
+    {
+        string modo = string.IsNullOrWhiteSpace(op.ConsultaSqlCompleta)
+            ? "Simple/Simples (--table + --filter)"
+            : "Advanced/Avancado (--query-file)";
+
+        Console.WriteLine($"Modo de consulta / Query mode: {modo}");
+    }
+
+    private static void ExibirResumoArquivosExportacao(IReadOnlyList<(string Caminho, long TamanhoBytes)> arquivosGerados)
+    {
+        if (arquivosGerados.Count == 0)
+            return;
+
+        Console.WriteLine();
+        Console.WriteLine("Resumo da exportação");
+        Console.WriteLine(new string('-', 72));
+        Console.WriteLine($"Arquivos gerados : {arquivosGerados.Count}");
+        Console.WriteLine();
+
+        int larguraIndice = arquivosGerados.Count.ToString().Length;
+        int larguraTamanho = arquivosGerados
+            .Select(a => FormatarTamanhoBytes(a.TamanhoBytes).Length)
+            .Max();
+
+        for (int i = 0; i < arquivosGerados.Count; i++)
+        {
+            var arquivo = arquivosGerados[i];
+            string tamanhoFormatado = FormatarTamanhoBytes(arquivo.TamanhoBytes).PadLeft(larguraTamanho);
+            Console.WriteLine(
+                $"[{(i + 1).ToString().PadLeft(larguraIndice)}] {tamanhoFormatado}  {arquivo.Caminho}");
+        }
+
+        Console.WriteLine();
+        Console.WriteLine($"Arquivo final    : {arquivosGerados[^1].Caminho}");
+        Console.WriteLine(new string('-', 72));
+        Console.WriteLine();
+    }
+
+    private static string FormatarTamanhoBytes(long bytes)
+    {
+        string[] sufixos = ["B", "KB", "MB", "GB", "TB"];
+        double valor = bytes;
+        int indice = 0;
+
+        while (valor >= 1024 && indice < sufixos.Length - 1)
+        {
+            valor /= 1024;
+            indice++;
+        }
+
+        return $"{valor:0.##} {sufixos[indice]}";
+    }
+
+    private static string[] NormalizarArgs(string[] args)
+    {
+        if (args.Length == 0)
+            return args;
+
+        var normalizados = new List<string>(args.Length);
+
+        foreach (var arg in args)
+        {
+            if (string.IsNullOrWhiteSpace(arg))
+                continue;
+
+            if (!PossuiSegmentosMesclados(arg))
+            {
+                normalizados.Add(arg);
+                continue;
+            }
+
+            foreach (var token in SepararArgumentoMesclado(arg))
+                normalizados.Add(token);
+        }
+
+        return normalizados.ToArray();
+    }
+
+    private static bool PossuiSegmentosMesclados(string valor)
+    {
+        return valor.Contains(" --", StringComparison.Ordinal) ||
+               valor.Contains("\t--", StringComparison.Ordinal);
+    }
+
+    private static IEnumerable<string> SepararArgumentoMesclado(string valor)
+    {
+        int indicePrimeiraOpcao = EncontrarInicioOpcaoMesclada(valor);
+        if (indicePrimeiraOpcao < 0)
+            return TokenizarArgumentoComposto(valor);
+
+        var resultado = new List<string>();
+        var prefixo = valor[..indicePrimeiraOpcao].Trim();
+        if (!string.IsNullOrWhiteSpace(prefixo))
+            resultado.Add(prefixo);
+
+        var sufixo = valor[indicePrimeiraOpcao..].Trim();
+        foreach (var token in TokenizarArgumentoComposto(sufixo))
+            resultado.Add(token);
+
+        return resultado;
+    }
+
+    private static int EncontrarInicioOpcaoMesclada(string valor)
+    {
+        for (int i = 1; i < valor.Length - 2; i++)
+        {
+            if (!char.IsWhiteSpace(valor[i]))
+                continue;
+
+            if (valor[i + 1] == '-' && valor[i + 2] == '-')
+                return i + 1;
+        }
+
+        return -1;
+    }
+
+    private static IEnumerable<string> TokenizarArgumentoComposto(string valor)
+    {
+        var tokens = new List<string>();
+        var atual = new StringBuilder();
+        bool dentroAspas = false;
+
+        foreach (char c in valor)
+        {
+            if (c == '"')
+            {
+                dentroAspas = !dentroAspas;
+                continue;
+            }
+
+            if (!dentroAspas && char.IsWhiteSpace(c))
+            {
+                AdicionarToken(atual, tokens);
+                continue;
+            }
+
+            atual.Append(c);
+        }
+
+        AdicionarToken(atual, tokens);
+        return tokens;
+    }
+
+    private static void AdicionarToken(StringBuilder atual, List<string> tokens)
+    {
+        if (atual.Length == 0)
+            return;
+
+        tokens.Add(atual.ToString());
+        atual.Clear();
+    }
+}

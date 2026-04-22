@@ -28,6 +28,7 @@ git push origin v0.1.0
 ## Recursos Principais
 
 - Comandos `export` e `import`
+- Comandos `ddl-extract` e `ddl-diff` para comparação de schema
 - Exportação/importação em streaming para arquivos SQL grandes
 - `--filter`, `--filter-file` e modo avançado `--query-file`
 - Remapeamento de tabela destino com `--target-table`
@@ -42,6 +43,8 @@ git push origin v0.1.0
 ```powershell
 SkyFBTool export [opções]
 SkyFBTool import [opções]
+SkyFBTool ddl-extract [opções]
+SkyFBTool ddl-diff [opções]
 ```
 
 ### Exemplo de exportação
@@ -54,6 +57,14 @@ SkyFBTool export --database "C:\dados\exemplo.fdb" --table "TABELA_EXEMPLO" --ou
 
 ```powershell
 SkyFBTool import --database "C:\dados\exemplo.fdb" --input "C:\exports\tabela_exemplo.sql" --continue-on-error
+```
+
+### Exemplos de extração e diff de DDL
+
+```powershell
+SkyFBTool ddl-extract --database "C:\dados\origem.fdb" --output "C:\ddl\origem"
+SkyFBTool ddl-extract --database "C:\dados\alvo.fdb" --output "C:\ddl\alvo"
+SkyFBTool ddl-diff --source "C:\ddl\origem.schema.json" --target "C:\ddl\alvo.schema.json" --output "C:\ddl\comparacao"
 ```
 
 ## Principais Opções de Exportação

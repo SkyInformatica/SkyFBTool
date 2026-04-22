@@ -12,6 +12,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Console warning for `--filter-file` and `--query-file` when file size exceeds 64 KB.
 - More resilient CLI argument handling for PowerShell cases with `--output` ending in a trailing backslash.
+- New `ddl-extract` command to export normalized schema (`.sql` + `.schema.json`).
+- New `ddl-diff` command to compare source/target schemas and generate `.sql`, `.json`, and `.md` reports.
 
 ### Changed
 - Export summary output is now aligned and easier to read.
