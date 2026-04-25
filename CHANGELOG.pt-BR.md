@@ -14,11 +14,13 @@ e o projeto adota [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Tratamento mais resiliente de argumentos CLI para casos de PowerShell com `--output` terminando em barra invertida.
 - Novo comando `ddl-extract` para extrair schema normalizado (`.sql` + `.schema.json`).
 - Novo comando `ddl-diff` para comparar origem/alvo e gerar relatório (`.sql`, `.json` e `.md`).
+- `ddl-diff` agora também gera relatório visual em `.html`.
 
 ### Alterado
 - Resumo da exportacao com layout alinhado e mais legivel.
 - Mensagem de erro para ausencia de `--table` com orientacao para barra final no PowerShell.
 - CLI reorganizada por contexto (`Cli/Commands` e `Cli/Common`) com `Program.cs` mínimo.
+- Saída dos comandos/relatórios de DDL agora detecta cultura do SO (`en` padrão, `pt-BR` localizado).
 
 ## [0.1.0] - 2026-04-21
 

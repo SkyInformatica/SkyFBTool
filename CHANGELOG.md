@@ -14,11 +14,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - More resilient CLI argument handling for PowerShell cases with `--output` ending in a trailing backslash.
 - New `ddl-extract` command to export normalized schema (`.sql` + `.schema.json`).
 - New `ddl-diff` command to compare source/target schemas and generate `.sql`, `.json`, and `.md` reports.
+- `ddl-diff` now also generates an `.html` visual report.
 
 ### Changed
 - Export summary output is now aligned and easier to read.
 - Missing `--table` error now includes guidance for trailing backslash usage in PowerShell.
 - CLI was reorganized by context (`Cli/Commands` and `Cli/Common`) with a minimal `Program.cs` entrypoint.
+- DDL report and DDL command output now use OS culture detection (`en` default, `pt-BR` localized).
 
 ## [0.1.0] - 2026-04-21
 

@@ -4,6 +4,8 @@
 - Primary public docs: English in `README.md` and `CHANGELOG.md`.
 - Community mirror: Portuguese (Brazil) in `README.pt-BR.md` and `CHANGELOG.pt-BR.md`.
 - Every localized file must include a language switch link at the top.
+- Runtime/report output default language: English.
+- Optional localized runtime/report output can be enabled by OS culture detection (for example, PT-BR).
 
 ## File Structure
 - `README.md` (English)
@@ -19,6 +21,7 @@
 - Keep the liability disclaimer section mandatory and synchronized in both READMEs.
   - `README.md`: `## Disclaimer`
   - `README.pt-BR.md`: `## Isencao de Responsabilidade`
+- When adding report messages, write English strings first and keep a mapped PT-BR variant for localization.
 
 ## Changelog Rules
 - Follow Keep a Changelog + Semantic Versioning.
