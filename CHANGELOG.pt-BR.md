@@ -1,13 +1,15 @@
-# Registro de Mudancas
+# Registro de Mudanças
 
 [English](./CHANGELOG.md) | Português (Brasil)
 
-Todas as mudancas relevantes deste projeto sao registradas neste arquivo.
+Todas as mudanças relevantes deste projeto são registradas neste arquivo.
 
 O formato segue [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 e o projeto adota [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Não Lançado]
+
+## [0.2.0] - 2026-04-25
 
 ### Adicionado
 - Aviso no console para `--filter-file` e `--query-file` quando o arquivo ultrapassa 64 KB.
@@ -15,21 +17,33 @@ e o projeto adota [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Novo comando `ddl-extract` para extrair schema normalizado (`.sql` + `.schema.json`).
 - Novo comando `ddl-diff` para comparar origem/alvo e gerar relatório (`.sql`, `.json` e `.md`).
 - `ddl-diff` agora também gera relatório visual em `.html`.
+- `ddl-analyze` agora aceita `.sql` diretamente (com fallback para parser interno de DDL quando `.schema.json` não estiver presente).
+- Novo suporte de sobrescrita de severidade no `ddl-analyze` via `--severity-config` (`overrides`, `code`, `severity`).
+- Nova documentação por comando em `docs/commands/en` e `docs/commands/pt-BR`.
 
 ### Alterado
-- Resumo da exportacao com layout alinhado e mais legivel.
-- Mensagem de erro para ausencia de `--table` com orientacao para barra final no PowerShell.
+- Resumo da exportação com layout alinhado e mais legível.
+- Mensagem de erro para ausência de `--table` com orientação para barra final no PowerShell.
 - CLI reorganizada por contexto (`Cli/Commands` e `Cli/Common`) com `Program.cs` mínimo.
 - Saída dos comandos/relatórios de DDL agora detecta cultura do SO (`en` padrão, `pt-BR` localizado).
+- Geração HTML de `ddl-diff` extraída para renderizador/template dedicado (baseado em Scriban).
+- Validação de FKs na análise DDL quebrada em funções menores por tipo de validação.
+- Validação de opções CLI desconhecidas padronizada entre os comandos.
+- Relatório de `ddl-analyze` agora inclui critérios explícitos de severidade no HTML.
+- Exemplo de configuração de severidade padronizado com aliases em inglês em `examples/ddl-severity.sample.json`.
+
+### Corrigido
+- Mensagens em português do relatório DDL (`descrição`/`recomendação`) normalizadas com acentuação correta.
 
 ## [0.1.0] - 2026-04-21
 
 ### Adicionado
 - Comandos principais: `export` e `import`.
-- Suporte de exportacao para `--filter`, `--filter-file`, `--query-file` e `--target-table`.
-- Divisao automatica de saida com `--split-size-mb`.
-- Compatibilidade com Firebird 2.5, 3.0, 4.0 e 5.0 nos fluxos de exportacao/importacao.
-- Suite de testes unitarios e de integracao.
+- Suporte de exportação para `--filter`, `--filter-file`, `--query-file` e `--target-table`.
+- Divisão automática de saída com `--split-size-mb`.
+- Compatibilidade com Firebird 2.5, 3.0, 4.0 e 5.0 nos fluxos de exportação/importação.
+- Suíte de testes unitários e de integração.
 
-[Não Lançado]: https://github.com/SkyInformatica/SkyFBTool/compare/v0.1.0...HEAD
+[Não Lançado]: https://github.com/SkyInformatica/SkyFBTool/compare/v0.2.0...HEAD
+[0.2.0]: https://github.com/SkyInformatica/SkyFBTool/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/SkyInformatica/SkyFBTool/releases/tag/v0.1.0
