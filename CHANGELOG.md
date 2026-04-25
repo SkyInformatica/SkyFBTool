@@ -30,7 +30,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - FK validation in DDL analysis was split into smaller functions by validation type.
 - Unknown CLI option validation was standardized across command handlers.
 - `ddl-analyze` report now includes explicit severity criteria in HTML.
-- Severity config examples were standardized to English aliases in `examples/ddl-severity.sample.json`.
+- Severity config examples were standardized to English aliases in `docs/examples/ddl-severity.sample.json`.
 
 ### Fixed
 - Portuguese report messages for DDL findings (`description`/`recommendation`) were normalized with correct accentuation.

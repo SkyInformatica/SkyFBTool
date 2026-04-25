@@ -23,7 +23,7 @@ SkyFBTool ddl-analyze --input ENTRADA --output PREFIXO [opções]
 ```powershell
 SkyFBTool ddl-analyze --input "C:\ddl\origem.schema.json" --output "C:\ddl\analise"
 SkyFBTool ddl-analyze --input "C:\ddl\origem.sql" --ignore-table-prefix LOG_ --ignore-table-prefixes TMP_,IBE$ --output "C:\ddl\analise"
-SkyFBTool ddl-analyze --input "C:\ddl\origem.sql" --severity-config ".\examples\ddl-severity.sample.json" --output "C:\ddl\analise_custom"
+SkyFBTool ddl-analyze --input "C:\ddl\origem.sql" --severity-config ".\docs\examples\ddl-severity.sample.json" --output "C:\ddl\analise_custom"
 ```
 
 ## Exemplo de saída

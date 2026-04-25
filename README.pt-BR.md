@@ -79,7 +79,7 @@ SkyFBTool ddl-extract --database "C:\dados\alvo.fdb" --output "C:\ddl\alvo"
 SkyFBTool ddl-diff --source "C:\ddl\origem.schema.json" --target "C:\ddl\alvo.schema.json" --output "C:\ddl\comparacao"
 SkyFBTool ddl-analyze --input "C:\ddl\origem.schema.json" --output "C:\ddl\analise"
 SkyFBTool ddl-analyze --input "C:\ddl\origem.schema.json" --ignore-table-prefix LOG_ --ignore-table-prefixes TMP_,IBE$
-SkyFBTool ddl-analyze --input "C:\ddl\origem.schema.json" --severity-config ".\examples\ddl-severity.sample.json"
+SkyFBTool ddl-analyze --input "C:\ddl\origem.schema.json" --severity-config ".\docs\examples\ddl-severity.sample.json"
 ```
 
 Observações:
@@ -89,7 +89,7 @@ Observações:
 - Arquivos de saída do `ddl-analyze`: `.json` e `.html`, com resumo por tipo/tabela e filtros no HTML.
 - `ddl-analyze` aceita `--ignore-table-prefix` (repetível) e `--ignore-table-prefixes` (lista por vírgula) para reduzir ruído de tabelas técnicas.
 - `ddl-analyze` aceita `--severity-config` para sobrescrever severidade por código de achado.
-- Use `examples/ddl-severity.sample.json` como referência de formato (cobre todos os códigos atuais).
+- Use `docs/examples/ddl-severity.sample.json` como referência de formato (cobre todos os códigos atuais).
 - Valores aceitos de severidade: `critical`, `high`, `medium`, `low`.
 - O formato do JSON é somente em inglês: `overrides`, `code`, `severity`.
 

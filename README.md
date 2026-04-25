@@ -79,7 +79,7 @@ SkyFBTool ddl-extract --database "C:\data\target.fdb" --output "C:\ddl\target"
 SkyFBTool ddl-diff --source "C:\ddl\source.schema.json" --target "C:\ddl\target.schema.json" --output "C:\ddl\diff"
 SkyFBTool ddl-analyze --input "C:\ddl\source.schema.json" --output "C:\ddl\analysis"
 SkyFBTool ddl-analyze --input "C:\ddl\source.schema.json" --ignore-table-prefix LOG_ --ignore-table-prefixes TMP_,IBE$
-SkyFBTool ddl-analyze --input "C:\ddl\source.schema.json" --severity-config ".\examples\ddl-severity.sample.json"
+SkyFBTool ddl-analyze --input "C:\ddl\source.schema.json" --severity-config ".\docs\examples\ddl-severity.sample.json"
 ```
 
 Notes:
@@ -89,7 +89,7 @@ Notes:
 - `ddl-analyze` output files: `.json` and `.html`, with summary by code/table and HTML filters.
 - `ddl-analyze` accepts `--ignore-table-prefix` (repeatable) and `--ignore-table-prefixes` (comma-separated list) to suppress technical-table noise.
 - `ddl-analyze` accepts `--severity-config` to override severity by finding code.
-- Use `examples/ddl-severity.sample.json` as the reference schema (it covers all current finding codes).
+- Use `docs/examples/ddl-severity.sample.json` as the reference schema (it covers all current finding codes).
 - Accepted severity values: `critical`, `high`, `medium`, `low`.
 - JSON schema is English-only: `overrides`, `code`, `severity`.
 

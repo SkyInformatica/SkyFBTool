@@ -28,7 +28,7 @@ public static class ConfiguracaoSeveridadeDdl
             {
                 throw new ArgumentException(
                     $"Invalid severity configuration for code '{codigoExterno}'. " +
-                    "Use a valid English alias from examples/ddl-severity.sample.json.");
+                    "Use a valid English alias from docs/examples/ddl-severity.sample.json.");
             }
 
             if (string.IsNullOrWhiteSpace(severidade))

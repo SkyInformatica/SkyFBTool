@@ -182,7 +182,7 @@ SAIDA:
 EXEMPLO:
   SkyFBTool ddl-analyze --input C:\ddl\origem.schema.json --output C:\ddl\analise
   SkyFBTool ddl-analyze --input C:\ddl\origem.schema.json --ignore-table-prefix LOG_ --ignore-table-prefixes TMP_,IBE$
-  SkyFBTool ddl-analyze --input C:\ddl\origem.schema.json --severity-config .\examples\ddl-severity.sample.json
+  SkyFBTool ddl-analyze --input C:\ddl\origem.schema.json --severity-config .\docs\examples\ddl-severity.sample.json
 
 ");
     }

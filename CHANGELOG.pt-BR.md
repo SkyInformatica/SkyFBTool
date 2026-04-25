@@ -30,7 +30,7 @@ e o projeto adota [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Validação de FKs na análise DDL quebrada em funções menores por tipo de validação.
 - Validação de opções CLI desconhecidas padronizada entre os comandos.
 - Relatório de `ddl-analyze` agora inclui critérios explícitos de severidade no HTML.
-- Exemplo de configuração de severidade padronizado com aliases em inglês em `examples/ddl-severity.sample.json`.
+- Exemplo de configuração de severidade padronizado com aliases em inglês em `docs/examples/ddl-severity.sample.json`.
 
 ### Corrigido
 - Mensagens em português do relatório DDL (`descrição`/`recomendação`) normalizadas com acentuação correta.
