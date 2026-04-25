@@ -79,14 +79,19 @@ SkyFBTool ddl-extract --database "C:\data\target.fdb" --output "C:\ddl\target"
 SkyFBTool ddl-diff --source "C:\ddl\source.schema.json" --target "C:\ddl\target.schema.json" --output "C:\ddl\diff"
 SkyFBTool ddl-analyze --input "C:\ddl\source.schema.json" --output "C:\ddl\analysis"
 SkyFBTool ddl-analyze --input "C:\ddl\source.schema.json" --ignore-table-prefix LOG_ --ignore-table-prefixes TMP_,IBE$
+SkyFBTool ddl-analyze --input "C:\ddl\source.schema.json" --severity-config ".\examples\ddl-severity.sample.json"
 ```
 
 Notes:
 - DDL report/output language uses OS culture detection (`English` by default, `pt-BR` localized).
 - `ddl-diff` output files: `.sql`, `.json`, and `.html`.
-- `ddl-diff` report includes Top 10 critical target items (severity), suggested SQL block order, and post-apply checklist.
-- `ddl-analyze` output files: `.json` and `.html`, with summary by code/table, HTML filters, and recalibrated severity levels.
+- `ddl-diff` report includes Top 10 critical target findings (with severity), suggested SQL block order, and a post-apply checklist.
+- `ddl-analyze` output files: `.json` and `.html`, with summary by code/table and HTML filters.
 - `ddl-analyze` accepts `--ignore-table-prefix` (repeatable) and `--ignore-table-prefixes` (comma-separated list) to suppress technical-table noise.
+- `ddl-analyze` accepts `--severity-config` to override severity by finding code.
+- Use `examples/ddl-severity.sample.json` as the reference schema (it covers all current finding codes).
+- Accepted severity values: `critical`, `high`, `medium`, `low`.
+- JSON schema is English-only: `overrides`, `code`, `severity`.
 
 ## Key Export Options
 
@@ -144,6 +149,15 @@ $env:SKYFBTOOL_TEST_RUN_INTEGRATION="true"
 ## Documentation Standard
 
 - [DOCS_STANDARD.md](./DOCS_STANDARD.md)
+
+## Command Documentation
+
+- `export`: [docs/commands/en/export.md](./docs/commands/en/export.md)
+- `import`: [docs/commands/en/import.md](./docs/commands/en/import.md)
+- `exec-sql`: [docs/commands/en/exec-sql.md](./docs/commands/en/exec-sql.md)
+- `ddl-extract`: [docs/commands/en/ddl-extract.md](./docs/commands/en/ddl-extract.md)
+- `ddl-diff`: [docs/commands/en/ddl-diff.md](./docs/commands/en/ddl-diff.md)
+- `ddl-analyze`: [docs/commands/en/ddl-analyze.md](./docs/commands/en/ddl-analyze.md)
 
 ## Dependencies
 

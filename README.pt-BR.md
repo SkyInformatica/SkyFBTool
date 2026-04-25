@@ -79,14 +79,19 @@ SkyFBTool ddl-extract --database "C:\dados\alvo.fdb" --output "C:\ddl\alvo"
 SkyFBTool ddl-diff --source "C:\ddl\origem.schema.json" --target "C:\ddl\alvo.schema.json" --output "C:\ddl\comparacao"
 SkyFBTool ddl-analyze --input "C:\ddl\origem.schema.json" --output "C:\ddl\analise"
 SkyFBTool ddl-analyze --input "C:\ddl\origem.schema.json" --ignore-table-prefix LOG_ --ignore-table-prefixes TMP_,IBE$
+SkyFBTool ddl-analyze --input "C:\ddl\origem.schema.json" --severity-config ".\examples\ddl-severity.sample.json"
 ```
 
 Observações:
 - O idioma de saída/relatório de DDL usa detecção da cultura do SO (`English` padrão, `pt-BR` localizado).
 - Arquivos de saída do `ddl-diff`: `.sql`, `.json` e `.html`.
-- O relatório do `ddl-diff` inclui Top 10 itens críticos do alvo (com severidade), ordem sugerida de blocos SQL e checklist pós-aplicação.
-- Arquivos de saída do `ddl-analyze`: `.json` e `.html`, com resumo por tipo/tabela, filtros no HTML e severidade calibrada.
+- O relatório do `ddl-diff` inclui Top 10 achados críticos do alvo (com severidade), ordem sugerida de blocos SQL e checklist pós-aplicação.
+- Arquivos de saída do `ddl-analyze`: `.json` e `.html`, com resumo por tipo/tabela e filtros no HTML.
 - `ddl-analyze` aceita `--ignore-table-prefix` (repetível) e `--ignore-table-prefixes` (lista por vírgula) para reduzir ruído de tabelas técnicas.
+- `ddl-analyze` aceita `--severity-config` para sobrescrever severidade por código de achado.
+- Use `examples/ddl-severity.sample.json` como referência de formato (cobre todos os códigos atuais).
+- Valores aceitos de severidade: `critical`, `high`, `medium`, `low`.
+- O formato do JSON é somente em inglês: `overrides`, `code`, `severity`.
 
 ## Principais Opções de Exportação
 
@@ -145,9 +150,18 @@ $env:SKYFBTOOL_TEST_RUN_INTEGRATION="true"
 
 - [DOCS_STANDARD.md](./DOCS_STANDARD.md)
 
-## Dependencias
+## Documentação por Comando
 
-- `Scriban` e usado para renderizar o HTML do `ddl-analyze` a partir de template.
+- `export`: [docs/commands/pt-BR/export.md](./docs/commands/pt-BR/export.md)
+- `import`: [docs/commands/pt-BR/import.md](./docs/commands/pt-BR/import.md)
+- `exec-sql`: [docs/commands/pt-BR/exec-sql.md](./docs/commands/pt-BR/exec-sql.md)
+- `ddl-extract`: [docs/commands/pt-BR/ddl-extract.md](./docs/commands/pt-BR/ddl-extract.md)
+- `ddl-diff`: [docs/commands/pt-BR/ddl-diff.md](./docs/commands/pt-BR/ddl-diff.md)
+- `ddl-analyze`: [docs/commands/pt-BR/ddl-analyze.md](./docs/commands/pt-BR/ddl-analyze.md)
+
+## Dependências
+
+- `Scriban` é usado para renderizar o HTML do `ddl-analyze` a partir de template.
 
 ## Isenção de Responsabilidade
 
