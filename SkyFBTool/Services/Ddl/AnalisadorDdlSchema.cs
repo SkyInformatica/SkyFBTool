@@ -614,7 +614,8 @@ public static class AnalisadorDdlSchema
         {
             sb.AppendLine($"  <h2>{Html(filtros)}</h2>");
             sb.AppendLine("  <div class=\"toolbar\">");
-            sb.AppendLine($"    <label>{Html(colSeveridade)} <select id=\"f-sev\"><option value=\"\">{Html(todos)}</option><option value=\"critical\">critical</option><option value=\"high\">high</option><option value=\"medium\">medium</option><option value=\"low\">low</option></select></label>");
+            sb.AppendLine(
+                $"    <label>{Html(colSeveridade)} <select id=\"f-sev\"><option value=\"\">{Html(todos)}</option><option value=\"critical\">{Html(SeveridadeRotulo("critical", portugues))}</option><option value=\"high\">{Html(SeveridadeRotulo("high", portugues))}</option><option value=\"medium\">{Html(SeveridadeRotulo("medium", portugues))}</option><option value=\"low\">{Html(SeveridadeRotulo("low", portugues))}</option></select></label>");
             sb.AppendLine($"    <label>{Html(colCodigo)} <select id=\"f-code\"><option value=\"\">{Html(todos)}</option>");
             foreach (var codigo in resultado.ResumoPorCodigo.Select(r => r.Chave))
                 sb.AppendLine($"      <option value=\"{Html(codigo)}\">{Html(codigo)}</option>");
@@ -638,7 +639,7 @@ public static class AnalisadorDdlSchema
             {
                 sb.AppendLine(
                     $"      <tr data-sev=\"{Html(achado.Severidade)}\" data-code=\"{Html(achado.Codigo)}\" data-text=\"{Html((achado.Escopo + " " + achado.Codigo + " " + achado.Descricao + " " + achado.Recomendacao).ToLowerInvariant())}\">");
-                sb.AppendLine($"        <td class=\"{achado.Severidade}\">{Html(achado.Severidade)}</td>");
+                sb.AppendLine($"        <td class=\"{achado.Severidade}\">{Html(SeveridadeRotulo(achado.Severidade, portugues))}</td>");
                 sb.AppendLine($"        <td>{Html(achado.Codigo)}</td>");
                 sb.AppendLine($"        <td>{Html(achado.Escopo)}</td>");
                 sb.AppendLine($"        <td>{Html(achado.Descricao)}</td>");
@@ -689,6 +690,21 @@ public static class AnalisadorDdlSchema
     private static string JavaScriptString(string value)
     {
         return value.Replace("\\", "\\\\").Replace("'", "\\'");
+    }
+
+    private static string SeveridadeRotulo(string severidade, bool portugues)
+    {
+        if (!portugues)
+            return severidade;
+
+        return severidade switch
+        {
+            "critical" => "critico",
+            "high" => "alto",
+            "medium" => "medio",
+            "low" => "baixo",
+            _ => severidade
+        };
     }
 
     private static string Html(string valor)
