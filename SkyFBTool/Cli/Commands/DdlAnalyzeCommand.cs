@@ -25,6 +25,14 @@ public static class DdlAnalyzeCommand
                 case "output":
                     op.Saida = CliArgumentParser.LerValorOpcao(args, ref i, chave);
                     break;
+                case "ignore-table-prefix":
+                    op.PrefixosTabelaIgnorados.Add(CliArgumentParser.LerValorOpcao(args, ref i, chave));
+                    break;
+                case "ignore-table-prefixes":
+                    var valor = CliArgumentParser.LerValorOpcao(args, ref i, chave);
+                    foreach (var prefixo in valor.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+                        op.PrefixosTabelaIgnorados.Add(prefixo);
+                    break;
             }
         }
 

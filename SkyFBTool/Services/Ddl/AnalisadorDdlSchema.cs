@@ -1,6 +1,6 @@
+using System.Globalization;
 using System.Text;
 using System.Text.Json;
-using System.Globalization;
 using SkyFBTool.Core;
 
 namespace SkyFBTool.Services.Ddl;
@@ -16,7 +16,7 @@ public static class AnalisadorDdlSchema
 
         string arquivoJsonEntrada = ResolverArquivoJsonSchema(opcoes.Entrada);
         var snapshot = await LerSnapshotAsync(arquivoJsonEntrada);
-        var resultado = Analisar(snapshot, portugues, arquivoJsonEntrada);
+        var resultado = Analisar(snapshot, portugues, arquivoJsonEntrada, opcoes.PrefixosTabelaIgnorados);
 
         var (arquivoJsonSaida, arquivoHtmlSaida) = ResolverArquivosSaida(opcoes);
         Directory.CreateDirectory(Path.GetDirectoryName(arquivoJsonSaida)!);
@@ -30,23 +30,34 @@ public static class AnalisadorDdlSchema
     public static ResultadoAnaliseDdl Analisar(
         SnapshotSchema snapshot,
         bool portugues = false,
-        string? origem = null)
+        string? origem = null,
+        IEnumerable<string>? prefixosTabelaIgnorados = null)
     {
         var resultado = new ResultadoAnaliseDdl
         {
-            Origem = origem ?? string.Empty,
-            TotalTabelas = snapshot.Tabelas.Count
+            Origem = origem ?? string.Empty
         };
 
-        var tabelas = snapshot.Tabelas.ToDictionary(t => t.Nome, StringComparer.OrdinalIgnoreCase);
+        var prefixosIgnorados = NormalizarPrefixos(prefixosTabelaIgnorados);
+        var tabelasVisiveis = snapshot.Tabelas
+            .Where(t => !DeveIgnorarTabela(t.Nome, prefixosIgnorados))
+            .ToList();
+        var tabelasIgnoradas = snapshot.Tabelas
+            .Where(t => DeveIgnorarTabela(t.Nome, prefixosIgnorados))
+            .Select(t => t.Nome)
+            .ToHashSet(StringComparer.OrdinalIgnoreCase);
 
-        foreach (var tabela in snapshot.Tabelas.OrderBy(t => t.Nome, StringComparer.OrdinalIgnoreCase))
+        resultado.TotalTabelas = tabelasVisiveis.Count;
+
+        var mapaTabelas = tabelasVisiveis.ToDictionary(t => t.Nome, StringComparer.OrdinalIgnoreCase);
+
+        foreach (var tabela in tabelasVisiveis.OrderBy(t => t.Nome, StringComparer.OrdinalIgnoreCase))
         {
             ValidarTabelaSemColunas(tabela, resultado, portugues);
             ValidarColunasDuplicadas(tabela, resultado, portugues);
             ValidarTiposDesconhecidos(tabela, resultado, portugues);
             ValidarPk(tabela, resultado, portugues);
-            ValidarFks(tabela, tabelas, resultado, portugues);
+            ValidarFks(tabela, mapaTabelas, tabelasIgnoradas, resultado, portugues);
             ValidarIndices(tabela, resultado, portugues);
             ValidarDuplicidadeIndices(tabela, resultado, portugues);
             ValidarDuplicidadeFks(tabela, resultado, portugues);
@@ -54,8 +65,8 @@ public static class AnalisadorDdlSchema
 
         resultado.Achados = resultado.Achados
             .OrderByDescending(a => PesoSeveridade(a.Severidade))
-            .ThenBy(a => a.Escopo, StringComparer.OrdinalIgnoreCase)
             .ThenBy(a => a.Codigo, StringComparer.OrdinalIgnoreCase)
+            .ThenBy(a => a.Escopo, StringComparer.OrdinalIgnoreCase)
             .ToList();
 
         resultado.TotalAchados = resultado.Achados.Count;
@@ -63,8 +74,36 @@ public static class AnalisadorDdlSchema
         resultado.TotalAltos = resultado.Achados.Count(a => a.Severidade == "high");
         resultado.TotalMedios = resultado.Achados.Count(a => a.Severidade == "medium");
         resultado.TotalBaixos = resultado.Achados.Count(a => a.Severidade == "low");
+        resultado.ResumoPorCodigo = MontarResumo(resultado.Achados, a => a.Codigo);
+        resultado.ResumoPorTabela = MontarResumo(resultado.Achados, a => NomeTabelaDoEscopo(a.Escopo));
 
         return resultado;
+    }
+
+    private static List<string> NormalizarPrefixos(IEnumerable<string>? prefixos)
+    {
+        if (prefixos is null)
+            return [];
+
+        return prefixos
+            .Where(p => !string.IsNullOrWhiteSpace(p))
+            .Select(p => p.Trim())
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .ToList();
+    }
+
+    private static bool DeveIgnorarTabela(string nomeTabela, IReadOnlyCollection<string> prefixosIgnorados)
+    {
+        if (prefixosIgnorados.Count == 0)
+            return false;
+
+        foreach (var prefixo in prefixosIgnorados)
+        {
+            if (nomeTabela.StartsWith(prefixo, StringComparison.OrdinalIgnoreCase))
+                return true;
+        }
+
+        return false;
     }
 
     private static void ValidarTabelaSemColunas(TabelaSchema tabela, ResultadoAnaliseDdl resultado, bool portugues)
@@ -86,10 +125,9 @@ public static class AnalisadorDdlSchema
         var duplicadas = tabela.Colunas
             .GroupBy(c => c.Nome, StringComparer.OrdinalIgnoreCase)
             .Where(g => g.Count() > 1)
-            .Select(g => g.Key)
-            .OrderBy(n => n, StringComparer.OrdinalIgnoreCase);
+            .Select(g => g.Key);
 
-        foreach (var coluna in duplicadas)
+        foreach (var coluna in duplicadas.OrderBy(n => n, StringComparer.OrdinalIgnoreCase))
         {
             AdicionarAchado(
                 resultado,
@@ -127,7 +165,7 @@ public static class AnalisadorDdlSchema
         {
             AdicionarAchado(
                 resultado,
-                "medium",
+                "low",
                 "TABELA_SEM_PK",
                 tabela.Nome,
                 M(portugues, $"Table {tabela.Nome} has no primary key.", $"Tabela {tabela.Nome} nao possui chave primaria."),
@@ -166,6 +204,7 @@ public static class AnalisadorDdlSchema
     private static void ValidarFks(
         TabelaSchema tabela,
         IReadOnlyDictionary<string, TabelaSchema> tabelas,
+        IReadOnlySet<string> tabelasIgnoradas,
         ResultadoAnaliseDdl resultado,
         bool portugues)
     {
@@ -211,6 +250,9 @@ public static class AnalisadorDdlSchema
                     M(portugues, $"FK {fk.Nome} references missing local column {colunaFk}.", $"FK {fk.Nome} referencia coluna local inexistente {colunaFk}."),
                     M(portugues, "Validate relation fields and rebuild FK.", "Valide os campos da relacao e recrie a FK."));
             }
+
+            if (tabelasIgnoradas.Contains(fk.TabelaReferencia))
+                continue;
 
             if (!tabelas.TryGetValue(fk.TabelaReferencia, out var tabelaReferencia))
             {
@@ -300,7 +342,7 @@ public static class AnalisadorDdlSchema
             string nomes = string.Join(", ", grupo.Select(i => i.Nome).OrderBy(n => n, StringComparer.OrdinalIgnoreCase));
             AdicionarAchado(
                 resultado,
-                "medium",
+                "low",
                 "INDICE_DUPLICADO",
                 tabela.Nome,
                 M(portugues, $"Duplicated index signature in {tabela.Nome}: {nomes}.", $"Assinatura de indice duplicada em {tabela.Nome}: {nomes}."),
@@ -319,12 +361,39 @@ public static class AnalisadorDdlSchema
             string nomes = string.Join(", ", grupo.Select(f => f.Nome).OrderBy(n => n, StringComparer.OrdinalIgnoreCase));
             AdicionarAchado(
                 resultado,
-                "medium",
+                "low",
                 "FK_DUPLICADA",
                 tabela.Nome,
                 M(portugues, $"Duplicated FK signature in {tabela.Nome}: {nomes}.", $"Assinatura de FK duplicada em {tabela.Nome}: {nomes}."),
                 M(portugues, "Consolidate equivalent foreign keys and keep only one validated constraint.", "Consolide FKs equivalentes e mantenha apenas uma restricao validada."));
         }
+    }
+
+    private static List<ItemResumoAnaliseDdl> MontarResumo(IReadOnlyCollection<AchadoAnaliseDdl> achados, Func<AchadoAnaliseDdl, string> chave)
+    {
+        if (achados.Count == 0)
+            return [];
+
+        return achados
+            .GroupBy(chave, StringComparer.OrdinalIgnoreCase)
+            .Select(g => new ItemResumoAnaliseDdl
+            {
+                Chave = g.Key,
+                Quantidade = g.Count(),
+                Percentual = Math.Round((decimal)g.Count() * 100m / achados.Count, 2)
+            })
+            .OrderByDescending(i => i.Quantidade)
+            .ThenBy(i => i.Chave, StringComparer.OrdinalIgnoreCase)
+            .ToList();
+    }
+
+    private static string NomeTabelaDoEscopo(string escopo)
+    {
+        if (string.IsNullOrWhiteSpace(escopo))
+            return "?";
+
+        int idx = escopo.IndexOf('.');
+        return idx < 0 ? escopo : escopo[..idx];
     }
 
     private static string AssinaturaIndice(IndiceSchema indice)
@@ -450,6 +519,23 @@ public static class AnalisadorDdlSchema
         string colEscopo = M(portugues, "Scope", "Escopo");
         string colDescricao = M(portugues, "Description", "Descricao");
         string colRecomendacao = M(portugues, "Recommendation", "Recomendacao");
+        string resumoCodigo = M(portugues, "Summary by finding type", "Resumo por tipo de achado");
+        string resumoTabela = M(portugues, "Top tables with findings", "Top tabelas com achados");
+        string filtros = M(portugues, "Filters", "Filtros");
+        string buscar = M(portugues, "Search", "Busca");
+        string placeholderBusca = M(portugues, "table, code or text...", "tabela, codigo ou texto...");
+        string todos = M(portugues, "All", "Todos");
+        string qtd = M(portugues, "Count", "Qtde");
+        string pct = M(portugues, "%", "%");
+        string mostrando = M(portugues, "Showing", "Exibindo");
+        string de = M(portugues, "of", "de");
+
+        string origemExibicao = Path.GetFileName(resultado.Origem);
+        if (string.IsNullOrWhiteSpace(origemExibicao))
+            origemExibicao = resultado.Origem;
+
+        var resumoCodigoTop = resultado.ResumoPorCodigo.Take(10).ToList();
+        var resumoTabelaTop = resultado.ResumoPorTabela.Take(10).ToList();
 
         var sb = new StringBuilder();
         sb.AppendLine("<!doctype html>");
@@ -459,24 +545,31 @@ public static class AnalisadorDdlSchema
         sb.AppendLine("  <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\" />");
         sb.AppendLine($"  <title>{Html(titulo)}</title>");
         sb.AppendLine("  <style>");
-        sb.AppendLine("    body { font-family: Segoe UI, Arial, sans-serif; margin: 24px; color: #1f2937; }");
-        sb.AppendLine("    h1 { margin: 0 0 16px 0; }");
-        sb.AppendLine("    .meta { margin-bottom: 16px; font-size: 14px; }");
-        sb.AppendLine("    .kpi { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 16px; }");
-        sb.AppendLine("    .pill { border: 1px solid #d1d5db; border-radius: 12px; padding: 8px 12px; background: #f9fafb; }");
+        sb.AppendLine("    body { font-family: Segoe UI, Arial, sans-serif; margin: 20px; color: #1f2937; }");
+        sb.AppendLine("    h1, h2 { margin: 0 0 12px 0; }");
+        sb.AppendLine("    .meta { margin-bottom: 14px; font-size: 14px; }");
+        sb.AppendLine("    .kpi { display: flex; gap: 10px; flex-wrap: wrap; margin: 10px 0 18px; }");
+        sb.AppendLine("    .pill { border: 1px solid #d1d5db; border-radius: 12px; padding: 8px 10px; background: #f9fafb; font-size: 13px; }");
+        sb.AppendLine("    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 8px 0 16px; }");
+        sb.AppendLine("    .card { border: 1px solid #e5e7eb; border-radius: 10px; background: #fff; padding: 10px; }");
+        sb.AppendLine("    .toolbar { display: flex; gap: 10px; flex-wrap: wrap; margin: 8px 0 10px; align-items: center; }");
+        sb.AppendLine("    .toolbar input, .toolbar select { padding: 6px 8px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 13px; }");
+        sb.AppendLine("    .count { font-size: 13px; color: #374151; }");
+        sb.AppendLine("    .table-wrap { max-height: 70vh; overflow: auto; border: 1px solid #e5e7eb; border-radius: 8px; }");
         sb.AppendLine("    table { width: 100%; border-collapse: collapse; }");
-        sb.AppendLine("    th, td { border: 1px solid #e5e7eb; padding: 8px; text-align: left; vertical-align: top; font-size: 13px; }");
-        sb.AppendLine("    th { background: #f3f4f6; }");
+        sb.AppendLine("    th, td { border-bottom: 1px solid #eef2f7; padding: 8px; text-align: left; vertical-align: top; font-size: 13px; }");
+        sb.AppendLine("    th { position: sticky; top: 0; background: #f3f4f6; z-index: 1; }");
         sb.AppendLine("    .critical { color: #991b1b; font-weight: 700; }");
         sb.AppendLine("    .high { color: #92400e; font-weight: 700; }");
         sb.AppendLine("    .medium { color: #1d4ed8; font-weight: 700; }");
         sb.AppendLine("    .low { color: #065f46; font-weight: 700; }");
+        sb.AppendLine("    @media (max-width: 900px) { .grid { grid-template-columns: 1fr; } body { margin: 12px; } }");
         sb.AppendLine("  </style>");
         sb.AppendLine("</head>");
         sb.AppendLine("<body>");
         sb.AppendLine($"  <h1>{Html(titulo)}</h1>");
         sb.AppendLine("  <div class=\"meta\">");
-        sb.AppendLine($"    <div><strong>{Html(origem)}:</strong> {Html(resultado.Origem)}</div>");
+        sb.AppendLine($"    <div><strong>{Html(origem)}:</strong> <span title=\"{Html(resultado.Origem)}\">{Html(origemExibicao)}</span></div>");
         sb.AppendLine($"    <div><strong>{Html(geradoEm)}:</strong> {resultado.GeradoEmUtc:yyyy-MM-dd HH:mm:ss}</div>");
         sb.AppendLine("  </div>");
         sb.AppendLine("  <div class=\"kpi\">");
@@ -487,27 +580,64 @@ public static class AnalisadorDdlSchema
         sb.AppendLine($"    <div class=\"pill\"><strong>{Html(baixos)}:</strong> {resultado.TotalBaixos}</div>");
         sb.AppendLine("  </div>");
 
+        sb.AppendLine("  <div class=\"grid\">");
+        sb.AppendLine("    <div class=\"card\">");
+        sb.AppendLine($"      <h2>{Html(resumoCodigo)}</h2>");
+        sb.AppendLine("      <table><thead><tr>");
+        sb.AppendLine($"        <th>{Html(colCodigo)}</th><th>{Html(qtd)}</th><th>{Html(pct)}</th>");
+        sb.AppendLine("      </tr></thead><tbody>");
+        foreach (var item in resumoCodigoTop)
+            sb.AppendLine($"        <tr><td>{Html(item.Chave)}</td><td>{item.Quantidade}</td><td>{item.Percentual:0.##}</td></tr>");
+        if (resumoCodigoTop.Count == 0)
+            sb.AppendLine($"        <tr><td colspan=\"3\">{Html(semAchados)}</td></tr>");
+        sb.AppendLine("      </tbody></table>");
+        sb.AppendLine("    </div>");
+
+        sb.AppendLine("    <div class=\"card\">");
+        sb.AppendLine($"      <h2>{Html(resumoTabela)}</h2>");
+        sb.AppendLine("      <table><thead><tr>");
+        sb.AppendLine($"        <th>{Html(colEscopo)}</th><th>{Html(qtd)}</th><th>{Html(pct)}</th>");
+        sb.AppendLine("      </tr></thead><tbody>");
+        foreach (var item in resumoTabelaTop)
+            sb.AppendLine($"        <tr><td>{Html(item.Chave)}</td><td>{item.Quantidade}</td><td>{item.Percentual:0.##}</td></tr>");
+        if (resumoTabelaTop.Count == 0)
+            sb.AppendLine($"        <tr><td colspan=\"3\">{Html(semAchados)}</td></tr>");
+        sb.AppendLine("      </tbody></table>");
+        sb.AppendLine("    </div>");
+        sb.AppendLine("  </div>");
+
         if (resultado.Achados.Count == 0)
         {
             sb.AppendLine($"  <p>{Html(semAchados)}</p>");
         }
         else
         {
-            sb.AppendLine("  <table>");
-            sb.AppendLine("    <thead>");
-            sb.AppendLine("      <tr>");
-            sb.AppendLine($"        <th>{Html(colSeveridade)}</th>");
-            sb.AppendLine($"        <th>{Html(colCodigo)}</th>");
-            sb.AppendLine($"        <th>{Html(colEscopo)}</th>");
-            sb.AppendLine($"        <th>{Html(colDescricao)}</th>");
-            sb.AppendLine($"        <th>{Html(colRecomendacao)}</th>");
-            sb.AppendLine("      </tr>");
-            sb.AppendLine("    </thead>");
+            sb.AppendLine($"  <h2>{Html(filtros)}</h2>");
+            sb.AppendLine("  <div class=\"toolbar\">");
+            sb.AppendLine($"    <label>{Html(colSeveridade)} <select id=\"f-sev\"><option value=\"\">{Html(todos)}</option><option value=\"critical\">critical</option><option value=\"high\">high</option><option value=\"medium\">medium</option><option value=\"low\">low</option></select></label>");
+            sb.AppendLine($"    <label>{Html(colCodigo)} <select id=\"f-code\"><option value=\"\">{Html(todos)}</option>");
+            foreach (var codigo in resultado.ResumoPorCodigo.Select(r => r.Chave))
+                sb.AppendLine($"      <option value=\"{Html(codigo)}\">{Html(codigo)}</option>");
+            sb.AppendLine("    </select></label>");
+            sb.AppendLine($"    <label>{Html(buscar)} <input id=\"f-q\" type=\"text\" placeholder=\"{Html(placeholderBusca)}\" /></label>");
+            sb.AppendLine($"    <span class=\"count\" id=\"f-count\">{Html(mostrando)} 0 {Html(de)} {resultado.Achados.Count}</span>");
+            sb.AppendLine("  </div>");
+
+            sb.AppendLine("  <div class=\"table-wrap\">");
+            sb.AppendLine("  <table id=\"achados\">");
+            sb.AppendLine("    <thead><tr>");
+            sb.AppendLine($"      <th>{Html(colSeveridade)}</th>");
+            sb.AppendLine($"      <th>{Html(colCodigo)}</th>");
+            sb.AppendLine($"      <th>{Html(colEscopo)}</th>");
+            sb.AppendLine($"      <th>{Html(colDescricao)}</th>");
+            sb.AppendLine($"      <th>{Html(colRecomendacao)}</th>");
+            sb.AppendLine("    </tr></thead>");
             sb.AppendLine("    <tbody>");
 
             foreach (var achado in resultado.Achados)
             {
-                sb.AppendLine("      <tr>");
+                sb.AppendLine(
+                    $"      <tr data-sev=\"{Html(achado.Severidade)}\" data-code=\"{Html(achado.Codigo)}\" data-text=\"{Html((achado.Escopo + " " + achado.Codigo + " " + achado.Descricao + " " + achado.Recomendacao).ToLowerInvariant())}\">");
                 sb.AppendLine($"        <td class=\"{achado.Severidade}\">{Html(achado.Severidade)}</td>");
                 sb.AppendLine($"        <td>{Html(achado.Codigo)}</td>");
                 sb.AppendLine($"        <td>{Html(achado.Escopo)}</td>");
@@ -518,12 +648,47 @@ public static class AnalisadorDdlSchema
 
             sb.AppendLine("    </tbody>");
             sb.AppendLine("  </table>");
+            sb.AppendLine("  </div>");
+            sb.AppendLine("  <script>");
+            sb.AppendLine("    (function(){");
+            sb.AppendLine("      const sev = document.getElementById('f-sev');");
+            sb.AppendLine("      const code = document.getElementById('f-code');");
+            sb.AppendLine("      const q = document.getElementById('f-q');");
+            sb.AppendLine("      const rows = Array.from(document.querySelectorAll('#achados tbody tr'));");
+            sb.AppendLine("      const count = document.getElementById('f-count');");
+            sb.AppendLine($"      const total = {resultado.Achados.Count};");
+            sb.AppendLine("      function run(){");
+            sb.AppendLine("        const s = (sev.value || '').toLowerCase();");
+            sb.AppendLine("        const c = code.value || '';");
+            sb.AppendLine("        const t = (q.value || '').toLowerCase();");
+            sb.AppendLine("        let visible = 0;");
+            sb.AppendLine("        rows.forEach(r => {");
+            sb.AppendLine("          const okS = !s || r.dataset.sev === s;");
+            sb.AppendLine("          const okC = !c || r.dataset.code === c;");
+            sb.AppendLine("          const okT = !t || (r.dataset.text || '').includes(t);");
+            sb.AppendLine("          const ok = okS && okC && okT;");
+            sb.AppendLine("          r.style.display = ok ? '' : 'none';");
+            sb.AppendLine("          if (ok) visible++;");
+            sb.AppendLine("        });");
+            sb.AppendLine($"        count.textContent = '{JavaScriptString(mostrando)} ' + visible + ' {JavaScriptString(de)} ' + total;");
+            sb.AppendLine("      }");
+            sb.AppendLine("      sev.addEventListener('change', run);");
+            sb.AppendLine("      code.addEventListener('change', run);");
+            sb.AppendLine("      q.addEventListener('input', run);");
+            sb.AppendLine("      run();");
+            sb.AppendLine("    })();");
+            sb.AppendLine("  </script>");
         }
 
         sb.AppendLine("</body>");
         sb.AppendLine("</html>");
 
         return sb.ToString();
+    }
+
+    private static string JavaScriptString(string value)
+    {
+        return value.Replace("\\", "\\\\").Replace("'", "\\'");
     }
 
     private static string Html(string valor)

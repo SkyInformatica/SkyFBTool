@@ -90,7 +90,7 @@ public class AnalisadorDdlSchemaTests
     }
 
     [Fact]
-    public void Analisar_QuandoIndiceDuplicado_DeveRegistrarAchado()
+    public void Analisar_QuandoIndiceDuplicado_DeveRegistrarAchadoLow()
     {
         var snapshot = new SnapshotSchema
         {
@@ -134,6 +134,60 @@ public class AnalisadorDdlSchemaTests
 
         Assert.Contains(resultado.Achados, a =>
             a.Codigo == "INDICE_DUPLICADO" &&
-            a.Severidade == "medium");
+            a.Severidade == "low");
+    }
+
+    [Fact]
+    public void Analisar_ComPrefixoIgnorado_DeveExcluirTabelaDoResultado()
+    {
+        var snapshot = new SnapshotSchema
+        {
+            Tabelas =
+            [
+                new TabelaSchema
+                {
+                    Nome = "LOG_EVENTOS",
+                    Colunas = [new ColunaSchema { Nome = "ID", TipoSql = "INTEGER", AceitaNulo = false }]
+                },
+                new TabelaSchema
+                {
+                    Nome = "CLIENTES",
+                    Colunas = [new ColunaSchema { Nome = "ID", TipoSql = "INTEGER", AceitaNulo = false }]
+                }
+            ]
+        };
+
+        var resultado = AnalisadorDdlSchema.Analisar(snapshot, prefixosTabelaIgnorados: ["LOG_"]);
+
+        Assert.Equal(1, resultado.TotalTabelas);
+        Assert.DoesNotContain(resultado.Achados, a => a.Escopo.StartsWith("LOG_EVENTOS", StringComparison.OrdinalIgnoreCase));
+    }
+
+    [Fact]
+    public void Analisar_DevePreencherResumoPorCodigoETabela()
+    {
+        var snapshot = new SnapshotSchema
+        {
+            Tabelas =
+            [
+                new TabelaSchema
+                {
+                    Nome = "A",
+                    Colunas = [new ColunaSchema { Nome = "ID", TipoSql = "INTEGER", AceitaNulo = false }]
+                },
+                new TabelaSchema
+                {
+                    Nome = "B",
+                    Colunas = [new ColunaSchema { Nome = "ID", TipoSql = "INTEGER", AceitaNulo = false }]
+                }
+            ]
+        };
+
+        var resultado = AnalisadorDdlSchema.Analisar(snapshot);
+
+        Assert.NotEmpty(resultado.ResumoPorCodigo);
+        Assert.NotEmpty(resultado.ResumoPorTabela);
+        Assert.Contains(resultado.ResumoPorCodigo, i => i.Chave == "TABELA_SEM_PK");
+        Assert.Contains(resultado.ResumoPorTabela, i => i.Chave == "A" || i.Chave == "B");
     }
 }

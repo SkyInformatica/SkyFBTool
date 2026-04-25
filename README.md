@@ -78,13 +78,15 @@ SkyFBTool ddl-extract --database "C:\data\source.fdb" --output "C:\ddl\source"
 SkyFBTool ddl-extract --database "C:\data\target.fdb" --output "C:\ddl\target"
 SkyFBTool ddl-diff --source "C:\ddl\source.schema.json" --target "C:\ddl\target.schema.json" --output "C:\ddl\diff"
 SkyFBTool ddl-analyze --input "C:\ddl\source.schema.json" --output "C:\ddl\analysis"
+SkyFBTool ddl-analyze --input "C:\ddl\source.schema.json" --ignore-table-prefix LOG_ --ignore-table-prefixes TMP_,IBE$
 ```
 
 Notes:
 - DDL report/output language uses OS culture detection (`English` by default, `pt-BR` localized).
 - `ddl-diff` output files: `.sql`, `.json`, and `.html`.
 - `ddl-diff` report includes Top 10 critical target items (severity), suggested SQL block order, and post-apply checklist.
-- `ddl-analyze` output files: `.json` and `.html`, with structural metadata risk signals (PK/FK/indexes/columns).
+- `ddl-analyze` output files: `.json` and `.html`, with summary by code/table, HTML filters, and recalibrated severity levels.
+- `ddl-analyze` accepts `--ignore-table-prefix` (repeatable) and `--ignore-table-prefixes` (comma-separated list) to suppress technical-table noise.
 
 ## Key Export Options
 
