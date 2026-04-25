@@ -114,7 +114,7 @@ Esta secao adiciona regras explicitas para evitar problemas recorrentes observad
 ### 9.4) Nomes e Legibilidade
 - Usar nomes explicitos (evitar abreviacoes desnecessarias).
 - Nome deve refletir intencao, nao implementacao.
-- Evitar comentarios desnecessarios — o codigo deve ser autoexplicativo.
+- Evitar comentarios desnecessarios - o codigo deve ser autoexplicativo.
 
 ### 9.5) Tratamento de Erros (padronizacao)
 - Nunca ignorar excecoes silenciosamente.
@@ -129,7 +129,7 @@ Esta secao adiciona regras explicitas para evitar problemas recorrentes observad
     - `ExportadorTabelaFirebird`
     - `ImportadorSql`
     - `ExecutorSql`
-- Nao criar novos “servicos paralelos” que duplicam responsabilidade.
+- Nao criar novos "servicos paralelos" que duplicam responsabilidade.
 - Manter padrao atual de organizacao por pasta.
 
 ### 9.7) Dependencias
@@ -167,3 +167,56 @@ Antes de finalizar, validar:
 7. A mudanca manteve o padrao arquitetural do projeto?
 
 Se qualquer resposta indicar problema de qualidade, ajustar antes de concluir.
+
+### 10) Politica de Idioma (Portugues vs Ingles)
+
+Este projeto e internacional. O idioma padrao do codigo e da interface CLI e INGLES.
+Documentacao interna pode estar em portugues.
+
+#### 10.1) Onde usar INGLES (obrigatorio)
+- Mensagens da CLI (stdout/stderr)
+- Logs
+- README principal
+- Nomes de comandos e flags
+
+Exemplo:
+- "Error executing command"
+- "File not found"
+
+#### 10.2) Onde usar PORTUGUES
+- Nomes de classes, metodos, variaveis e arquivos
+- Documentacao interna (ex: AGENTS.md, comentarios explicativos quando realmente necessarios)
+- Materiais de apoio para desenvolvedores brasileiros
+
+#### 10.3) Regra de Qualidade para Portugues
+Quando portugues for utilizado:
+- Sempre usar acentuacao correta
+- Nao gerar texto sem acento (ex: "acao", "informacao")
+- Evitar erros gramaticais basicos
+- Manter linguagem clara e natural
+
+Exemplo:
+
+Errado:
+- "Erro na execucao do comando"
+- "Arquivo nao encontrado"
+
+Certo:
+- "Erro na execucao do comando"
+- "Arquivo nao encontrado"
+
+#### 10.4) Consistencia (regra critica)
+- Nunca misturar idiomas no mesmo contexto:
+    - CLI inteira deve estar em ingles
+    - Documentacao deve ser consistente no idioma escolhido
+- Nao traduzir parcialmente mensagens ou nomes
+
+#### 10.5) Checklist de Idioma
+Antes de finalizar, validar:
+
+1. Codigo e CLI estao 100% em ingles?
+2. Algum texto em portugues apareceu em logs ou mensagens ao usuario?
+3. Textos em portugues (se existirem) estao com acentuacao correta?
+4. Ha mistura de idiomas no mesmo contexto?
+
+Se houver inconsistencias, corrigir antes de concluir.
