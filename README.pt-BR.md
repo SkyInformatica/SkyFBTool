@@ -27,8 +27,8 @@ git push origin v0.1.0
 
 ## Recursos Principais
 
-- Comandos `export` e `import`
-- Comandos `ddl-extract` e `ddl-diff` para comparação de schema
+- Comandos `export`, `import` e `exec-sql`
+- Comandos `ddl-extract`, `ddl-diff` e `ddl-analyze` para extração, comparação e análise de risco de schema
 - Exportação/importação em streaming para arquivos SQL grandes
 - `--filter`, `--filter-file` e modo avançado `--query-file`
 - Remapeamento de tabela destino com `--target-table`
@@ -42,7 +42,7 @@ git push origin v0.1.0
 
 - `Program.cs`: ponto de entrada mínimo
 - `Cli/CliApp.cs`: roteamento da CLI + ajuda
-- `Cli/Commands/*`: um arquivo por comando (`export`, `import`, `ddl-extract`, `ddl-diff`)
+- `Cli/Commands/*`: um arquivo por comando (`export`, `import`, `ddl-extract`, `ddl-diff`, `ddl-analyze`)
 - `Cli/Common/*`: utilitários compartilhados de parsing de argumentos
 - `Services/*`: lógica por contexto (Export, Import, Ddl)
 - `Infra/*`: adaptadores técnicos (conexão, encoding, arquivos)
@@ -52,8 +52,10 @@ git push origin v0.1.0
 ```powershell
 SkyFBTool export [opções]
 SkyFBTool import [opções]
+SkyFBTool exec-sql [opções]
 SkyFBTool ddl-extract [opções]
 SkyFBTool ddl-diff [opções]
+SkyFBTool ddl-analyze [opções]
 ```
 
 ### Exemplo de exportação
@@ -66,6 +68,7 @@ SkyFBTool export --database "C:\dados\exemplo.fdb" --table "TABELA_EXEMPLO" --ou
 
 ```powershell
 SkyFBTool import --database "C:\dados\exemplo.fdb" --input "C:\exports\tabela_exemplo.sql" --continue-on-error
+SkyFBTool exec-sql --database "C:\dados\exemplo.fdb" --script "C:\scripts\patch.sql" --continue-on-error
 ```
 
 ### Exemplos de extração e diff de DDL
@@ -74,7 +77,14 @@ SkyFBTool import --database "C:\dados\exemplo.fdb" --input "C:\exports\tabela_ex
 SkyFBTool ddl-extract --database "C:\dados\origem.fdb" --output "C:\ddl\origem"
 SkyFBTool ddl-extract --database "C:\dados\alvo.fdb" --output "C:\ddl\alvo"
 SkyFBTool ddl-diff --source "C:\ddl\origem.schema.json" --target "C:\ddl\alvo.schema.json" --output "C:\ddl\comparacao"
+SkyFBTool ddl-analyze --input "C:\ddl\origem.schema.json" --output "C:\ddl\analise"
 ```
+
+Observações:
+- O idioma de saída/relatório de DDL usa detecção da cultura do SO (`English` padrão, `pt-BR` localizado).
+- Arquivos de saída do `ddl-diff`: `.sql`, `.json` e `.html`.
+- O relatório do `ddl-diff` inclui Top 10 itens críticos do alvo (com severidade), ordem sugerida de blocos SQL e checklist pós-aplicação.
+- Arquivos de saída do `ddl-analyze`: `.json` e `.html`, com sinais estruturais de risco de metadata (PK/FK/índices/colunas).
 
 ## Principais Opções de Exportação
 
@@ -108,6 +118,7 @@ Regras:
 
 - `--database` caminho do banco Firebird
 - `--input` arquivo SQL de entrada
+- `--script` alias explícito de `--input`
 - `--host` host do Firebird (padrão: `localhost`)
 - `--port` porta do Firebird (padrão: `3050`)
 - `--user` usuário do Firebird (padrão: `sysdba`)

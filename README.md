@@ -27,8 +27,8 @@ git push origin v0.1.0
 
 ## Main Features
 
-- `export` and `import` commands
-- `ddl-extract` and `ddl-diff` commands for schema comparison
+- `export`, `import`, and `exec-sql` commands
+- `ddl-extract`, `ddl-diff`, and `ddl-analyze` commands for extraction, schema comparison, and DDL risk analysis
 - Streaming export/import for large SQL files
 - `--filter`, `--filter-file`, and advanced `--query-file`
 - Target table remap with `--target-table`
@@ -42,7 +42,7 @@ git push origin v0.1.0
 
 - `Program.cs`: minimal entrypoint
 - `Cli/CliApp.cs`: CLI routing + help
-- `Cli/Commands/*`: one file per command (`export`, `import`, `ddl-extract`, `ddl-diff`)
+- `Cli/Commands/*`: one file per command (`export`, `import`, `ddl-extract`, `ddl-diff`, `ddl-analyze`)
 - `Cli/Common/*`: shared argument parsing helpers
 - `Services/*`: context-specific logic (Export, Import, Ddl)
 - `Infra/*`: technical adapters (connection, encoding, files)
@@ -52,8 +52,10 @@ git push origin v0.1.0
 ```powershell
 SkyFBTool export [options]
 SkyFBTool import [options]
+SkyFBTool exec-sql [options]
 SkyFBTool ddl-extract [options]
 SkyFBTool ddl-diff [options]
+SkyFBTool ddl-analyze [options]
 ```
 
 ### Export example
@@ -66,6 +68,7 @@ SkyFBTool export --database "C:\data\sample.fdb" --table "SAMPLE_TABLE" --output
 
 ```powershell
 SkyFBTool import --database "C:\data\sample.fdb" --input "C:\exports\sample_table.sql" --continue-on-error
+SkyFBTool exec-sql --database "C:\data\sample.fdb" --script "C:\scripts\patch.sql" --continue-on-error
 ```
 
 ### DDL extract and diff examples
@@ -74,7 +77,14 @@ SkyFBTool import --database "C:\data\sample.fdb" --input "C:\exports\sample_tabl
 SkyFBTool ddl-extract --database "C:\data\source.fdb" --output "C:\ddl\source"
 SkyFBTool ddl-extract --database "C:\data\target.fdb" --output "C:\ddl\target"
 SkyFBTool ddl-diff --source "C:\ddl\source.schema.json" --target "C:\ddl\target.schema.json" --output "C:\ddl\diff"
+SkyFBTool ddl-analyze --input "C:\ddl\source.schema.json" --output "C:\ddl\analysis"
 ```
+
+Notes:
+- DDL report/output language uses OS culture detection (`English` by default, `pt-BR` localized).
+- `ddl-diff` output files: `.sql`, `.json`, and `.html`.
+- `ddl-diff` report includes Top 10 critical target items (severity), suggested SQL block order, and post-apply checklist.
+- `ddl-analyze` output files: `.json` and `.html`, with structural metadata risk signals (PK/FK/indexes/columns).
 
 ## Key Export Options
 
@@ -108,6 +118,7 @@ Rules:
 
 - `--database` Firebird database path
 - `--input` SQL file to import
+- `--script` explicit alias for `--input`
 - `--host` Firebird host (default: `localhost`)
 - `--port` Firebird port (default: `3050`)
 - `--user` Firebird user (default: `sysdba`)
