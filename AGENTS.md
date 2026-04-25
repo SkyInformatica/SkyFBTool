@@ -202,8 +202,8 @@ Errado:
 - "Arquivo nao encontrado"
 
 Certo:
-- "Erro na execucao do comando"
-- "Arquivo nao encontrado"
+- "Erro na execução do comando"
+- "Arquivo não encontrado"
 
 #### 10.4) Consistencia (regra critica)
 - Nunca misturar idiomas no mesmo contexto:
@@ -220,3 +220,10 @@ Antes de finalizar, validar:
 4. Ha mistura de idiomas no mesmo contexto?
 
 Se houver inconsistencias, corrigir antes de concluir.
+
+### 11) Politica de Commits Git
+
+- Mensagens de commit devem ser SEMPRE em ingles.
+- Usar resumo objetivo no imperativo (ex: "Add DDL severity override config").
+- Evitar mensagens vagas como "ajustes", "fixes", "update".
+- Se houver mais de um commit, manter coerencia entre escopo e mensagem.
