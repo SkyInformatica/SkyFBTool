@@ -28,16 +28,16 @@ public static class RenderizadorHtmlAnaliseDdl
         return new ModeloRelatorio
         {
             Lang = idioma == IdiomaSaida.PortugueseBrazil ? "pt-BR" : "en",
-            Titulo = M(idioma, "DDL Risk Analysis", "Analise de Risco DDL"),
+            Titulo = M(idioma, "DDL Risk Analysis", "Análise de Risco DDL"),
             OrigemLabel = M(idioma, "Source", "Origem"),
             OrigemExibicao = H(origemExibicao),
             OrigemTooltip = H(resultado.Origem),
             GeradoEmLabel = M(idioma, "Generated at (UTC)", "Gerado em (UTC)"),
             GeradoEm = resultado.GeradoEmUtc.ToString("yyyy-MM-dd HH:mm:ss"),
             TotalLabel = M(idioma, "Total findings", "Total de achados"),
-            CriticosLabel = M(idioma, "Critical", "Criticos"),
+            CriticosLabel = M(idioma, "Critical", "Críticos"),
             AltosLabel = M(idioma, "High", "Altos"),
-            MediosLabel = M(idioma, "Medium", "Medios"),
+            MediosLabel = M(idioma, "Medium", "Médios"),
             BaixosLabel = M(idioma, "Low", "Baixos"),
             TotalAchados = resultado.TotalAchados,
             TotalCriticos = resultado.TotalCriticos,
@@ -48,16 +48,16 @@ public static class RenderizadorHtmlAnaliseDdl
             ResumoTabelaLabel = M(idioma, "Top tables with findings", "Top tabelas com achados"),
             QtdLabel = M(idioma, "Count", "Qtde"),
             PctLabel = "%",
-            CodigoLabel = M(idioma, "Code", "Codigo"),
+            CodigoLabel = M(idioma, "Code", "Código"),
             EscopoLabel = M(idioma, "Scope", "Escopo"),
-            DescricaoLabel = M(idioma, "Description", "Descricao"),
-            RecomendacaoLabel = M(idioma, "Recommendation", "Recomendacao"),
+            DescricaoLabel = M(idioma, "Description", "Descrição"),
+            RecomendacaoLabel = M(idioma, "Recommendation", "Recomendação"),
             SemAchadosLabel = M(idioma, "No findings.", "Sem achados."),
             FiltrosLabel = M(idioma, "Filters", "Filtros"),
             SeveridadeLabel = M(idioma, "Severity", "Severidade"),
             TodosLabel = M(idioma, "All", "Todos"),
             BuscaLabel = M(idioma, "Search", "Busca"),
-            BuscaPlaceholder = M(idioma, "table, code or text...", "tabela, codigo ou texto..."),
+            BuscaPlaceholder = M(idioma, "table, code or text...", "tabela, código ou texto..."),
             MostrandoLabel = M(idioma, "Showing", "Exibindo"),
             DeLabel = M(idioma, "of", "de"),
             MostrandoJs = Js(M(idioma, "Showing", "Exibindo")),
@@ -108,9 +108,9 @@ public static class RenderizadorHtmlAnaliseDdl
 
         return severidade switch
         {
-            "critical" => "critico",
+            "critical" => "crítico",
             "high" => "alto",
-            "medium" => "medio",
+            "medium" => "médio",
             "low" => "baixo",
             _ => severidade
         };
@@ -136,13 +136,13 @@ public static class RenderizadorHtmlAnaliseDdl
         using var stream = typeof(RenderizadorHtmlAnaliseDdl).Assembly
             .GetManifestResourceStream("SkyFBTool.Services.Ddl.Templates.DdlAnalyzeReport.scriban");
         if (stream is null)
-            throw new InvalidOperationException("Template de relatorio DDL nao encontrado.");
+            throw new InvalidOperationException("Template de relatório DDL não encontrado.");
 
         using var reader = new StreamReader(stream);
         string conteudo = reader.ReadToEnd();
         var template = Template.Parse(conteudo);
         if (template.HasErrors)
-            throw new InvalidOperationException("Template de relatorio DDL invalido.");
+            throw new InvalidOperationException("Template de relatório DDL inválido.");
 
         return template;
     }
