@@ -173,6 +173,7 @@ OPCOES:
   --output CAMINHO           Prefixo/arquivo/diretorio de saida
   --ignore-table-prefix TXT  Ignora tabelas por prefixo (pode repetir)
   --ignore-table-prefixes L  Ignora prefixos separados por virgula
+  --severity-config ARQ.JSON Sobrescreve severidade por codigo de achado
 
 SAIDA:
   <prefixo>.json             Achados estruturados
@@ -181,6 +182,7 @@ SAIDA:
 EXEMPLO:
   SkyFBTool ddl-analyze --input C:\ddl\origem.schema.json --output C:\ddl\analise
   SkyFBTool ddl-analyze --input C:\ddl\origem.schema.json --ignore-table-prefix LOG_ --ignore-table-prefixes TMP_,IBE$
+  SkyFBTool ddl-analyze --input C:\ddl\origem.schema.json --severity-config .\examples\ddl-severity.sample.json
 
 ");
     }

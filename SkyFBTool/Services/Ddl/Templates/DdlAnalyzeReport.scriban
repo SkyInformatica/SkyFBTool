@@ -15,6 +15,7 @@
     .toolbar { display: flex; gap: 10px; flex-wrap: wrap; margin: 8px 0 10px; align-items: center; }
     .toolbar input, .toolbar select { padding: 6px 8px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 13px; }
     .count { font-size: 13px; color: #374151; }
+    .criteria { margin: 8px 0 16px; }
     .table-wrap { max-height: 70vh; overflow: auto; border: 1px solid #e5e7eb; border-radius: 8px; }
     table { width: 100%; border-collapse: collapse; }
     th, td { border-bottom: 1px solid #eef2f7; padding: 8px; text-align: left; vertical-align: top; font-size: 13px; }
@@ -38,6 +39,22 @@
     <div class="pill"><strong>{{ AltosLabel }}:</strong> {{ TotalAltos }}</div>
     <div class="pill"><strong>{{ MediosLabel }}:</strong> {{ TotalMedios }}</div>
     <div class="pill"><strong>{{ BaixosLabel }}:</strong> {{ TotalBaixos }}</div>
+  </div>
+  <div class="card criteria">
+    <h2>{{ CriteriosSeveridadeLabel }}</h2>
+    <table><thead><tr>
+      <th>{{ CriterioNivelLabel }}</th>
+      <th>{{ CriterioQuandoLabel }}</th>
+      <th>{{ CriterioImpactoLabel }}</th>
+    </tr></thead><tbody>
+      {{ for c in CriteriosSeveridade }}
+      <tr>
+        <td class="{{ c.Classe }}">{{ c.Rotulo }}</td>
+        <td>{{ c.Quando }}</td>
+        <td>{{ c.Impacto }}</td>
+      </tr>
+      {{ end }}
+    </tbody></table>
   </div>
   <div class="grid">
     <div class="card">

@@ -190,4 +190,31 @@ public class AnalisadorDdlSchemaTests
         Assert.Contains(resultado.ResumoPorCodigo, i => i.Chave == "TABELA_SEM_PK");
         Assert.Contains(resultado.ResumoPorTabela, i => i.Chave == "A" || i.Chave == "B");
     }
+
+    [Fact]
+    public void Analisar_ComOverrideDeSeveridade_DeveAplicarNivelConfigurado()
+    {
+        var snapshot = new SnapshotSchema
+        {
+            Tabelas =
+            [
+                new TabelaSchema
+                {
+                    Nome = "SEM_PK",
+                    Colunas = [new ColunaSchema { Nome = "ID", TipoSql = "INTEGER", AceitaNulo = false }]
+                }
+            ]
+        };
+
+        var overrides = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+        {
+            ["TABELA_SEM_PK"] = "critical"
+        };
+
+        var resultado = AnalisadorDdlSchema.Analisar(snapshot, severidadesOverride: overrides);
+
+        Assert.Contains(resultado.Achados, a =>
+            a.Codigo == "TABELA_SEM_PK" &&
+            a.Severidade == "critical");
+    }
 }

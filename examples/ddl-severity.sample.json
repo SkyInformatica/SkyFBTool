@@ -1,0 +1,21 @@
+{
+  "overrides": [
+    { "code": "TABLE_WITHOUT_PK", "severity": "critical" },
+    { "code": "FK_WITHOUT_COVERING_INDEX", "severity": "high" },
+    { "code": "DUPLICATED_INDEX", "severity": "medium" },
+
+    { "code": "TABLE_WITHOUT_COLUMNS", "severity": "critical" },
+    { "code": "DUPLICATED_COLUMN", "severity": "critical" },
+    { "code": "UNKNOWN_TYPE", "severity": "high" },
+    { "code": "PK_WITHOUT_COLUMNS", "severity": "critical" },
+    { "code": "PK_REFERENCES_MISSING_COLUMN", "severity": "critical" },
+    { "code": "FK_WITHOUT_COLUMNS", "severity": "critical" },
+    { "code": "FK_INVALID_CARDINALITY", "severity": "critical" },
+    { "code": "FK_MISSING_LOCAL_COLUMN", "severity": "critical" },
+    { "code": "FK_MISSING_REFERENCED_TABLE", "severity": "critical" },
+    { "code": "FK_MISSING_REFERENCED_COLUMN", "severity": "critical" },
+    { "code": "INDEX_WITHOUT_COLUMNS", "severity": "high" },
+    { "code": "INDEX_MISSING_COLUMN", "severity": "high" },
+    { "code": "DUPLICATED_FK", "severity": "low" }
+  ]
+}

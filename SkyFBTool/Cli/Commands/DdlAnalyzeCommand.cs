@@ -32,6 +32,9 @@ public static class DdlAnalyzeCommand
                     foreach (var prefixo in valor.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
                         op.PrefixosTabelaIgnorados.Add(prefixo);
                     break;
+                case "severity-config":
+                    op.ArquivoConfiguracaoSeveridade = CliArgumentParser.LerValorOpcao(args, ref i, chave);
+                    break;
                 default:
                     throw new ArgumentException(M(
                         idioma,

@@ -55,6 +55,10 @@ public static class RenderizadorHtmlAnaliseDdl
             SemAchadosLabel = M(idioma, "No findings.", "Sem achados."),
             FiltrosLabel = M(idioma, "Filters", "Filtros"),
             SeveridadeLabel = M(idioma, "Severity", "Severidade"),
+            CriteriosSeveridadeLabel = M(idioma, "Severity criteria", "Critérios de severidade"),
+            CriterioNivelLabel = M(idioma, "Level", "Nível"),
+            CriterioQuandoLabel = M(idioma, "When it applies", "Quando se aplica"),
+            CriterioImpactoLabel = M(idioma, "Expected impact", "Impacto esperado"),
             TodosLabel = M(idioma, "All", "Todos"),
             BuscaLabel = M(idioma, "Search", "Busca"),
             BuscaPlaceholder = M(idioma, "table, code or text...", "tabela, código ou texto..."),
@@ -65,6 +69,7 @@ public static class RenderizadorHtmlAnaliseDdl
             PossuiAchados = resultado.Achados.Count > 0,
             CodigosFiltro = resultado.ResumoPorCodigo.Select(r => H(r.Chave)).ToList(),
             Severidades = CriarSeveridades(idioma),
+            CriteriosSeveridade = CriarCriteriosSeveridade(idioma),
             ResumoCodigoTop = resumoCodigoTop,
             ResumoTabelaTop = resumoTabelaTop,
             Achados = resultado.Achados.Select(a => new AchadoModelo
@@ -88,6 +93,65 @@ public static class RenderizadorHtmlAnaliseDdl
             new() { Valor = "high", Rotulo = H(SeveridadeRotulo("high", idioma)) },
             new() { Valor = "medium", Rotulo = H(SeveridadeRotulo("medium", idioma)) },
             new() { Valor = "low", Rotulo = H(SeveridadeRotulo("low", idioma)) }
+        ];
+    }
+
+    private static List<CriterioSeveridadeModelo> CriarCriteriosSeveridade(IdiomaSaida idioma)
+    {
+        return
+        [
+            new()
+            {
+                Classe = "critical",
+                Rotulo = H(SeveridadeRotulo("critical", idioma)),
+                Quando = H(M(
+                    idioma,
+                    "Broken structural metadata: missing or invalid columns in PK/FK, empty constraints, or impossible references.",
+                    "Metadado estrutural quebrado: colunas ausentes ou inválidas em PK/FK, constraints vazias ou referências impossíveis.")),
+                Impacto = H(M(
+                    idioma,
+                    "High chance of functional failure, corruption symptoms, or impossible safe sync without manual repair.",
+                    "Alta chance de falha funcional, sintomas de corrupção ou impossibilidade de sincronismo seguro sem reparo manual."))
+            },
+            new()
+            {
+                Classe = "high",
+                Rotulo = H(SeveridadeRotulo("high", idioma)),
+                Quando = H(M(
+                    idioma,
+                    "High-risk inconsistency that can break integrity or performance under load.",
+                    "Inconsistência de alto risco que pode quebrar integridade ou performance em carga.")),
+                Impacto = H(M(
+                    idioma,
+                    "Relevant production risk; fix before migration or intensive import/export.",
+                    "Risco relevante em produção; corrigir antes de migração ou importação/exportação intensa."))
+            },
+            new()
+            {
+                Classe = "medium",
+                Rotulo = H(SeveridadeRotulo("medium", idioma)),
+                Quando = H(M(
+                    idioma,
+                    "Important quality or performance gap, usually without immediate corruption.",
+                    "Lacuna importante de qualidade ou performance, normalmente sem corrupção imediata.")),
+                Impacto = H(M(
+                    idioma,
+                    "Can degrade throughput and increase lock/contention risk over time.",
+                    "Pode degradar vazão e aumentar risco de lock/contenção ao longo do tempo."))
+            },
+            new()
+            {
+                Classe = "low",
+                Rotulo = H(SeveridadeRotulo("low", idioma)),
+                Quando = H(M(
+                    idioma,
+                    "Advisory pattern or modeling smell with lower immediate risk.",
+                    "Padrão consultivo ou smell de modelagem com menor risco imediato.")),
+                Impacto = H(M(
+                    idioma,
+                    "Recommended for hardening and maintainability; can be planned.",
+                    "Recomendado para endurecimento e manutenibilidade; pode ser planejado."))
+            }
         ];
     }
 
@@ -179,6 +243,10 @@ public static class RenderizadorHtmlAnaliseDdl
         public string SemAchadosLabel { get; init; } = string.Empty;
         public string FiltrosLabel { get; init; } = string.Empty;
         public string SeveridadeLabel { get; init; } = string.Empty;
+        public string CriteriosSeveridadeLabel { get; init; } = string.Empty;
+        public string CriterioNivelLabel { get; init; } = string.Empty;
+        public string CriterioQuandoLabel { get; init; } = string.Empty;
+        public string CriterioImpactoLabel { get; init; } = string.Empty;
         public string TodosLabel { get; init; } = string.Empty;
         public string BuscaLabel { get; init; } = string.Empty;
         public string BuscaPlaceholder { get; init; } = string.Empty;
@@ -189,6 +257,7 @@ public static class RenderizadorHtmlAnaliseDdl
         public bool PossuiAchados { get; init; }
         public List<string> CodigosFiltro { get; init; } = [];
         public List<SeveridadeModelo> Severidades { get; init; } = [];
+        public List<CriterioSeveridadeModelo> CriteriosSeveridade { get; init; } = [];
         public List<ResumoModelo> ResumoCodigoTop { get; init; } = [];
         public List<ResumoModelo> ResumoTabelaTop { get; init; } = [];
         public List<AchadoModelo> Achados { get; init; } = [];
@@ -205,6 +274,14 @@ public static class RenderizadorHtmlAnaliseDdl
     {
         public string Valor { get; init; } = string.Empty;
         public string Rotulo { get; init; } = string.Empty;
+    }
+
+    private sealed class CriterioSeveridadeModelo
+    {
+        public string Classe { get; init; } = string.Empty;
+        public string Rotulo { get; init; } = string.Empty;
+        public string Quando { get; init; } = string.Empty;
+        public string Impacto { get; init; } = string.Empty;
     }
 
     private sealed class AchadoModelo
