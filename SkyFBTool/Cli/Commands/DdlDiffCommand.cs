@@ -8,6 +8,7 @@ public static class DdlDiffCommand
 {
     public static async Task ExecuteAsync(string[] args)
     {
+        var idioma = IdiomaSaidaDetector.Detectar();
         var op = new OpcoesDdlDiff();
 
         for (int i = 0; i < args.Length; i++)
@@ -30,13 +31,18 @@ public static class DdlDiffCommand
             }
         }
 
-        Console.WriteLine("Iniciando comparação de DDL...");
-        var (arquivoSql, arquivoJson, arquivoMarkdown) = await ComparadorSchema.CompararAsync(op);
+        Console.WriteLine(M(idioma, "Starting DDL comparison...", "Iniciando comparacao de DDL..."));
+        var (arquivoSql, arquivoJson, arquivoHtml) = await ComparadorSchema.CompararAsync(op);
 
         Console.WriteLine();
-        Console.WriteLine("Comparação concluída.");
-        Console.WriteLine($"Diff SQL   : {arquivoSql}");
-        Console.WriteLine($"Diff JSON  : {arquivoJson}");
-        Console.WriteLine($"Relatório  : {arquivoMarkdown}");
+        Console.WriteLine(M(idioma, "Comparison finished.", "Comparacao concluida."));
+        Console.WriteLine($"{M(idioma, "Diff SQL", "Diff SQL")}   : {arquivoSql}");
+        Console.WriteLine($"{M(idioma, "Diff JSON", "Diff JSON")}  : {arquivoJson}");
+        Console.WriteLine($"{M(idioma, "Report", "Relatorio")}     : {arquivoHtml}");
+    }
+
+    private static string M(IdiomaSaida idioma, string english, string portuguese)
+    {
+        return idioma == IdiomaSaida.PortugueseBrazil ? portuguese : english;
     }
 }

@@ -124,4 +124,61 @@ public class ComparadorSchemaTests
         Assert.Contains(diff.ComandosSql, sql => sql.Contains("SET NOT NULL", StringComparison.OrdinalIgnoreCase));
         Assert.Contains(diff.ComandosSql, sql => sql.Contains("SET DEFAULT 0", StringComparison.OrdinalIgnoreCase));
     }
+
+    [Fact]
+    public void GerarDiff_QuandoIndiceDuplicadoNaOrigem_DeveIncluirNomesNoAviso()
+    {
+        var origem = new SnapshotSchema
+        {
+            Tabelas =
+            [
+                new TabelaSchema
+                {
+                    Nome = "AVISO",
+                    Colunas =
+                    [
+                        new ColunaSchema { Nome = "CODIGOAVISO", TipoSql = "INTEGER", AceitaNulo = false }
+                    ],
+                    Indices =
+                    [
+                        new IndiceSchema
+                        {
+                            Nome = "IDX_AVISO_A",
+                            Unico = false,
+                            Descendente = false,
+                            Colunas = ["CODIGOAVISO"]
+                        },
+                        new IndiceSchema
+                        {
+                            Nome = "IDX_AVISO_B",
+                            Unico = false,
+                            Descendente = false,
+                            Colunas = ["CODIGOAVISO"]
+                        }
+                    ]
+                }
+            ]
+        };
+
+        var alvo = new SnapshotSchema
+        {
+            Tabelas =
+            [
+                new TabelaSchema
+                {
+                    Nome = "AVISO",
+                    Colunas =
+                    [
+                        new ColunaSchema { Nome = "CODIGOAVISO", TipoSql = "INTEGER", AceitaNulo = false }
+                    ]
+                }
+            ]
+        };
+
+        var diff = ComparadorSchema.GerarDiff(origem, alvo);
+
+        Assert.Contains(diff.Avisos, aviso =>
+            aviso.Contains("IDX_AVISO_A", StringComparison.OrdinalIgnoreCase) &&
+            aviso.Contains("IDX_AVISO_B", StringComparison.OrdinalIgnoreCase));
+    }
 }

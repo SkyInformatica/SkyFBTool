@@ -83,24 +83,43 @@ public static class ExtratorDdlFirebird
 
     private static async Task<List<ColunaSchema>> CarregarColunasAsync(FbConnection conexao, string nomeTabela)
     {
-        const string sql = """
-                           SELECT
-                               TRIM(rf.rdb$field_name) AS field_name,
-                               f.rdb$field_type AS field_type,
-                               f.rdb$field_sub_type AS field_sub_type,
-                               f.rdb$field_length AS field_length,
-                               f.rdb$field_precision AS field_precision,
-                               f.rdb$field_scale AS field_scale,
-                               f.rdb$character_length AS character_length,
-                               COALESCE(rf.rdb$null_flag, 0) AS null_flag,
-                               rf.rdb$default_source AS default_source,
-                               f.rdb$default_source AS domain_default_source,
-                               f.rdb$computed_source AS computed_source
-                           FROM rdb$relation_fields rf
-                           JOIN rdb$fields f ON f.rdb$field_name = rf.rdb$field_source
-                           WHERE rf.rdb$relation_name = @tabela
-                           ORDER BY rf.rdb$field_position
-                           """;
+        try
+        {
+            return await CarregarColunasComQueryAsync(conexao, nomeTabela, incluirCharacterLength: true);
+        }
+        catch (FbException ex) when (MensagemTokenDesconhecidoParaCharacterLength(ex))
+        {
+            return await CarregarColunasComQueryAsync(conexao, nomeTabela, incluirCharacterLength: false);
+        }
+    }
+    
+    private static async Task<List<ColunaSchema>> CarregarColunasComQueryAsync(
+        FbConnection conexao,
+        string nomeTabela,
+        bool incluirCharacterLength)
+    {
+        string selectCharacterLength = incluirCharacterLength
+            ? "f.rdb$character_length AS char_len,"
+            : "CAST(NULL AS INTEGER) AS char_len,";
+
+        string sql = $"""
+                      SELECT
+                          TRIM(rf.rdb$field_name) AS field_name,
+                          f.rdb$field_type AS field_type,
+                          f.rdb$field_sub_type AS field_sub_type,
+                          f.rdb$field_length AS field_length,
+                          f.rdb$field_precision AS field_precision,
+                          f.rdb$field_scale AS field_scale,
+                          {selectCharacterLength}
+                          COALESCE(rf.rdb$null_flag, 0) AS null_flag,
+                          rf.rdb$default_source AS default_source,
+                          f.rdb$default_source AS domain_default_source,
+                          f.rdb$computed_source AS computed_source
+                      FROM rdb$relation_fields rf
+                      JOIN rdb$fields f ON f.rdb$field_name = rf.rdb$field_source
+                      WHERE rf.rdb$relation_name = @tabela
+                      ORDER BY rf.rdb$field_position
+                      """;
 
         await using var cmd = new FbCommand(sql, conexao);
         cmd.Parameters.AddWithValue("@tabela", nomeTabela);
@@ -109,16 +128,16 @@ public static class ExtratorDdlFirebird
         var colunas = new List<ColunaSchema>();
         while (await reader.ReadAsync())
         {
-            int fieldType = reader.GetInt32(reader.GetOrdinal("field_type"));
-            int fieldSubtype = reader.GetInt32(reader.GetOrdinal("field_sub_type"));
-            int fieldLength = reader.GetInt32(reader.GetOrdinal("field_length"));
+            int fieldType = LerInt(reader, "field_type");
+            int fieldSubtype = LerInt(reader, "field_sub_type");
+            int fieldLength = LerInt(reader, "field_length");
             int? precision = reader.IsDBNull(reader.GetOrdinal("field_precision"))
                 ? null
                 : reader.GetInt32(reader.GetOrdinal("field_precision"));
-            int scale = reader.GetInt32(reader.GetOrdinal("field_scale"));
-            int? charLength = reader.IsDBNull(reader.GetOrdinal("character_length"))
+            int scale = LerInt(reader, "field_scale");
+            int? charLength = reader.IsDBNull(reader.GetOrdinal("char_len"))
                 ? null
-                : reader.GetInt32(reader.GetOrdinal("character_length"));
+                : reader.GetInt32(reader.GetOrdinal("char_len"));
 
             string? defaultSource = reader.IsDBNull(reader.GetOrdinal("default_source"))
                 ? null
@@ -131,7 +150,7 @@ public static class ExtratorDdlFirebird
                 : reader.GetString(reader.GetOrdinal("computed_source"));
 
             string tipoSql = MapearTipoSql(fieldType, fieldSubtype, fieldLength, precision, scale, charLength);
-            bool aceitaNulo = reader.GetInt32(reader.GetOrdinal("null_flag")) == 0;
+            bool aceitaNulo = LerInt(reader, "null_flag") == 0;
 
             colunas.Add(new ColunaSchema
             {
@@ -144,6 +163,22 @@ public static class ExtratorDdlFirebird
         }
 
         return colunas;
+    }
+
+    private static int LerInt(FbDataReader reader, string coluna, int valorPadrao = 0)
+    {
+        int ordinal = reader.GetOrdinal(coluna);
+        if (reader.IsDBNull(ordinal))
+            return valorPadrao;
+
+        return Convert.ToInt32(reader.GetValue(ordinal));
+    }
+
+    private static bool MensagemTokenDesconhecidoParaCharacterLength(FbException ex)
+    {
+        string mensagem = ex.Message ?? string.Empty;
+        return mensagem.Contains("Token unknown", StringComparison.OrdinalIgnoreCase)
+               && mensagem.Contains("character_length", StringComparison.OrdinalIgnoreCase);
     }
 
     private static async Task<ChavePrimariaSchema?> CarregarChavePrimariaAsync(FbConnection conexao, string nomeTabela)

@@ -20,6 +20,7 @@ public static class ImportCommand
                     op.Database = CliArgumentParser.LerValorOpcao(args, ref i, chave);
                     break;
                 case "input":
+                case "script":
                     op.ArquivoEntrada = CliArgumentParser.LerValorOpcao(args, ref i, chave);
                     break;
                 case "host":

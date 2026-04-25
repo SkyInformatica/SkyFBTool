@@ -8,6 +8,7 @@ public static class DdlExtractCommand
 {
     public static async Task ExecuteAsync(string[] args)
     {
+        var idioma = IdiomaSaidaDetector.Detectar();
         var op = new OpcoesDdlExtracao();
 
         for (int i = 0; i < args.Length; i++)
@@ -40,12 +41,17 @@ public static class DdlExtractCommand
             }
         }
 
-        Console.WriteLine("Iniciando extração de DDL...");
+        Console.WriteLine(M(idioma, "Starting DDL extraction...", "Iniciando extração de DDL..."));
         var (arquivoSql, arquivoJson) = await ExtratorDdlFirebird.ExtrairAsync(op);
 
         Console.WriteLine();
-        Console.WriteLine("Extração concluída.");
-        Console.WriteLine($"DDL SQL    : {arquivoSql}");
-        Console.WriteLine($"Schema JSON: {arquivoJson}");
+        Console.WriteLine(M(idioma, "Extraction finished.", "Extração concluída."));
+        Console.WriteLine($"{M(idioma, "DDL SQL", "DDL SQL")}    : {arquivoSql}");
+        Console.WriteLine($"{M(idioma, "Schema JSON", "Schema JSON")}: {arquivoJson}");
+    }
+
+    private static string M(IdiomaSaida idioma, string english, string portuguese)
+    {
+        return idioma == IdiomaSaida.PortugueseBrazil ? portuguese : english;
     }
 }
