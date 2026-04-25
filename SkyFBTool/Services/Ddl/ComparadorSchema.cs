@@ -16,11 +16,11 @@ public static class ComparadorSchema
         if (string.IsNullOrWhiteSpace(opcoes.Alvo))
             throw new ArgumentException(M(idioma, "Target file not provided (--target).", "Arquivo de alvo nao informado (--target)."));
 
-        string origemJson = ResolverArquivoJsonSchema(opcoes.Origem);
-        string alvoJson = ResolverArquivoJsonSchema(opcoes.Alvo);
+        string origemJson = CarregadorSnapshotSchema.ResolverArquivoJsonSchema(opcoes.Origem);
+        string alvoJson = CarregadorSnapshotSchema.ResolverArquivoJsonSchema(opcoes.Alvo);
 
-        var origem = await LerSnapshotAsync(origemJson);
-        var alvo = await LerSnapshotAsync(alvoJson);
+        var origem = await CarregadorSnapshotSchema.LerArquivoJsonAsync(origemJson);
+        var alvo = await CarregadorSnapshotSchema.LerArquivoJsonAsync(alvoJson);
 
         var resultado = GerarDiff(origem, alvo, idioma);
         var (arquivoSql, arquivoJson, arquivoHtml) = ResolverArquivosSaida(opcoes);
@@ -353,32 +353,6 @@ public static class ComparadorSchema
 
         string nome = resolverNome(item) ?? string.Empty;
         return string.IsNullOrWhiteSpace(nome) ? "?" : nome.Trim();
-    }
-
-    private static async Task<SnapshotSchema> LerSnapshotAsync(string arquivoJson)
-    {
-        if (!File.Exists(arquivoJson))
-            throw new FileNotFoundException($"Arquivo de schema nao encontrado: {arquivoJson}");
-
-        var texto = await File.ReadAllTextAsync(arquivoJson);
-        var snapshot = JsonSerializer.Deserialize<SnapshotSchema>(texto, JsonOptions);
-        if (snapshot is null)
-            throw new ArgumentException($"Nao foi possivel ler snapshot JSON: {arquivoJson}");
-
-        return snapshot;
-    }
-
-    private static string ResolverArquivoJsonSchema(string caminhoInformado)
-    {
-        string caminho = Path.GetFullPath(caminhoInformado.Trim().Trim('"'));
-
-        if (Path.GetExtension(caminho).Equals(".json", StringComparison.OrdinalIgnoreCase))
-            return caminho;
-
-        if (Path.GetExtension(caminho).Equals(".sql", StringComparison.OrdinalIgnoreCase))
-            return Path.ChangeExtension(caminho, ".schema.json");
-
-        return $"{caminho}.schema.json";
     }
 
     private static (string ArquivoSql, string ArquivoJson, string ArquivoHtml) ResolverArquivosSaida(OpcoesDdlDiff opcoes)

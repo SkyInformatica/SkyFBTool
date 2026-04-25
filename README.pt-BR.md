@@ -145,6 +145,10 @@ $env:SKYFBTOOL_TEST_RUN_INTEGRATION="true"
 
 - [DOCS_STANDARD.md](./DOCS_STANDARD.md)
 
+## Dependencias
+
+- `Scriban` e usado para renderizar o HTML do `ddl-analyze` a partir de template.
+
 ## Isenção de Responsabilidade
 
 O SkyFBTool é distribuído sob a licença MIT, "NO ESTADO EM QUE SE ENCONTRA", sem garantias de qualquer natureza.

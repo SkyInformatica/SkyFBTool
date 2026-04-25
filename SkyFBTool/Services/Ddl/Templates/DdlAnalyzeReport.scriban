@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="{{ Lang }}">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>{{ Titulo }}</title>
+  <style>
+    body { font-family: Segoe UI, Arial, sans-serif; margin: 20px; color: #1f2937; }
+    h1, h2 { margin: 0 0 12px 0; }
+    .meta { margin-bottom: 14px; font-size: 14px; }
+    .kpi { display: flex; gap: 10px; flex-wrap: wrap; margin: 10px 0 18px; }
+    .pill { border: 1px solid #d1d5db; border-radius: 12px; padding: 8px 10px; background: #f9fafb; font-size: 13px; }
+    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 8px 0 16px; }
+    .card { border: 1px solid #e5e7eb; border-radius: 10px; background: #fff; padding: 10px; }
+    .toolbar { display: flex; gap: 10px; flex-wrap: wrap; margin: 8px 0 10px; align-items: center; }
+    .toolbar input, .toolbar select { padding: 6px 8px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 13px; }
+    .count { font-size: 13px; color: #374151; }
+    .table-wrap { max-height: 70vh; overflow: auto; border: 1px solid #e5e7eb; border-radius: 8px; }
+    table { width: 100%; border-collapse: collapse; }
+    th, td { border-bottom: 1px solid #eef2f7; padding: 8px; text-align: left; vertical-align: top; font-size: 13px; }
+    th { position: sticky; top: 0; background: #f3f4f6; z-index: 1; }
+    .critical { color: #991b1b; font-weight: 700; }
+    .high { color: #92400e; font-weight: 700; }
+    .medium { color: #1d4ed8; font-weight: 700; }
+    .low { color: #065f46; font-weight: 700; }
+    @media (max-width: 900px) { .grid { grid-template-columns: 1fr; } body { margin: 12px; } }
+  </style>
+</head>
+<body>
+  <h1>{{ Titulo }}</h1>
+  <div class="meta">
+    <div><strong>{{ OrigemLabel }}:</strong> <span title="{{ OrigemTooltip }}">{{ OrigemExibicao }}</span></div>
+    <div><strong>{{ GeradoEmLabel }}:</strong> {{ GeradoEm }}</div>
+  </div>
+  <div class="kpi">
+    <div class="pill"><strong>{{ TotalLabel }}:</strong> {{ TotalAchados }}</div>
+    <div class="pill"><strong>{{ CriticosLabel }}:</strong> {{ TotalCriticos }}</div>
+    <div class="pill"><strong>{{ AltosLabel }}:</strong> {{ TotalAltos }}</div>
+    <div class="pill"><strong>{{ MediosLabel }}:</strong> {{ TotalMedios }}</div>
+    <div class="pill"><strong>{{ BaixosLabel }}:</strong> {{ TotalBaixos }}</div>
+  </div>
+  <div class="grid">
+    <div class="card">
+      <h2>{{ ResumoCodigoLabel }}</h2>
+      <table><thead><tr>
+        <th>{{ CodigoLabel }}</th><th>{{ QtdLabel }}</th><th>{{ PctLabel }}</th>
+      </tr></thead><tbody>
+        {{ for item in ResumoCodigoTop }}
+        <tr><td>{{ item.Chave }}</td><td>{{ item.Quantidade }}</td><td>{{ item.Percentual }}</td></tr>
+        {{ end }}
+        {{ if ResumoCodigoTop.size == 0 }}
+        <tr><td colspan="3">{{ SemAchadosLabel }}</td></tr>
+        {{ end }}
+      </tbody></table>
+    </div>
+    <div class="card">
+      <h2>{{ ResumoTabelaLabel }}</h2>
+      <table><thead><tr>
+        <th>{{ EscopoLabel }}</th><th>{{ QtdLabel }}</th><th>{{ PctLabel }}</th>
+      </tr></thead><tbody>
+        {{ for item in ResumoTabelaTop }}
+        <tr><td>{{ item.Chave }}</td><td>{{ item.Quantidade }}</td><td>{{ item.Percentual }}</td></tr>
+        {{ end }}
+        {{ if ResumoTabelaTop.size == 0 }}
+        <tr><td colspan="3">{{ SemAchadosLabel }}</td></tr>
+        {{ end }}
+      </tbody></table>
+    </div>
+  </div>
+  {{ if PossuiAchados }}
+  <h2>{{ FiltrosLabel }}</h2>
+  <div class="toolbar">
+    <label>{{ SeveridadeLabel }} <select id="f-sev"><option value="">{{ TodosLabel }}</option>{{ for s in Severidades }}<option value="{{ s.Valor }}">{{ s.Rotulo }}</option>{{ end }}</select></label>
+    <label>{{ CodigoLabel }} <select id="f-code"><option value="">{{ TodosLabel }}</option>{{ for c in CodigosFiltro }}<option value="{{ c }}">{{ c }}</option>{{ end }}</select></label>
+    <label>{{ BuscaLabel }} <input id="f-q" type="text" placeholder="{{ BuscaPlaceholder }}" /></label>
+    <span class="count" id="f-count">{{ MostrandoLabel }} 0 {{ DeLabel }} {{ TotalAchados }}</span>
+  </div>
+  <div class="table-wrap">
+  <table id="achados">
+    <thead><tr>
+      <th>{{ SeveridadeLabel }}</th>
+      <th>{{ CodigoLabel }}</th>
+      <th>{{ EscopoLabel }}</th>
+      <th>{{ DescricaoLabel }}</th>
+      <th>{{ RecomendacaoLabel }}</th>
+    </tr></thead>
+    <tbody>
+      {{ for a in Achados }}
+      <tr data-sev="{{ a.SeveridadeValor }}" data-code="{{ a.Codigo }}" data-text="{{ a.TextoFiltro }}">
+        <td class="{{ a.SeveridadeValor }}">{{ a.SeveridadeRotulo }}</td>
+        <td>{{ a.Codigo }}</td>
+        <td>{{ a.Escopo }}</td>
+        <td>{{ a.Descricao }}</td>
+        <td>{{ a.Recomendacao }}</td>
+      </tr>
+      {{ end }}
+    </tbody>
+  </table>
+  </div>
+  <script>
+    (function(){
+      const sev = document.getElementById('f-sev');
+      const code = document.getElementById('f-code');
+      const q = document.getElementById('f-q');
+      const rows = Array.from(document.querySelectorAll('#achados tbody tr'));
+      const count = document.getElementById('f-count');
+      const total = {{ TotalAchados }};
+      function run(){
+        const s = (sev.value || '').toLowerCase();
+        const c = code.value || '';
+        const t = (q.value || '').toLowerCase();
+        let visible = 0;
+        rows.forEach(r => {
+          const okS = !s || r.dataset.sev === s;
+          const okC = !c || r.dataset.code === c;
+          const okT = !t || (r.dataset.text || '').includes(t);
+          const ok = okS && okC && okT;
+          r.style.display = ok ? '' : 'none';
+          if (ok) visible++;
+        });
+        count.textContent = '{{ MostrandoJs }} ' + visible + ' {{ DeJs }} ' + total;
+      }
+      sev.addEventListener('change', run);
+      code.addEventListener('change', run);
+      q.addEventListener('input', run);
+      run();
+    })();
+  </script>
+  {{ else }}
+  <p>{{ SemAchadosLabel }}</p>
+  {{ end }}
+</body>
+</html>

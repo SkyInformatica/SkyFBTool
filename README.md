@@ -145,6 +145,10 @@ $env:SKYFBTOOL_TEST_RUN_INTEGRATION="true"
 
 - [DOCS_STANDARD.md](./DOCS_STANDARD.md)
 
+## Dependencies
+
+- `Scriban` is used to render `ddl-analyze` HTML reports from templates.
+
 ## Disclaimer
 
 SkyFBTool is provided under the MIT license, "AS IS", without warranties of any kind.

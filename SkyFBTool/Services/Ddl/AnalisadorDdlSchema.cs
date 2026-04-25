@@ -1,5 +1,3 @@
-using System.Globalization;
-using System.Text;
 using System.Text.Json;
 using SkyFBTool.Core;
 
@@ -9,27 +7,27 @@ public static class AnalisadorDdlSchema
 {
     public static async Task<(string ArquivoJson, string ArquivoHtml)> AnalisarAsync(OpcoesDdlAnalise opcoes)
     {
-        bool portugues = CultureInfo.CurrentUICulture.Name.StartsWith("pt", StringComparison.OrdinalIgnoreCase);
+        IdiomaSaida idioma = IdiomaSaidaDetector.Detectar();
 
         if (string.IsNullOrWhiteSpace(opcoes.Entrada))
-            throw new ArgumentException(M(portugues, "Input file not provided (--input).", "Arquivo de entrada nao informado (--input)."));
+            throw new ArgumentException(M(idioma, "Input file not provided (--input).", "Arquivo de entrada nao informado (--input)."));
 
-        string arquivoJsonEntrada = ResolverArquivoJsonSchema(opcoes.Entrada);
-        var snapshot = await LerSnapshotAsync(arquivoJsonEntrada);
-        var resultado = Analisar(snapshot, portugues, arquivoJsonEntrada, opcoes.PrefixosTabelaIgnorados);
+        string arquivoJsonEntrada = CarregadorSnapshotSchema.ResolverArquivoJsonSchema(opcoes.Entrada);
+        var snapshot = await CarregadorSnapshotSchema.LerArquivoJsonAsync(arquivoJsonEntrada);
+        var resultado = Analisar(snapshot, idioma, arquivoJsonEntrada, opcoes.PrefixosTabelaIgnorados);
 
         var (arquivoJsonSaida, arquivoHtmlSaida) = ResolverArquivosSaida(opcoes);
         Directory.CreateDirectory(Path.GetDirectoryName(arquivoJsonSaida)!);
 
         await File.WriteAllTextAsync(arquivoJsonSaida, JsonSerializer.Serialize(resultado, JsonOptions));
-        await File.WriteAllTextAsync(arquivoHtmlSaida, MontarHtml(resultado, portugues));
+        await File.WriteAllTextAsync(arquivoHtmlSaida, RenderizadorHtmlAnaliseDdl.Renderizar(resultado, idioma));
 
         return (arquivoJsonSaida, arquivoHtmlSaida);
     }
 
     public static ResultadoAnaliseDdl Analisar(
         SnapshotSchema snapshot,
-        bool portugues = false,
+        IdiomaSaida idioma = IdiomaSaida.English,
         string? origem = null,
         IEnumerable<string>? prefixosTabelaIgnorados = null)
     {
@@ -53,14 +51,14 @@ public static class AnalisadorDdlSchema
 
         foreach (var tabela in tabelasVisiveis.OrderBy(t => t.Nome, StringComparer.OrdinalIgnoreCase))
         {
-            ValidarTabelaSemColunas(tabela, resultado, portugues);
-            ValidarColunasDuplicadas(tabela, resultado, portugues);
-            ValidarTiposDesconhecidos(tabela, resultado, portugues);
-            ValidarPk(tabela, resultado, portugues);
-            ValidarFks(tabela, mapaTabelas, tabelasIgnoradas, resultado, portugues);
-            ValidarIndices(tabela, resultado, portugues);
-            ValidarDuplicidadeIndices(tabela, resultado, portugues);
-            ValidarDuplicidadeFks(tabela, resultado, portugues);
+            ValidarTabelaSemColunas(tabela, resultado, idioma);
+            ValidarColunasDuplicadas(tabela, resultado, idioma);
+            ValidarTiposDesconhecidos(tabela, resultado, idioma);
+            ValidarPk(tabela, resultado, idioma);
+            ValidarFks(tabela, mapaTabelas, tabelasIgnoradas, resultado, idioma);
+            ValidarIndices(tabela, resultado, idioma);
+            ValidarDuplicidadeIndices(tabela, resultado, idioma);
+            ValidarDuplicidadeFks(tabela, resultado, idioma);
         }
 
         resultado.Achados = resultado.Achados
@@ -106,7 +104,7 @@ public static class AnalisadorDdlSchema
         return false;
     }
 
-    private static void ValidarTabelaSemColunas(TabelaSchema tabela, ResultadoAnaliseDdl resultado, bool portugues)
+    private static void ValidarTabelaSemColunas(TabelaSchema tabela, ResultadoAnaliseDdl resultado, IdiomaSaida idioma)
     {
         if (tabela.Colunas.Count > 0)
             return;
@@ -116,11 +114,11 @@ public static class AnalisadorDdlSchema
             "critical",
             "TABELA_SEM_COLUNAS",
             tabela.Nome,
-            M(portugues, $"Table {tabela.Nome} has no columns.", $"Tabela {tabela.Nome} nao possui colunas."),
-            M(portugues, "Re-extract metadata and validate this table directly in system catalogs.", "Reextraia o metadata e valide esta tabela diretamente nos catalogos do Firebird."));
+            M(idioma, $"Table {tabela.Nome} has no columns.", $"Tabela {tabela.Nome} nao possui colunas."),
+            M(idioma, "Re-extract metadata and validate this table directly in system catalogs.", "Reextraia o metadata e valide esta tabela diretamente nos catalogos do Firebird."));
     }
 
-    private static void ValidarColunasDuplicadas(TabelaSchema tabela, ResultadoAnaliseDdl resultado, bool portugues)
+    private static void ValidarColunasDuplicadas(TabelaSchema tabela, ResultadoAnaliseDdl resultado, IdiomaSaida idioma)
     {
         var duplicadas = tabela.Colunas
             .GroupBy(c => c.Nome, StringComparer.OrdinalIgnoreCase)
@@ -134,12 +132,12 @@ public static class AnalisadorDdlSchema
                 "critical",
                 "COLUNA_DUPLICADA",
                 $"{tabela.Nome}.{coluna}",
-                M(portugues, $"Duplicated column in table {tabela.Nome}: {coluna}.", $"Coluna duplicada na tabela {tabela.Nome}: {coluna}."),
-                M(portugues, "Inspect metadata consistency and rebuild affected objects if needed.", "Inspecione consistencia de metadata e recrie objetos afetados se necessario."));
+                M(idioma, $"Duplicated column in table {tabela.Nome}: {coluna}.", $"Coluna duplicada na tabela {tabela.Nome}: {coluna}."),
+                M(idioma, "Inspect metadata consistency and rebuild affected objects if needed.", "Inspecione consistencia de metadata e recrie objetos afetados se necessario."));
         }
     }
 
-    private static void ValidarTiposDesconhecidos(TabelaSchema tabela, ResultadoAnaliseDdl resultado, bool portugues)
+    private static void ValidarTiposDesconhecidos(TabelaSchema tabela, ResultadoAnaliseDdl resultado, IdiomaSaida idioma)
     {
         foreach (var coluna in tabela.Colunas)
         {
@@ -152,14 +150,14 @@ public static class AnalisadorDdlSchema
                 "TIPO_DESCONHECIDO",
                 $"{tabela.Nome}.{coluna.Nome}",
                 M(
-                    portugues,
+                    idioma,
                     $"Column {tabela.Nome}.{coluna.Nome} has unknown type mapping: {coluna.TipoSql}.",
                     $"Coluna {tabela.Nome}.{coluna.Nome} possui mapeamento de tipo desconhecido: {coluna.TipoSql}."),
-                M(portugues, "Validate database version compatibility and inspect field definition in RDB$FIELDS.", "Valide compatibilidade de versao e confira a definicao no RDB$FIELDS."));
+                M(idioma, "Validate database version compatibility and inspect field definition in RDB$FIELDS.", "Valide compatibilidade de versao e confira a definicao no RDB$FIELDS."));
         }
     }
 
-    private static void ValidarPk(TabelaSchema tabela, ResultadoAnaliseDdl resultado, bool portugues)
+    private static void ValidarPk(TabelaSchema tabela, ResultadoAnaliseDdl resultado, IdiomaSaida idioma)
     {
         if (tabela.ChavePrimaria is null)
         {
@@ -168,8 +166,8 @@ public static class AnalisadorDdlSchema
                 "low",
                 "TABELA_SEM_PK",
                 tabela.Nome,
-                M(portugues, $"Table {tabela.Nome} has no primary key.", $"Tabela {tabela.Nome} nao possui chave primaria."),
-                M(portugues, "Review if this is expected. Missing PK may hide duplicate rows over time.", "Revise se isso e esperado. Ausencia de PK pode mascarar duplicidades."));
+                M(idioma, $"Table {tabela.Nome} has no primary key.", $"Tabela {tabela.Nome} nao possui chave primaria."),
+                M(idioma, "Review if this is expected. Missing PK may hide duplicate rows over time.", "Revise se isso e esperado. Ausencia de PK pode mascarar duplicidades."));
             return;
         }
 
@@ -180,8 +178,8 @@ public static class AnalisadorDdlSchema
                 "critical",
                 "PK_SEM_COLUNAS",
                 tabela.Nome,
-                M(portugues, $"Primary key {tabela.ChavePrimaria.Nome} in {tabela.Nome} has no columns.", $"Chave primaria {tabela.ChavePrimaria.Nome} em {tabela.Nome} nao possui colunas."),
-                M(portugues, "Rebuild this PK from validated column metadata.", "Recrie esta PK a partir de metadados validados."));
+                M(idioma, $"Primary key {tabela.ChavePrimaria.Nome} in {tabela.Nome} has no columns.", $"Chave primaria {tabela.ChavePrimaria.Nome} em {tabela.Nome} nao possui colunas."),
+                M(idioma, "Rebuild this PK from validated column metadata.", "Recrie esta PK a partir de metadados validados."));
             return;
         }
 
@@ -196,8 +194,8 @@ public static class AnalisadorDdlSchema
                 "critical",
                 "PK_REFERENCIA_COLUNA_INEXISTENTE",
                 tabela.Nome,
-                M(portugues, $"PK {tabela.ChavePrimaria.Nome} references missing column {colunaPk}.", $"PK {tabela.ChavePrimaria.Nome} referencia coluna inexistente {colunaPk}."),
-                M(portugues, "Recreate PK and validate relation fields catalog.", "Recrie a PK e valide o catalogo de campos da relacao."));
+                M(idioma, $"PK {tabela.ChavePrimaria.Nome} references missing column {colunaPk}.", $"PK {tabela.ChavePrimaria.Nome} referencia coluna inexistente {colunaPk}."),
+                M(idioma, "Recreate PK and validate relation fields catalog.", "Recrie a PK e valide o catalogo de campos da relacao."));
         }
     }
 
@@ -206,7 +204,7 @@ public static class AnalisadorDdlSchema
         IReadOnlyDictionary<string, TabelaSchema> tabelas,
         IReadOnlySet<string> tabelasIgnoradas,
         ResultadoAnaliseDdl resultado,
-        bool portugues)
+        IdiomaSaida idioma)
     {
         var colunasLocais = tabela.Colunas.ToDictionary(c => c.Nome, StringComparer.OrdinalIgnoreCase);
 
@@ -221,8 +219,8 @@ public static class AnalisadorDdlSchema
                     "critical",
                     "FK_SEM_COLUNAS",
                     escopo,
-                    M(portugues, $"FK {fk.Nome} has empty local/reference columns.", $"FK {fk.Nome} possui colunas locais/referencia vazias."),
-                    M(portugues, "Recreate FK with explicit and ordered column list.", "Recrie a FK com lista de colunas explicita e ordenada."));
+                    M(idioma, $"FK {fk.Nome} has empty local/reference columns.", $"FK {fk.Nome} possui colunas locais/referencia vazias."),
+                    M(idioma, "Recreate FK with explicit and ordered column list.", "Recrie a FK com lista de colunas explicita e ordenada."));
                 continue;
             }
 
@@ -233,8 +231,8 @@ public static class AnalisadorDdlSchema
                     "critical",
                     "FK_CARDINALIDADE_INVALIDA",
                     escopo,
-                    M(portugues, $"FK {fk.Nome} has different local/reference column counts.", $"FK {fk.Nome} possui cardinalidade diferente entre colunas locais e de referencia."),
-                    M(portugues, "Recreate FK preserving matching column cardinality.", "Recrie a FK preservando cardinalidade equivalente."));
+                    M(idioma, $"FK {fk.Nome} has different local/reference column counts.", $"FK {fk.Nome} possui cardinalidade diferente entre colunas locais e de referencia."),
+                    M(idioma, "Recreate FK preserving matching column cardinality.", "Recrie a FK preservando cardinalidade equivalente."));
             }
 
             foreach (var colunaFk in fk.Colunas)
@@ -247,8 +245,8 @@ public static class AnalisadorDdlSchema
                     "critical",
                     "FK_COLUNA_LOCAL_INEXISTENTE",
                     escopo,
-                    M(portugues, $"FK {fk.Nome} references missing local column {colunaFk}.", $"FK {fk.Nome} referencia coluna local inexistente {colunaFk}."),
-                    M(portugues, "Validate relation fields and rebuild FK.", "Valide os campos da relacao e recrie a FK."));
+                    M(idioma, $"FK {fk.Nome} references missing local column {colunaFk}.", $"FK {fk.Nome} referencia coluna local inexistente {colunaFk}."),
+                    M(idioma, "Validate relation fields and rebuild FK.", "Valide os campos da relacao e recrie a FK."));
             }
 
             if (tabelasIgnoradas.Contains(fk.TabelaReferencia))
@@ -261,8 +259,8 @@ public static class AnalisadorDdlSchema
                     "critical",
                     "FK_TABELA_REFERENCIA_INEXISTENTE",
                     escopo,
-                    M(portugues, $"FK {fk.Nome} points to missing table {fk.TabelaReferencia}.", $"FK {fk.Nome} aponta para tabela inexistente {fk.TabelaReferencia}."),
-                    M(portugues, "Validate dependency order and metadata integrity for referenced table.", "Valide ordem de dependencia e integridade de metadata da tabela referenciada."));
+                    M(idioma, $"FK {fk.Nome} points to missing table {fk.TabelaReferencia}.", $"FK {fk.Nome} aponta para tabela inexistente {fk.TabelaReferencia}."),
+                    M(idioma, "Validate dependency order and metadata integrity for referenced table.", "Valide ordem de dependencia e integridade de metadata da tabela referenciada."));
                 continue;
             }
 
@@ -277,8 +275,8 @@ public static class AnalisadorDdlSchema
                     "critical",
                     "FK_COLUNA_REFERENCIA_INEXISTENTE",
                     escopo,
-                    M(portugues, $"FK {fk.Nome} points to missing referenced column {colunaRef}.", $"FK {fk.Nome} aponta para coluna referenciada inexistente {colunaRef}."),
-                    M(portugues, "Recreate FK after validating referenced key definition.", "Recrie a FK apos validar a definicao da chave referenciada."));
+                    M(idioma, $"FK {fk.Nome} points to missing referenced column {colunaRef}.", $"FK {fk.Nome} aponta para coluna referenciada inexistente {colunaRef}."),
+                    M(idioma, "Recreate FK after validating referenced key definition.", "Recrie a FK apos validar a definicao da chave referenciada."));
             }
 
             bool possuiIndiceCobertura = tabela.Indices.Any(indice => CobrePrefixo(indice.Colunas, fk.Colunas));
@@ -289,13 +287,13 @@ public static class AnalisadorDdlSchema
                     "medium",
                     "FK_SEM_INDICE_COBERTURA",
                     escopo,
-                    M(portugues, $"FK {fk.Nome} has no local covering index.", $"FK {fk.Nome} nao possui indice local de cobertura."),
-                    M(portugues, "Create an index for FK columns to reduce lock contention and validation cost.", "Crie indice para as colunas da FK para reduzir contencao e custo de validacao."));
+                    M(idioma, $"FK {fk.Nome} has no local covering index.", $"FK {fk.Nome} nao possui indice local de cobertura."),
+                    M(idioma, "Create an index for FK columns to reduce lock contention and validation cost.", "Crie indice para as colunas da FK para reduzir contencao e custo de validacao."));
             }
         }
     }
 
-    private static void ValidarIndices(TabelaSchema tabela, ResultadoAnaliseDdl resultado, bool portugues)
+    private static void ValidarIndices(TabelaSchema tabela, ResultadoAnaliseDdl resultado, IdiomaSaida idioma)
     {
         var colunas = tabela.Colunas.ToDictionary(c => c.Nome, StringComparer.OrdinalIgnoreCase);
 
@@ -310,8 +308,8 @@ public static class AnalisadorDdlSchema
                     "high",
                     "INDICE_SEM_COLUNAS",
                     escopo,
-                    M(portugues, $"Index {indice.Nome} has no columns.", $"Indice {indice.Nome} nao possui colunas."),
-                    M(portugues, "Recreate index with explicit column list.", "Recrie o indice com lista explicita de colunas."));
+                    M(idioma, $"Index {indice.Nome} has no columns.", $"Indice {indice.Nome} nao possui colunas."),
+                    M(idioma, "Recreate index with explicit column list.", "Recrie o indice com lista explicita de colunas."));
                 continue;
             }
 
@@ -325,13 +323,13 @@ public static class AnalisadorDdlSchema
                     "high",
                     "INDICE_COLUNA_INEXISTENTE",
                     escopo,
-                    M(portugues, $"Index {indice.Nome} references missing column {colunaIndice}.", $"Indice {indice.Nome} referencia coluna inexistente {colunaIndice}."),
-                    M(portugues, "Recreate index and validate relation fields catalog.", "Recrie o indice e valide o catalogo de campos da relacao."));
+                    M(idioma, $"Index {indice.Nome} references missing column {colunaIndice}.", $"Indice {indice.Nome} referencia coluna inexistente {colunaIndice}."),
+                    M(idioma, "Recreate index and validate relation fields catalog.", "Recrie o indice e valide o catalogo de campos da relacao."));
             }
         }
     }
 
-    private static void ValidarDuplicidadeIndices(TabelaSchema tabela, ResultadoAnaliseDdl resultado, bool portugues)
+    private static void ValidarDuplicidadeIndices(TabelaSchema tabela, ResultadoAnaliseDdl resultado, IdiomaSaida idioma)
     {
         var grupos = tabela.Indices
             .GroupBy(AssinaturaIndice, StringComparer.OrdinalIgnoreCase)
@@ -345,12 +343,12 @@ public static class AnalisadorDdlSchema
                 "low",
                 "INDICE_DUPLICADO",
                 tabela.Nome,
-                M(portugues, $"Duplicated index signature in {tabela.Nome}: {nomes}.", $"Assinatura de indice duplicada em {tabela.Nome}: {nomes}."),
-                M(portugues, "Keep only one index per signature after workload validation.", "Mantenha apenas um indice por assinatura apos validar carga de trabalho."));
+                M(idioma, $"Duplicated index signature in {tabela.Nome}: {nomes}.", $"Assinatura de indice duplicada em {tabela.Nome}: {nomes}."),
+                M(idioma, "Keep only one index per signature after workload validation.", "Mantenha apenas um indice por assinatura apos validar carga de trabalho."));
         }
     }
 
-    private static void ValidarDuplicidadeFks(TabelaSchema tabela, ResultadoAnaliseDdl resultado, bool portugues)
+    private static void ValidarDuplicidadeFks(TabelaSchema tabela, ResultadoAnaliseDdl resultado, IdiomaSaida idioma)
     {
         var grupos = tabela.ChavesEstrangeiras
             .GroupBy(AssinaturaFk, StringComparer.OrdinalIgnoreCase)
@@ -364,8 +362,8 @@ public static class AnalisadorDdlSchema
                 "low",
                 "FK_DUPLICADA",
                 tabela.Nome,
-                M(portugues, $"Duplicated FK signature in {tabela.Nome}: {nomes}.", $"Assinatura de FK duplicada em {tabela.Nome}: {nomes}."),
-                M(portugues, "Consolidate equivalent foreign keys and keep only one validated constraint.", "Consolide FKs equivalentes e mantenha apenas uma restricao validada."));
+                M(idioma, $"Duplicated FK signature in {tabela.Nome}: {nomes}.", $"Assinatura de FK duplicada em {tabela.Nome}: {nomes}."),
+                M(idioma, "Consolidate equivalent foreign keys and keep only one validated constraint.", "Consolide FKs equivalentes e mantenha apenas uma restricao validada."));
         }
     }
 
@@ -452,32 +450,6 @@ public static class AnalisadorDdlSchema
         };
     }
 
-    private static async Task<SnapshotSchema> LerSnapshotAsync(string arquivoJson)
-    {
-        if (!File.Exists(arquivoJson))
-            throw new FileNotFoundException($"Arquivo de schema nao encontrado: {arquivoJson}");
-
-        string texto = await File.ReadAllTextAsync(arquivoJson);
-        var snapshot = JsonSerializer.Deserialize<SnapshotSchema>(texto, JsonOptions);
-        if (snapshot is null)
-            throw new ArgumentException($"Nao foi possivel ler snapshot JSON: {arquivoJson}");
-
-        return snapshot;
-    }
-
-    private static string ResolverArquivoJsonSchema(string caminhoInformado)
-    {
-        string caminho = Path.GetFullPath(caminhoInformado.Trim().Trim('"'));
-
-        if (Path.GetExtension(caminho).Equals(".json", StringComparison.OrdinalIgnoreCase))
-            return caminho;
-
-        if (Path.GetExtension(caminho).Equals(".sql", StringComparison.OrdinalIgnoreCase))
-            return Path.ChangeExtension(caminho, ".schema.json");
-
-        return $"{caminho}.schema.json";
-    }
-
     private static (string ArquivoJson, string ArquivoHtml) ResolverArquivosSaida(OpcoesDdlAnalise opcoes)
     {
         string timestamp = DateTime.Now.ToString("yyyyMMdd_HHmmss_fff");
@@ -503,218 +475,9 @@ public static class AnalisadorDdlSchema
         return ($"{semExtensao}.json", $"{semExtensao}.html");
     }
 
-    private static string MontarHtml(ResultadoAnaliseDdl resultado, bool portugues)
+    private static string M(IdiomaSaida idioma, string english, string portuguese)
     {
-        string titulo = M(portugues, "DDL Risk Analysis", "Analise de Risco DDL");
-        string semAchados = M(portugues, "No findings.", "Sem achados.");
-        string origem = M(portugues, "Source", "Origem");
-        string geradoEm = M(portugues, "Generated at (UTC)", "Gerado em (UTC)");
-        string total = M(portugues, "Total findings", "Total de achados");
-        string criticos = M(portugues, "Critical", "Criticos");
-        string altos = M(portugues, "High", "Altos");
-        string medios = M(portugues, "Medium", "Medios");
-        string baixos = M(portugues, "Low", "Baixos");
-        string colSeveridade = M(portugues, "Severity", "Severidade");
-        string colCodigo = M(portugues, "Code", "Codigo");
-        string colEscopo = M(portugues, "Scope", "Escopo");
-        string colDescricao = M(portugues, "Description", "Descricao");
-        string colRecomendacao = M(portugues, "Recommendation", "Recomendacao");
-        string resumoCodigo = M(portugues, "Summary by finding type", "Resumo por tipo de achado");
-        string resumoTabela = M(portugues, "Top tables with findings", "Top tabelas com achados");
-        string filtros = M(portugues, "Filters", "Filtros");
-        string buscar = M(portugues, "Search", "Busca");
-        string placeholderBusca = M(portugues, "table, code or text...", "tabela, codigo ou texto...");
-        string todos = M(portugues, "All", "Todos");
-        string qtd = M(portugues, "Count", "Qtde");
-        string pct = M(portugues, "%", "%");
-        string mostrando = M(portugues, "Showing", "Exibindo");
-        string de = M(portugues, "of", "de");
-
-        string origemExibicao = Path.GetFileName(resultado.Origem);
-        if (string.IsNullOrWhiteSpace(origemExibicao))
-            origemExibicao = resultado.Origem;
-
-        var resumoCodigoTop = resultado.ResumoPorCodigo.Take(10).ToList();
-        var resumoTabelaTop = resultado.ResumoPorTabela.Take(10).ToList();
-
-        var sb = new StringBuilder();
-        sb.AppendLine("<!doctype html>");
-        sb.AppendLine($"<html lang=\"{(portugues ? "pt-BR" : "en")}\">");
-        sb.AppendLine("<head>");
-        sb.AppendLine("  <meta charset=\"utf-8\" />");
-        sb.AppendLine("  <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\" />");
-        sb.AppendLine($"  <title>{Html(titulo)}</title>");
-        sb.AppendLine("  <style>");
-        sb.AppendLine("    body { font-family: Segoe UI, Arial, sans-serif; margin: 20px; color: #1f2937; }");
-        sb.AppendLine("    h1, h2 { margin: 0 0 12px 0; }");
-        sb.AppendLine("    .meta { margin-bottom: 14px; font-size: 14px; }");
-        sb.AppendLine("    .kpi { display: flex; gap: 10px; flex-wrap: wrap; margin: 10px 0 18px; }");
-        sb.AppendLine("    .pill { border: 1px solid #d1d5db; border-radius: 12px; padding: 8px 10px; background: #f9fafb; font-size: 13px; }");
-        sb.AppendLine("    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 8px 0 16px; }");
-        sb.AppendLine("    .card { border: 1px solid #e5e7eb; border-radius: 10px; background: #fff; padding: 10px; }");
-        sb.AppendLine("    .toolbar { display: flex; gap: 10px; flex-wrap: wrap; margin: 8px 0 10px; align-items: center; }");
-        sb.AppendLine("    .toolbar input, .toolbar select { padding: 6px 8px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 13px; }");
-        sb.AppendLine("    .count { font-size: 13px; color: #374151; }");
-        sb.AppendLine("    .table-wrap { max-height: 70vh; overflow: auto; border: 1px solid #e5e7eb; border-radius: 8px; }");
-        sb.AppendLine("    table { width: 100%; border-collapse: collapse; }");
-        sb.AppendLine("    th, td { border-bottom: 1px solid #eef2f7; padding: 8px; text-align: left; vertical-align: top; font-size: 13px; }");
-        sb.AppendLine("    th { position: sticky; top: 0; background: #f3f4f6; z-index: 1; }");
-        sb.AppendLine("    .critical { color: #991b1b; font-weight: 700; }");
-        sb.AppendLine("    .high { color: #92400e; font-weight: 700; }");
-        sb.AppendLine("    .medium { color: #1d4ed8; font-weight: 700; }");
-        sb.AppendLine("    .low { color: #065f46; font-weight: 700; }");
-        sb.AppendLine("    @media (max-width: 900px) { .grid { grid-template-columns: 1fr; } body { margin: 12px; } }");
-        sb.AppendLine("  </style>");
-        sb.AppendLine("</head>");
-        sb.AppendLine("<body>");
-        sb.AppendLine($"  <h1>{Html(titulo)}</h1>");
-        sb.AppendLine("  <div class=\"meta\">");
-        sb.AppendLine($"    <div><strong>{Html(origem)}:</strong> <span title=\"{Html(resultado.Origem)}\">{Html(origemExibicao)}</span></div>");
-        sb.AppendLine($"    <div><strong>{Html(geradoEm)}:</strong> {resultado.GeradoEmUtc:yyyy-MM-dd HH:mm:ss}</div>");
-        sb.AppendLine("  </div>");
-        sb.AppendLine("  <div class=\"kpi\">");
-        sb.AppendLine($"    <div class=\"pill\"><strong>{Html(total)}:</strong> {resultado.TotalAchados}</div>");
-        sb.AppendLine($"    <div class=\"pill\"><strong>{Html(criticos)}:</strong> {resultado.TotalCriticos}</div>");
-        sb.AppendLine($"    <div class=\"pill\"><strong>{Html(altos)}:</strong> {resultado.TotalAltos}</div>");
-        sb.AppendLine($"    <div class=\"pill\"><strong>{Html(medios)}:</strong> {resultado.TotalMedios}</div>");
-        sb.AppendLine($"    <div class=\"pill\"><strong>{Html(baixos)}:</strong> {resultado.TotalBaixos}</div>");
-        sb.AppendLine("  </div>");
-
-        sb.AppendLine("  <div class=\"grid\">");
-        sb.AppendLine("    <div class=\"card\">");
-        sb.AppendLine($"      <h2>{Html(resumoCodigo)}</h2>");
-        sb.AppendLine("      <table><thead><tr>");
-        sb.AppendLine($"        <th>{Html(colCodigo)}</th><th>{Html(qtd)}</th><th>{Html(pct)}</th>");
-        sb.AppendLine("      </tr></thead><tbody>");
-        foreach (var item in resumoCodigoTop)
-            sb.AppendLine($"        <tr><td>{Html(item.Chave)}</td><td>{item.Quantidade}</td><td>{item.Percentual:0.##}</td></tr>");
-        if (resumoCodigoTop.Count == 0)
-            sb.AppendLine($"        <tr><td colspan=\"3\">{Html(semAchados)}</td></tr>");
-        sb.AppendLine("      </tbody></table>");
-        sb.AppendLine("    </div>");
-
-        sb.AppendLine("    <div class=\"card\">");
-        sb.AppendLine($"      <h2>{Html(resumoTabela)}</h2>");
-        sb.AppendLine("      <table><thead><tr>");
-        sb.AppendLine($"        <th>{Html(colEscopo)}</th><th>{Html(qtd)}</th><th>{Html(pct)}</th>");
-        sb.AppendLine("      </tr></thead><tbody>");
-        foreach (var item in resumoTabelaTop)
-            sb.AppendLine($"        <tr><td>{Html(item.Chave)}</td><td>{item.Quantidade}</td><td>{item.Percentual:0.##}</td></tr>");
-        if (resumoTabelaTop.Count == 0)
-            sb.AppendLine($"        <tr><td colspan=\"3\">{Html(semAchados)}</td></tr>");
-        sb.AppendLine("      </tbody></table>");
-        sb.AppendLine("    </div>");
-        sb.AppendLine("  </div>");
-
-        if (resultado.Achados.Count == 0)
-        {
-            sb.AppendLine($"  <p>{Html(semAchados)}</p>");
-        }
-        else
-        {
-            sb.AppendLine($"  <h2>{Html(filtros)}</h2>");
-            sb.AppendLine("  <div class=\"toolbar\">");
-            sb.AppendLine(
-                $"    <label>{Html(colSeveridade)} <select id=\"f-sev\"><option value=\"\">{Html(todos)}</option><option value=\"critical\">{Html(SeveridadeRotulo("critical", portugues))}</option><option value=\"high\">{Html(SeveridadeRotulo("high", portugues))}</option><option value=\"medium\">{Html(SeveridadeRotulo("medium", portugues))}</option><option value=\"low\">{Html(SeveridadeRotulo("low", portugues))}</option></select></label>");
-            sb.AppendLine($"    <label>{Html(colCodigo)} <select id=\"f-code\"><option value=\"\">{Html(todos)}</option>");
-            foreach (var codigo in resultado.ResumoPorCodigo.Select(r => r.Chave))
-                sb.AppendLine($"      <option value=\"{Html(codigo)}\">{Html(codigo)}</option>");
-            sb.AppendLine("    </select></label>");
-            sb.AppendLine($"    <label>{Html(buscar)} <input id=\"f-q\" type=\"text\" placeholder=\"{Html(placeholderBusca)}\" /></label>");
-            sb.AppendLine($"    <span class=\"count\" id=\"f-count\">{Html(mostrando)} 0 {Html(de)} {resultado.Achados.Count}</span>");
-            sb.AppendLine("  </div>");
-
-            sb.AppendLine("  <div class=\"table-wrap\">");
-            sb.AppendLine("  <table id=\"achados\">");
-            sb.AppendLine("    <thead><tr>");
-            sb.AppendLine($"      <th>{Html(colSeveridade)}</th>");
-            sb.AppendLine($"      <th>{Html(colCodigo)}</th>");
-            sb.AppendLine($"      <th>{Html(colEscopo)}</th>");
-            sb.AppendLine($"      <th>{Html(colDescricao)}</th>");
-            sb.AppendLine($"      <th>{Html(colRecomendacao)}</th>");
-            sb.AppendLine("    </tr></thead>");
-            sb.AppendLine("    <tbody>");
-
-            foreach (var achado in resultado.Achados)
-            {
-                sb.AppendLine(
-                    $"      <tr data-sev=\"{Html(achado.Severidade)}\" data-code=\"{Html(achado.Codigo)}\" data-text=\"{Html((achado.Escopo + " " + achado.Codigo + " " + achado.Descricao + " " + achado.Recomendacao).ToLowerInvariant())}\">");
-                sb.AppendLine($"        <td class=\"{achado.Severidade}\">{Html(SeveridadeRotulo(achado.Severidade, portugues))}</td>");
-                sb.AppendLine($"        <td>{Html(achado.Codigo)}</td>");
-                sb.AppendLine($"        <td>{Html(achado.Escopo)}</td>");
-                sb.AppendLine($"        <td>{Html(achado.Descricao)}</td>");
-                sb.AppendLine($"        <td>{Html(achado.Recomendacao)}</td>");
-                sb.AppendLine("      </tr>");
-            }
-
-            sb.AppendLine("    </tbody>");
-            sb.AppendLine("  </table>");
-            sb.AppendLine("  </div>");
-            sb.AppendLine("  <script>");
-            sb.AppendLine("    (function(){");
-            sb.AppendLine("      const sev = document.getElementById('f-sev');");
-            sb.AppendLine("      const code = document.getElementById('f-code');");
-            sb.AppendLine("      const q = document.getElementById('f-q');");
-            sb.AppendLine("      const rows = Array.from(document.querySelectorAll('#achados tbody tr'));");
-            sb.AppendLine("      const count = document.getElementById('f-count');");
-            sb.AppendLine($"      const total = {resultado.Achados.Count};");
-            sb.AppendLine("      function run(){");
-            sb.AppendLine("        const s = (sev.value || '').toLowerCase();");
-            sb.AppendLine("        const c = code.value || '';");
-            sb.AppendLine("        const t = (q.value || '').toLowerCase();");
-            sb.AppendLine("        let visible = 0;");
-            sb.AppendLine("        rows.forEach(r => {");
-            sb.AppendLine("          const okS = !s || r.dataset.sev === s;");
-            sb.AppendLine("          const okC = !c || r.dataset.code === c;");
-            sb.AppendLine("          const okT = !t || (r.dataset.text || '').includes(t);");
-            sb.AppendLine("          const ok = okS && okC && okT;");
-            sb.AppendLine("          r.style.display = ok ? '' : 'none';");
-            sb.AppendLine("          if (ok) visible++;");
-            sb.AppendLine("        });");
-            sb.AppendLine($"        count.textContent = '{JavaScriptString(mostrando)} ' + visible + ' {JavaScriptString(de)} ' + total;");
-            sb.AppendLine("      }");
-            sb.AppendLine("      sev.addEventListener('change', run);");
-            sb.AppendLine("      code.addEventListener('change', run);");
-            sb.AppendLine("      q.addEventListener('input', run);");
-            sb.AppendLine("      run();");
-            sb.AppendLine("    })();");
-            sb.AppendLine("  </script>");
-        }
-
-        sb.AppendLine("</body>");
-        sb.AppendLine("</html>");
-
-        return sb.ToString();
-    }
-
-    private static string JavaScriptString(string value)
-    {
-        return value.Replace("\\", "\\\\").Replace("'", "\\'");
-    }
-
-    private static string SeveridadeRotulo(string severidade, bool portugues)
-    {
-        if (!portugues)
-            return severidade;
-
-        return severidade switch
-        {
-            "critical" => "critico",
-            "high" => "alto",
-            "medium" => "medio",
-            "low" => "baixo",
-            _ => severidade
-        };
-    }
-
-    private static string Html(string valor)
-    {
-        return System.Net.WebUtility.HtmlEncode(valor ?? string.Empty);
-    }
-
-    private static string M(bool portugues, string english, string portuguese)
-    {
-        return portugues ? portuguese : english;
+        return idioma == IdiomaSaida.PortugueseBrazil ? portuguese : english;
     }
 
     private static readonly JsonSerializerOptions JsonOptions = new()

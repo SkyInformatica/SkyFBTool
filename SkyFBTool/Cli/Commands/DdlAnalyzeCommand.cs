@@ -1,7 +1,6 @@
 using SkyFBTool.Cli.Common;
 using SkyFBTool.Core;
 using SkyFBTool.Services.Ddl;
-using System.Globalization;
 
 namespace SkyFBTool.Cli.Commands;
 
@@ -9,7 +8,7 @@ public static class DdlAnalyzeCommand
 {
     public static async Task ExecuteAsync(string[] args)
     {
-        bool portugues = CultureInfo.CurrentUICulture.Name.StartsWith("pt", StringComparison.OrdinalIgnoreCase);
+        IdiomaSaida idioma = IdiomaSaidaDetector.Detectar();
         var op = new OpcoesDdlAnalise();
 
         for (int i = 0; i < args.Length; i++)
@@ -33,20 +32,25 @@ public static class DdlAnalyzeCommand
                     foreach (var prefixo in valor.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
                         op.PrefixosTabelaIgnorados.Add(prefixo);
                     break;
+                default:
+                    throw new ArgumentException(M(
+                        idioma,
+                        $"Unknown option: --{chave}",
+                        $"Opcao desconhecida: --{chave}"));
             }
         }
 
-        Console.WriteLine(M(portugues, "Starting DDL analysis...", "Iniciando analise de DDL..."));
+        Console.WriteLine(M(idioma, "Starting DDL analysis...", "Iniciando analise de DDL..."));
         var (arquivoJson, arquivoHtml) = await AnalisadorDdlSchema.AnalisarAsync(op);
 
         Console.WriteLine();
-        Console.WriteLine(M(portugues, "Analysis finished.", "Analise concluida."));
-        Console.WriteLine($"{M(portugues, "Analysis JSON", "Analise JSON")}: {arquivoJson}");
-        Console.WriteLine($"{M(portugues, "Report", "Relatorio")}     : {arquivoHtml}");
+        Console.WriteLine(M(idioma, "Analysis finished.", "Analise concluida."));
+        Console.WriteLine($"{M(idioma, "Analysis JSON", "Analise JSON")}: {arquivoJson}");
+        Console.WriteLine($"{M(idioma, "Report", "Relatorio")}     : {arquivoHtml}");
     }
 
-    private static string M(bool portugues, string english, string portuguese)
+    private static string M(IdiomaSaida idioma, string english, string portuguese)
     {
-        return portugues ? portuguese : english;
+        return idioma == IdiomaSaida.PortugueseBrazil ? portuguese : english;
     }
 }
