@@ -12,9 +12,8 @@ public static class AnalisadorDdlSchema
         if (string.IsNullOrWhiteSpace(opcoes.Entrada))
             throw new ArgumentException(M(idioma, "Input file not provided (--input).", "Arquivo de entrada nao informado (--input)."));
 
-        string arquivoJsonEntrada = CarregadorSnapshotSchema.ResolverArquivoJsonSchema(opcoes.Entrada);
-        var snapshot = await CarregadorSnapshotSchema.LerArquivoJsonAsync(arquivoJsonEntrada);
-        var resultado = Analisar(snapshot, idioma, arquivoJsonEntrada, opcoes.PrefixosTabelaIgnorados);
+        var (snapshot, origemSnapshot) = await CarregadorSnapshotSchema.CarregarSnapshotComOrigemAsync(opcoes.Entrada);
+        var resultado = Analisar(snapshot, idioma, origemSnapshot, opcoes.PrefixosTabelaIgnorados);
 
         var (arquivoJsonSaida, arquivoHtmlSaida) = ResolverArquivosSaida(opcoes);
         Directory.CreateDirectory(Path.GetDirectoryName(arquivoJsonSaida)!);
@@ -212,85 +211,126 @@ public static class AnalisadorDdlSchema
         {
             string escopo = $"{tabela.Nome}.{fk.Nome}";
 
-            if (fk.Colunas.Count == 0 || fk.ColunasReferencia.Count == 0)
-            {
-                AdicionarAchado(
-                    resultado,
-                    "critical",
-                    "FK_SEM_COLUNAS",
-                    escopo,
-                    M(idioma, $"FK {fk.Nome} has empty local/reference columns.", $"FK {fk.Nome} possui colunas locais/referencia vazias."),
-                    M(idioma, "Recreate FK with explicit and ordered column list.", "Recrie a FK com lista de colunas explicita e ordenada."));
+            if (!ValidarEstruturaFk(fk, escopo, resultado, idioma))
                 continue;
-            }
 
-            if (fk.Colunas.Count != fk.ColunasReferencia.Count)
-            {
-                AdicionarAchado(
-                    resultado,
-                    "critical",
-                    "FK_CARDINALIDADE_INVALIDA",
-                    escopo,
-                    M(idioma, $"FK {fk.Nome} has different local/reference column counts.", $"FK {fk.Nome} possui cardinalidade diferente entre colunas locais e de referencia."),
-                    M(idioma, "Recreate FK preserving matching column cardinality.", "Recrie a FK preservando cardinalidade equivalente."));
-            }
-
-            foreach (var colunaFk in fk.Colunas)
-            {
-                if (colunasLocais.ContainsKey(colunaFk))
-                    continue;
-
-                AdicionarAchado(
-                    resultado,
-                    "critical",
-                    "FK_COLUNA_LOCAL_INEXISTENTE",
-                    escopo,
-                    M(idioma, $"FK {fk.Nome} references missing local column {colunaFk}.", $"FK {fk.Nome} referencia coluna local inexistente {colunaFk}."),
-                    M(idioma, "Validate relation fields and rebuild FK.", "Valide os campos da relacao e recrie a FK."));
-            }
+            ValidarColunasLocaisFk(fk, colunasLocais, escopo, resultado, idioma);
 
             if (tabelasIgnoradas.Contains(fk.TabelaReferencia))
                 continue;
 
-            if (!tabelas.TryGetValue(fk.TabelaReferencia, out var tabelaReferencia))
-            {
-                AdicionarAchado(
-                    resultado,
-                    "critical",
-                    "FK_TABELA_REFERENCIA_INEXISTENTE",
-                    escopo,
-                    M(idioma, $"FK {fk.Nome} points to missing table {fk.TabelaReferencia}.", $"FK {fk.Nome} aponta para tabela inexistente {fk.TabelaReferencia}."),
-                    M(idioma, "Validate dependency order and metadata integrity for referenced table.", "Valide ordem de dependencia e integridade de metadata da tabela referenciada."));
-                continue;
-            }
-
-            var colunasReferencia = tabelaReferencia.Colunas.ToDictionary(c => c.Nome, StringComparer.OrdinalIgnoreCase);
-            foreach (var colunaRef in fk.ColunasReferencia)
-            {
-                if (colunasReferencia.ContainsKey(colunaRef))
-                    continue;
-
-                AdicionarAchado(
-                    resultado,
-                    "critical",
-                    "FK_COLUNA_REFERENCIA_INEXISTENTE",
-                    escopo,
-                    M(idioma, $"FK {fk.Nome} points to missing referenced column {colunaRef}.", $"FK {fk.Nome} aponta para coluna referenciada inexistente {colunaRef}."),
-                    M(idioma, "Recreate FK after validating referenced key definition.", "Recrie a FK apos validar a definicao da chave referenciada."));
-            }
-
-            bool possuiIndiceCobertura = tabela.Indices.Any(indice => CobrePrefixo(indice.Colunas, fk.Colunas));
-            if (!possuiIndiceCobertura)
-            {
-                AdicionarAchado(
-                    resultado,
-                    "medium",
-                    "FK_SEM_INDICE_COBERTURA",
-                    escopo,
-                    M(idioma, $"FK {fk.Nome} has no local covering index.", $"FK {fk.Nome} nao possui indice local de cobertura."),
-                    M(idioma, "Create an index for FK columns to reduce lock contention and validation cost.", "Crie indice para as colunas da FK para reduzir contencao e custo de validacao."));
-            }
+            ValidarReferenciaFk(fk, tabelas, escopo, resultado, idioma);
+            ValidarIndiceCoberturaFk(tabela, fk, escopo, resultado, idioma);
         }
+    }
+
+    private static bool ValidarEstruturaFk(
+        ChaveEstrangeiraSchema fk,
+        string escopo,
+        ResultadoAnaliseDdl resultado,
+        IdiomaSaida idioma)
+    {
+        if (fk.Colunas.Count == 0 || fk.ColunasReferencia.Count == 0)
+        {
+            AdicionarAchado(
+                resultado,
+                "critical",
+                "FK_SEM_COLUNAS",
+                escopo,
+                M(idioma, $"FK {fk.Nome} has empty local/reference columns.", $"FK {fk.Nome} possui colunas locais/referencia vazias."),
+                M(idioma, "Recreate FK with explicit and ordered column list.", "Recrie a FK com lista de colunas explicita e ordenada."));
+            return false;
+        }
+
+        if (fk.Colunas.Count != fk.ColunasReferencia.Count)
+        {
+            AdicionarAchado(
+                resultado,
+                "critical",
+                "FK_CARDINALIDADE_INVALIDA",
+                escopo,
+                M(idioma, $"FK {fk.Nome} has different local/reference column counts.", $"FK {fk.Nome} possui cardinalidade diferente entre colunas locais e de referencia."),
+                M(idioma, "Recreate FK preserving matching column cardinality.", "Recrie a FK preservando cardinalidade equivalente."));
+        }
+
+        return true;
+    }
+
+    private static void ValidarColunasLocaisFk(
+        ChaveEstrangeiraSchema fk,
+        IReadOnlyDictionary<string, ColunaSchema> colunasLocais,
+        string escopo,
+        ResultadoAnaliseDdl resultado,
+        IdiomaSaida idioma)
+    {
+        foreach (var colunaFk in fk.Colunas)
+        {
+            if (colunasLocais.ContainsKey(colunaFk))
+                continue;
+
+            AdicionarAchado(
+                resultado,
+                "critical",
+                "FK_COLUNA_LOCAL_INEXISTENTE",
+                escopo,
+                M(idioma, $"FK {fk.Nome} references missing local column {colunaFk}.", $"FK {fk.Nome} referencia coluna local inexistente {colunaFk}."),
+                M(idioma, "Validate relation fields and rebuild FK.", "Valide os campos da relacao e recrie a FK."));
+        }
+    }
+
+    private static void ValidarReferenciaFk(
+        ChaveEstrangeiraSchema fk,
+        IReadOnlyDictionary<string, TabelaSchema> tabelas,
+        string escopo,
+        ResultadoAnaliseDdl resultado,
+        IdiomaSaida idioma)
+    {
+        if (!tabelas.TryGetValue(fk.TabelaReferencia, out var tabelaReferencia))
+        {
+            AdicionarAchado(
+                resultado,
+                "critical",
+                "FK_TABELA_REFERENCIA_INEXISTENTE",
+                escopo,
+                M(idioma, $"FK {fk.Nome} points to missing table {fk.TabelaReferencia}.", $"FK {fk.Nome} aponta para tabela inexistente {fk.TabelaReferencia}."),
+                M(idioma, "Validate dependency order and metadata integrity for referenced table.", "Valide ordem de dependencia e integridade de metadata da tabela referenciada."));
+            return;
+        }
+
+        var colunasReferencia = tabelaReferencia.Colunas.ToDictionary(c => c.Nome, StringComparer.OrdinalIgnoreCase);
+        foreach (var colunaRef in fk.ColunasReferencia)
+        {
+            if (colunasReferencia.ContainsKey(colunaRef))
+                continue;
+
+            AdicionarAchado(
+                resultado,
+                "critical",
+                "FK_COLUNA_REFERENCIA_INEXISTENTE",
+                escopo,
+                M(idioma, $"FK {fk.Nome} points to missing referenced column {colunaRef}.", $"FK {fk.Nome} aponta para coluna referenciada inexistente {colunaRef}."),
+                M(idioma, "Recreate FK after validating referenced key definition.", "Recrie a FK apos validar a definicao da chave referenciada."));
+        }
+    }
+
+    private static void ValidarIndiceCoberturaFk(
+        TabelaSchema tabela,
+        ChaveEstrangeiraSchema fk,
+        string escopo,
+        ResultadoAnaliseDdl resultado,
+        IdiomaSaida idioma)
+    {
+        bool possuiIndiceCobertura = tabela.Indices.Any(indice => CobrePrefixo(indice.Colunas, fk.Colunas));
+        if (possuiIndiceCobertura)
+            return;
+
+        AdicionarAchado(
+            resultado,
+            "medium",
+            "FK_SEM_INDICE_COBERTURA",
+            escopo,
+            M(idioma, $"FK {fk.Nome} has no local covering index.", $"FK {fk.Nome} nao possui indice local de cobertura."),
+            M(idioma, "Create an index for FK columns to reduce lock contention and validation cost.", "Crie indice para as colunas da FK para reduzir contencao e custo de validacao."));
     }
 
     private static void ValidarIndices(TabelaSchema tabela, ResultadoAnaliseDdl resultado, IdiomaSaida idioma)

@@ -38,6 +38,11 @@ public static class DdlExtractCommand
                 case "charset":
                     op.Charset = CliArgumentParser.LerValorOpcao(args, ref i, chave);
                     break;
+                default:
+                    throw new ArgumentException(M(
+                        idioma,
+                        $"Unknown option: --{chave}",
+                        $"Opcao desconhecida: --{chave}"));
             }
         }
 

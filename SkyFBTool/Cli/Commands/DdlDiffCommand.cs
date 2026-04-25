@@ -28,6 +28,11 @@ public static class DdlDiffCommand
                 case "output":
                     op.Saida = CliArgumentParser.LerValorOpcao(args, ref i, chave);
                     break;
+                default:
+                    throw new ArgumentException(M(
+                        idioma,
+                        $"Unknown option: --{chave}",
+                        $"Opcao desconhecida: --{chave}"));
             }
         }
 

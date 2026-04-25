@@ -17,6 +17,7 @@
 
     <ItemGroup>
       <EmbeddedResource Include="Services\Ddl\Templates\DdlAnalyzeReport.scriban" />
+      <EmbeddedResource Include="Services\Ddl\Templates\DdlDiffReport.scriban" />
     </ItemGroup>
 
     <ItemGroup>

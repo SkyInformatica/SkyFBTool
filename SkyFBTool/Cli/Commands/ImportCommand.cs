@@ -1,5 +1,6 @@
 using SkyFBTool.Cli.Common;
 using SkyFBTool.Core;
+using SkyFBTool.Services.Ddl;
 using SkyFBTool.Services.Import;
 
 namespace SkyFBTool.Cli.Commands;
@@ -8,6 +9,7 @@ public static class ImportCommand
 {
     public static async Task ExecuteAsync(string[] args)
     {
+        IdiomaSaida idioma = IdiomaSaidaDetector.Detectar();
         var op = new OpcoesImportacao();
 
         for (int i = 0; i < args.Length; i++)
@@ -41,10 +43,20 @@ public static class ImportCommand
                 case "continue-on-error":
                     op.ContinuarEmCasoDeErro = true;
                     break;
+                default:
+                    throw new ArgumentException(M(
+                        idioma,
+                        $"Unknown option: --{chave}",
+                        $"Opcao desconhecida: --{chave}"));
             }
         }
 
         Console.WriteLine("Iniciando importação...");
         await ImportadorSql.ImportarAsync(op);
+    }
+
+    private static string M(IdiomaSaida idioma, string english, string portuguese)
+    {
+        return idioma == IdiomaSaida.PortugueseBrazil ? portuguese : english;
     }
 }

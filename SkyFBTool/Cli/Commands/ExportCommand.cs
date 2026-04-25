@@ -2,6 +2,7 @@ using System.Text;
 using SkyFBTool.Cli.Common;
 using SkyFBTool.Core;
 using SkyFBTool.Infra;
+using SkyFBTool.Services.Ddl;
 using SkyFBTool.Services.Export;
 
 namespace SkyFBTool.Cli.Commands;
@@ -12,6 +13,7 @@ public static class ExportCommand
 
     public static async Task ExecuteAsync(string[] args)
     {
+        IdiomaSaida idioma = IdiomaSaidaDetector.Detectar();
         var op = new OpcoesExportacao();
 
         for (int i = 0; i < args.Length; i++)
@@ -83,6 +85,11 @@ public static class ExportCommand
                 case "continue-on-error":
                     op.ContinuarEmCasoDeErro = true;
                     break;
+                default:
+                    throw new ArgumentException(M(
+                        idioma,
+                        $"Unknown option: --{chave}",
+                        $"Opcao desconhecida: --{chave}"));
             }
         }
 
@@ -285,5 +292,10 @@ public static class ExportCommand
         }
 
         return $"{valor:0.##} {sufixos[indice]}";
+    }
+
+    private static string M(IdiomaSaida idioma, string english, string portuguese)
+    {
+        return idioma == IdiomaSaida.PortugueseBrazil ? portuguese : english;
     }
 }

@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="{{ Lang }}">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>{{ Titulo }}</title>
+  <style>
+    body { font-family: Segoe UI, Arial, sans-serif; margin: 20px; color: #1f2937; }
+    h1, h2 { margin: 0 0 12px 0; }
+    .meta { margin-bottom: 14px; font-size: 14px; }
+    .kpi { display: flex; gap: 10px; flex-wrap: wrap; margin: 10px 0 18px; }
+    .pill { border: 1px solid #d1d5db; border-radius: 12px; padding: 8px 10px; background: #f9fafb; font-size: 13px; }
+    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 8px 0 16px; }
+    .card { border: 1px solid #e5e7eb; border-radius: 10px; background: #fff; padding: 10px; }
+    .table-wrap { max-height: 58vh; overflow: auto; border: 1px solid #e5e7eb; border-radius: 8px; margin-top: 8px; }
+    table { width: 100%; border-collapse: collapse; }
+    th, td { border-bottom: 1px solid #eef2f7; padding: 8px; text-align: left; vertical-align: top; font-size: 13px; }
+    th { position: sticky; top: 0; background: #f3f4f6; z-index: 1; }
+    .section { margin-top: 14px; }
+    .muted { color: #6b7280; }
+    @media (max-width: 900px) { .grid { grid-template-columns: 1fr; } body { margin: 12px; } }
+  </style>
+</head>
+<body>
+  <h1>{{ Titulo }}</h1>
+  <div class="meta">
+    <div><strong>{{ OrigemLabel }}:</strong> {{ OrigemArquivo }}</div>
+    <div><strong>{{ AlvoLabel }}:</strong> {{ AlvoArquivo }}</div>
+    <div><strong>{{ GeradoEmLabel }}:</strong> {{ GeradoEm }}</div>
+  </div>
+  <div class="kpi">
+    <div class="pill"><strong>{{ ComandosLabel }}:</strong> {{ TotalComandos }}</div>
+    <div class="pill"><strong>{{ CriadosLabel }}:</strong> {{ TotalCriados }}</div>
+    <div class="pill"><strong>{{ AlteradosLabel }}:</strong> {{ TotalAlterados }}</div>
+    <div class="pill"><strong>{{ SomenteAlvoLabel }}:</strong> {{ TotalSomenteAlvo }}</div>
+    <div class="pill"><strong>{{ AvisosLabel }}:</strong> {{ TotalAvisos }}</div>
+  </div>
+
+  <div class="grid">
+    <div class="card">
+      <h2>{{ ComandosLabel }}</h2>
+      {{ if Comandos.size == 0 }}
+      <div class="muted">{{ NenhumLabel }}</div>
+      {{ else }}
+      <div class="table-wrap">
+        <table><thead><tr><th>#</th><th>{{ ItemLabel }}</th></tr></thead><tbody>
+          {{ for item in Comandos }}
+          <tr><td>{{ for.index + 1 }}</td><td>{{ item }}</td></tr>
+          {{ end }}
+        </tbody></table>
+      </div>
+      {{ end }}
+    </div>
+    <div class="card">
+      <h2>{{ AvisosLabel }}</h2>
+      {{ if Avisos.size == 0 }}
+      <div class="muted">{{ NenhumLabel }}</div>
+      {{ else }}
+      <div class="table-wrap">
+        <table><thead><tr><th>#</th><th>{{ ItemLabel }}</th></tr></thead><tbody>
+          {{ for item in Avisos }}
+          <tr><td>{{ for.index + 1 }}</td><td>{{ item }}</td></tr>
+          {{ end }}
+        </tbody></table>
+      </div>
+      {{ end }}
+    </div>
+  </div>
+
+  <div class="section">
+    <h2>{{ CriadosLabel }}</h2>
+    {{ if Criados.size == 0 }}
+    <div class="muted">{{ NenhumLabel }}</div>
+    {{ else }}
+    <div class="table-wrap">
+      <table><thead><tr><th>#</th><th>{{ ItemLabel }}</th></tr></thead><tbody>
+        {{ for item in Criados }}
+        <tr><td>{{ for.index + 1 }}</td><td>{{ item }}</td></tr>
+        {{ end }}
+      </tbody></table>
+    </div>
+    {{ end }}
+  </div>
+
+  <div class="section">
+    <h2>{{ AlteradosLabel }}</h2>
+    {{ if Alterados.size == 0 }}
+    <div class="muted">{{ NenhumLabel }}</div>
+    {{ else }}
+    <div class="table-wrap">
+      <table><thead><tr><th>#</th><th>{{ ItemLabel }}</th></tr></thead><tbody>
+        {{ for item in Alterados }}
+        <tr><td>{{ for.index + 1 }}</td><td>{{ item }}</td></tr>
+        {{ end }}
+      </tbody></table>
+    </div>
+    {{ end }}
+  </div>
+
+  <div class="section">
+    <h2>{{ SomenteAlvoLabel }}</h2>
+    {{ if SomenteAlvo.size == 0 }}
+    <div class="muted">{{ NenhumLabel }}</div>
+    {{ else }}
+    <div class="table-wrap">
+      <table><thead><tr><th>#</th><th>{{ ItemLabel }}</th></tr></thead><tbody>
+        {{ for item in SomenteAlvo }}
+        <tr><td>{{ for.index + 1 }}</td><td>{{ item }}</td></tr>
+        {{ end }}
+      </tbody></table>
+    </div>
+    {{ end }}
+  </div>
+</body>
+</html>
