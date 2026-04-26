@@ -4,6 +4,37 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SkyFBTool", "SkyFBTool\SkyF
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SkyFBTool.Tests", "SkyFBTool.Tests\SkyFBTool.Tests.csproj", "{D6966F72-6D2F-4DB7-BB0F-2F7F2467AB79}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "docs", "docs", "{7F2FF1BB-BA38-40B6-918F-D3F492E6C976}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "commands", "commands", "{FC1DFE70-DF17-476D-A430-7B9DD8C4A4BA}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "en", "en", "{B0E06EA5-EC6E-4A22-9A74-0B5DB845F84F}"
+	ProjectSection(SolutionItems) = preProject
+		docs\commands\en\ddl-analyze.md = docs\commands\en\ddl-analyze.md
+		docs\commands\en\ddl-diff.md = docs\commands\en\ddl-diff.md
+		docs\commands\en\ddl-extract.md = docs\commands\en\ddl-extract.md
+		docs\commands\en\exec-sql.md = docs\commands\en\exec-sql.md
+		docs\commands\en\export.md = docs\commands\en\export.md
+		docs\commands\en\import-batch.md = docs\commands\en\import-batch.md
+		docs\commands\en\import.md = docs\commands\en\import.md
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "pt-BR", "pt-BR", "{96D61037-7515-4A7A-BB63-5DBD7156E267}"
+	ProjectSection(SolutionItems) = preProject
+		docs\commands\pt-BR\ddl-analyze.md = docs\commands\pt-BR\ddl-analyze.md
+		docs\commands\pt-BR\ddl-diff.md = docs\commands\pt-BR\ddl-diff.md
+		docs\commands\pt-BR\ddl-extract.md = docs\commands\pt-BR\ddl-extract.md
+		docs\commands\pt-BR\exec-sql.md = docs\commands\pt-BR\exec-sql.md
+		docs\commands\pt-BR\export.md = docs\commands\pt-BR\export.md
+		docs\commands\pt-BR\import-batch.md = docs\commands\pt-BR\import-batch.md
+		docs\commands\pt-BR\import.md = docs\commands\pt-BR\import.md
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "examples", "examples", "{4724E81D-E562-4D42-AFEB-744180606EB8}"
+	ProjectSection(SolutionItems) = preProject
+		docs\examples\ddl-severity.sample.json = docs\examples\ddl-severity.sample.json
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -18,5 +49,11 @@ Global
 		{D6966F72-6D2F-4DB7-BB0F-2F7F2467AB79}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D6966F72-6D2F-4DB7-BB0F-2F7F2467AB79}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D6966F72-6D2F-4DB7-BB0F-2F7F2467AB79}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{FC1DFE70-DF17-476D-A430-7B9DD8C4A4BA} = {7F2FF1BB-BA38-40B6-918F-D3F492E6C976}
+		{B0E06EA5-EC6E-4A22-9A74-0B5DB845F84F} = {FC1DFE70-DF17-476D-A430-7B9DD8C4A4BA}
+		{96D61037-7515-4A7A-BB63-5DBD7156E267} = {FC1DFE70-DF17-476D-A430-7B9DD8C4A4BA}
+		{4724E81D-E562-4D42-AFEB-744180606EB8} = {7F2FF1BB-BA38-40B6-918F-D3F492E6C976}
 	EndGlobalSection
 EndGlobal
