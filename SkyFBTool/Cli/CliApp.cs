@@ -33,6 +33,10 @@ public static class CliApp
                 case "exec-sql":
                     await ImportCommand.ExecuteAsync(argsComando);
                     break;
+                case "import_batch":
+                case "import-batch":
+                    await ImportBatchCommand.ExecuteAsync(argsComando);
+                    break;
                 case "ddl-extract":
                     await DdlExtractCommand.ExecuteAsync(argsComando);
                     break;
@@ -65,6 +69,7 @@ SkyFBTool - Ferramenta de Exportacao/Importacao Firebird
 USO:
   SkyFBTool export   [opcoes]
   SkyFBTool import   [opcoes]
+  SkyFBTool import_batch [opcoes]
   SkyFBTool exec-sql [opcoes]
   SkyFBTool ddl-extract [opcoes]
   SkyFBTool ddl-diff    [opcoes]
@@ -132,6 +137,26 @@ OPCOES:
 EXEMPLO:
   SkyFBTool import --database C:\banco.fdb --input PESSOAS.SQL
   SkyFBTool exec-sql --database C:\banco.fdb --script ajuste_schema.sql
+
+
+===========================
+ COMANDO: IMPORT_BATCH
+===========================
+
+OPCOES:
+  --database CAMINHO          Caminho do banco .fdb
+  --inputs-batch PADRAO       Wildcard de arquivos SQL (ex.: C:\exports\*.sql)
+  --input-batch PADRAO        Alias de --inputs-batch
+  --scripts-batch PADRAO      Alias de --inputs-batch
+  --host SERVIDOR             (padrao: localhost)
+  --port PORTA                (padrao: 3050)
+  --user USUARIO              (padrao: sysdba)
+  --password SENHA            (padrao: masterkey)
+  --progress-every N          Exibe progresso
+  --continue-on-error         Continua para o proximo arquivo em caso de falha
+
+EXEMPLO:
+  SkyFBTool import_batch --database C:\banco.fdb --inputs-batch C:\exports\*.sql --continue-on-error
 
 
 ===========================

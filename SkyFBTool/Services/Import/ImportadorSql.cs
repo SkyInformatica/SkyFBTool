@@ -19,10 +19,13 @@ public static class ImportadorSql
         Console.WriteLine($"Iniciando importação do arquivo '{opcoes.ArquivoEntrada}'...\n");
 
         var inicioExecucao = DateTime.UtcNow;
-
-        string caminhoLogErros = "erros_importacao.log";
-        if (File.Exists(caminhoLogErros))
-            File.Delete(caminhoLogErros);
+        string caminhoLog = ResolverCaminhoLogImportacao(opcoes.ArquivoEntrada);
+        await File.WriteAllTextAsync(
+            caminhoLog,
+            $"Log de importação{Environment.NewLine}" +
+            $"Arquivo SQL: {opcoes.ArquivoEntrada}{Environment.NewLine}" +
+            $"Início (UTC): {inicioExecucao:yyyy-MM-dd HH:mm:ss}{Environment.NewLine}{Environment.NewLine}");
+        Console.WriteLine($"Log da importação: {caminhoLog}");
 
         string charsetArquivo = CharsetSql.DetectarCharsetSetNames(opcoes.ArquivoEntrada);
         Encoding encodingArquivo = CharsetSql.ResolverEncodingLeituraSql(charsetArquivo);
@@ -47,8 +50,10 @@ public static class ImportadorSql
 
         var controleIndices = new ControleIndicesFirebird(conexao);
 
-        long totalLinhas = 0;
+        long totalLinhasLidas = 0;
+        long totalLinhasProcessadas = 0;
         long totalComandos = 0;
+        long totalErros = 0;
         long comandosDesdeUltimoBatch = 0;
 
         var cronometroVelocidade = Stopwatch.StartNew();
@@ -72,39 +77,41 @@ public static class ImportadorSql
 
         while ((linhaOriginal = await leitor.ReadLineAsync()) != null)
         {
-            totalLinhas++;
+            totalLinhasLidas++;
             dentroComentarioLinha = false;
 
             string linhaAnalise = linhaOriginal.TrimStart('\uFEFF', '\u200B', '\u00A0', '\u2060', ' ', '\t');
 
             if (string.IsNullOrWhiteSpace(linhaAnalise) && comandoAtual.Length == 0)
             {
-                MostrarProgresso(totalLinhas, totalComandos, comandosDesdeUltimaMedicao, cronometroVelocidade, opcoes);
+                MostrarProgresso(totalLinhasLidas, totalComandos, comandosDesdeUltimaMedicao, cronometroVelocidade, opcoes);
                 continue;
             }
 
             if (linhaAnalise.StartsWith("SET SQL DIALECT", StringComparison.OrdinalIgnoreCase)
                 && comandoAtual.Length == 0)
             {
-                MostrarProgresso(totalLinhas, totalComandos, comandosDesdeUltimaMedicao, cronometroVelocidade, opcoes);
+                MostrarProgresso(totalLinhasLidas, totalComandos, comandosDesdeUltimaMedicao, cronometroVelocidade, opcoes);
                 continue;
             }
 
             if (linhaAnalise.StartsWith("SET NAMES", StringComparison.OrdinalIgnoreCase)
                 && comandoAtual.Length == 0)
             {
-                MostrarProgresso(totalLinhas, totalComandos, comandosDesdeUltimaMedicao, cronometroVelocidade, opcoes);
+                MostrarProgresso(totalLinhasLidas, totalComandos, comandosDesdeUltimaMedicao, cronometroVelocidade, opcoes);
                 continue;
             }
 
             if (TentarProcessarSetTerm(linhaAnalise, ref delimitadorAtual) && comandoAtual.Length == 0)
             {
-                MostrarProgresso(totalLinhas, totalComandos, comandosDesdeUltimaMedicao, cronometroVelocidade, opcoes);
+                MostrarProgresso(totalLinhasLidas, totalComandos, comandosDesdeUltimaMedicao, cronometroVelocidade, opcoes);
                 continue;
             }
 
+            totalLinhasProcessadas++;
+
             if (comandoAtual.Length == 0)
-                linhaInicioComando = totalLinhas;
+                linhaInicioComando = totalLinhasLidas;
 
             string linha = linhaOriginal;
             int i = 0;
@@ -137,12 +144,10 @@ public static class ImportadorSql
                             i += 2;
                             continue;
                         }
-                        else
-                        {
-                            dentroString = false;
-                            i++;
-                            continue;
-                        }
+
+                        dentroString = false;
+                        i++;
+                        continue;
                     }
 
                     i++;
@@ -186,12 +191,15 @@ public static class ImportadorSql
 
                         try
                         {
-                            transacao = (await ExecutorSql.ExecutarAsync(
+                            var resultadoExecucao = await ExecutorSql.ExecutarAsync(
                                 comandoCompleto,
                                 conexao,
                                 transacao,
                                 opcoes,
-                                caminhoLogErros))!;
+                                caminhoLog);
+                            transacao = resultadoExecucao.Transacao!;
+                            if (resultadoExecucao.HouveErro)
+                                totalErros++;
                         }
                         catch
                         {
@@ -213,8 +221,7 @@ public static class ImportadorSql
                     }
 
                     comandoAtual.Clear();
-                    linhaInicioComando = totalLinhas;
-
+                    linhaInicioComando = totalLinhasLidas;
                     i++;
                     continue;
                 }
@@ -226,7 +233,7 @@ public static class ImportadorSql
             if (!dentroComentarioBloco && !dentroComentarioLinha)
                 comandoAtual.AppendLine();
 
-            MostrarProgresso(totalLinhas, totalComandos, comandosDesdeUltimaMedicao, cronometroVelocidade, opcoes);
+            MostrarProgresso(totalLinhasLidas, totalComandos, comandosDesdeUltimaMedicao, cronometroVelocidade, opcoes);
         }
 
         if (comandoAtual.Length > 0)
@@ -241,12 +248,15 @@ public static class ImportadorSql
 
                 try
                 {
-                    transacao = (await ExecutorSql.ExecutarAsync(
+                    var resultadoExecucao = await ExecutorSql.ExecutarAsync(
                         comandoFinal,
                         conexao,
                         transacao,
                         opcoes,
-                        caminhoLogErros))!;
+                        caminhoLog);
+                    transacao = resultadoExecucao.Transacao!;
+                    if (resultadoExecucao.HouveErro)
+                        totalErros++;
                 }
                 catch
                 {
@@ -270,19 +280,32 @@ public static class ImportadorSql
 
         Console.WriteLine();
         Console.WriteLine("Importação concluída.");
-        Console.WriteLine($"Total de linhas processadas : {totalLinhas:N0}");
+        Console.WriteLine($"Total de linhas processadas : {totalLinhasProcessadas:N0}");
         Console.WriteLine($"Total de comandos executados: {totalComandos:N0}");
         Console.WriteLine($"Tempo total de execução     : {FormatarDuracao(duracao)}");
 
         double cps = totalComandos / duracao.TotalSeconds;
         Console.WriteLine($"Velocidade média            : {cps:N2} comandos/segundo");
 
-        if (opcoes.ContinuarEmCasoDeErro && File.Exists(caminhoLogErros))
+        if (totalErros > 0)
         {
+            await File.AppendAllTextAsync(
+                caminhoLog,
+                $"Importação concluída com erros.{Environment.NewLine}" +
+                $"Fim (UTC): {DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}{Environment.NewLine}" +
+                $"Total de erros: {totalErros}{Environment.NewLine}");
+
             Console.ForegroundColor = ConsoleColor.Yellow;
             Console.WriteLine("\nAviso: ocorreram erros durante a importação.");
-            Console.WriteLine($"Consulte o arquivo: {caminhoLogErros}");
+            Console.WriteLine($"Consulte o arquivo: {caminhoLog}");
             Console.ResetColor();
+        }
+        else
+        {
+            await File.AppendAllTextAsync(
+                caminhoLog,
+                $"Importação concluída sem erros.{Environment.NewLine}" +
+                $"Fim (UTC): {DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}{Environment.NewLine}");
         }
     }
 
@@ -299,10 +322,7 @@ public static class ImportadorSql
         if (linhas % opcoes.ProgressoACada == 0)
         {
             double segundos = cronometroVelocidade.Elapsed.TotalSeconds;
-
-            double cps = segundos > 0
-                ? comandosDesdeUltimaMedicao / segundos
-                : 0;
+            double cps = segundos > 0 ? comandosDesdeUltimaMedicao / segundos : 0;
 
             Console.Write(
                 $"\rLinhas: {linhas:N0} | Comandos: {comandos:N0} | Velocidade: {cps:N0} cmd/s");
@@ -331,5 +351,31 @@ public static class ImportadorSql
     private static string FormatarDuracao(TimeSpan tempo)
     {
         return $"{(int)tempo.TotalHours:00}:{tempo.Minutes:00}:{tempo.Seconds:00}.{tempo.Milliseconds:000}";
+    }
+
+    private static string ResolverCaminhoLogImportacao(string arquivoEntrada)
+    {
+        string nomeBaseEntrada = Path.GetFileNameWithoutExtension(arquivoEntrada);
+        if (string.IsNullOrWhiteSpace(nomeBaseEntrada))
+            nomeBaseEntrada = "import";
+
+        foreach (char invalido in Path.GetInvalidFileNameChars())
+            nomeBaseEntrada = nomeBaseEntrada.Replace(invalido, '_');
+
+        string timestamp = DateTime.Now.ToString("yyyyMMdd_HHmmss_fff");
+        string candidato = Path.Combine(
+            Directory.GetCurrentDirectory(),
+            $"{nomeBaseEntrada}_import_log_{timestamp}.log");
+
+        int sequencial = 1;
+        while (File.Exists(candidato))
+        {
+            candidato = Path.Combine(
+                Directory.GetCurrentDirectory(),
+                $"{nomeBaseEntrada}_import_log_{timestamp}_{sequencial:000}.log");
+            sequencial++;
+        }
+
+        return candidato;
     }
 }

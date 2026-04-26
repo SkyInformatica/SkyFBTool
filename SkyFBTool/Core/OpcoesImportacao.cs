@@ -11,5 +11,5 @@ public class OpcoesImportacao
 
     public string ArquivoEntrada { get; set; } = "";
     public int ProgressoACada { get; set; } = 10000;
-    public bool ContinuarEmCasoDeErro { get; set; } = true;
+    public bool ContinuarEmCasoDeErro { get; set; }
 }

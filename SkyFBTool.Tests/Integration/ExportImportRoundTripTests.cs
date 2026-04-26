@@ -359,9 +359,12 @@ public class ExportImportRoundTripTests
             int totalLinhas = await ContarLinhasAsync(arquivoBanco, "UTF8", tabela);
             Assert.Equal(2, totalLinhas);
 
-            string caminhoLog = Path.Combine(pastaTemp, "erros_importacao.log");
-            Assert.True(File.Exists(caminhoLog));
-            string textoLog = await File.ReadAllTextAsync(caminhoLog);
+            string[] arquivosLog = Directory.GetFiles(
+                pastaTemp,
+                "*_import_log_*.log",
+                SearchOption.TopDirectoryOnly);
+            Assert.NotEmpty(arquivosLog);
+            string textoLog = await File.ReadAllTextAsync(arquivosLog.OrderByDescending(a => a).First());
             Assert.Contains("Erro ao executar SQL", textoLog);
         }
         finally
