@@ -12,7 +12,7 @@ e o projeto adota [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ### Adicionado
 - `ddl-analyze` agora suporta entrada direta por banco (`--database` + opções de conexão), extraindo metadados internamente antes da análise.
 - `ddl-analyze` agora suporta modo em lote via `--databases-batch` (`*`, `?`) para executar análise sobre múltiplos arquivos `.fdb`.
-- Novo comando `import_batch` para executar múltiplos arquivos SQL por padrão wildcard (`--inputs-batch`, aliases: `--input-batch`, `--scripts-batch`).
+- `import` agora suporta modo em lote para executar múltiplos arquivos SQL por padrão wildcard (`--inputs-batch`, aliases: `--input-batch`, `--scripts-batch`).
 - Importação agora sempre gera arquivo de log por execução com nome único (`*_import_log_*.log`), incluindo status explícito de conclusão com/sem erros.
 
 ### Alterado

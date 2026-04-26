@@ -15,7 +15,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "en", "en", "{B0E06EA5-EC6E-
 		docs\commands\en\ddl-extract.md = docs\commands\en\ddl-extract.md
 		docs\commands\en\exec-sql.md = docs\commands\en\exec-sql.md
 		docs\commands\en\export.md = docs\commands\en\export.md
-		docs\commands\en\import-batch.md = docs\commands\en\import-batch.md
 		docs\commands\en\import.md = docs\commands\en\import.md
 	EndProjectSection
 EndProject
@@ -26,7 +25,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "pt-BR", "pt-BR", "{96D61037
 		docs\commands\pt-BR\ddl-extract.md = docs\commands\pt-BR\ddl-extract.md
 		docs\commands\pt-BR\exec-sql.md = docs\commands\pt-BR\exec-sql.md
 		docs\commands\pt-BR\export.md = docs\commands\pt-BR\export.md
-		docs\commands\pt-BR\import-batch.md = docs\commands\pt-BR\import-batch.md
 		docs\commands\pt-BR\import.md = docs\commands\pt-BR\import.md
 	EndProjectSection
 EndProject

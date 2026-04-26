@@ -12,7 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - `ddl-analyze` now supports direct database input (`--database` + connection options), extracting metadata internally before analysis.
 - `ddl-analyze` now supports batch mode via `--databases-batch` (`*`, `?`) to run analysis over multiple `.fdb` files.
-- New `import_batch` command to execute multiple SQL files using wildcard patterns (`--inputs-batch`, aliases: `--input-batch`, `--scripts-batch`).
+- `import` now supports batch input mode to execute multiple SQL files using wildcard patterns (`--inputs-batch`, aliases: `--input-batch`, `--scripts-batch`).
 - Import now always generates a per-execution log file with unique name (`*_import_log_*.log`), including explicit success/error completion status.
 
 ### Changed

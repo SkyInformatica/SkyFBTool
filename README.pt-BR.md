@@ -27,7 +27,7 @@ git push origin v0.1.0
 
 ## Recursos Principais
 
-- Comandos `export`, `import`, `import_batch` e `exec-sql`
+- Comandos `export`, `import` e `exec-sql`
 - Comandos `ddl-extract`, `ddl-diff` e `ddl-analyze` para extração, comparação e análise de risco de schema
 - Exportação/importação em streaming para arquivos SQL grandes
 - `--filter`, `--filter-file` e modo avançado `--query-file`
@@ -53,7 +53,6 @@ git push origin v0.1.0
 ```powershell
 SkyFBTool export [opções]
 SkyFBTool import [opções]
-SkyFBTool import_batch [opções]
 SkyFBTool exec-sql [opções]
 SkyFBTool ddl-extract [opções]
 SkyFBTool ddl-diff [opções]
@@ -70,6 +69,7 @@ SkyFBTool export --database "C:\dados\exemplo.fdb" --table "TABELA_EXEMPLO" --ou
 
 ```powershell
 SkyFBTool import --database "C:\dados\exemplo.fdb" --input "C:\exports\tabela_exemplo.sql" --continue-on-error
+SkyFBTool import --database "C:\dados\exemplo.fdb" --inputs-batch "C:\exports\*.sql" --continue-on-error
 SkyFBTool exec-sql --database "C:\dados\exemplo.fdb" --script "C:\scripts\patch.sql" --continue-on-error
 ```
 
@@ -134,12 +134,16 @@ Regras:
 - `--database` caminho do banco Firebird
 - `--input` arquivo SQL de entrada
 - `--script` alias explícito de `--input`
+- `--inputs-batch` padrão wildcard para múltiplos arquivos SQL de entrada
+- `--input-batch` alias de `--inputs-batch`
+- `--scripts-batch` alias de `--inputs-batch`
 - `--host` host do Firebird (padrão: `localhost`)
 - `--port` porta do Firebird (padrão: `3050`)
 - `--user` usuário do Firebird (padrão: `sysdba`)
 - `--password` senha do Firebird (padrão: `masterkey`)
 - `--progress-every` intervalo de progresso
 - `--continue-on-error` continua importando após erros de comando
+- use apenas um modo de entrada por execução: `--input/--script` ou `--inputs-batch`
 
 ## Testes
 
@@ -162,7 +166,6 @@ $env:SKYFBTOOL_TEST_RUN_INTEGRATION="true"
 
 - `export`: [docs/commands/pt-BR/export.md](./docs/commands/pt-BR/export.md)
 - `import`: [docs/commands/pt-BR/import.md](./docs/commands/pt-BR/import.md)
-- `import_batch`: [docs/commands/pt-BR/import-batch.md](./docs/commands/pt-BR/import-batch.md)
 - `exec-sql`: [docs/commands/pt-BR/exec-sql.md](./docs/commands/pt-BR/exec-sql.md)
 - `ddl-extract`: [docs/commands/pt-BR/ddl-extract.md](./docs/commands/pt-BR/ddl-extract.md)
 - `ddl-diff`: [docs/commands/pt-BR/ddl-diff.md](./docs/commands/pt-BR/ddl-diff.md)
