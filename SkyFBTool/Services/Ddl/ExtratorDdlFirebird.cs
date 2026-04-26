@@ -7,13 +7,10 @@ namespace SkyFBTool.Services.Ddl;
 
 public static class ExtratorDdlFirebird
 {
-    public static async Task<(string ArquivoSql, string ArquivoJson)> ExtrairAsync(OpcoesDdlExtracao opcoes)
+    public static async Task<SnapshotSchema> ExtrairSnapshotAsync(OpcoesDdlExtracao opcoes)
     {
         if (string.IsNullOrWhiteSpace(opcoes.Database))
             throw new ArgumentException("Banco nao informado (--database).");
-
-        var (arquivoSql, arquivoJson) = ResolverArquivosSaida(opcoes);
-        Directory.CreateDirectory(Path.GetDirectoryName(arquivoSql)!);
 
         await using var conexao = FabricaConexaoFirebird.CriarConexao(
             opcoes.Host,
@@ -24,7 +21,18 @@ public static class ExtratorDdlFirebird
             opcoes.Charset);
 
         await conexao.OpenAsync();
-        var snapshot = await CarregarSnapshotAsync(conexao);
+        return await CarregarSnapshotAsync(conexao);
+    }
+
+    public static async Task<(string ArquivoSql, string ArquivoJson)> ExtrairAsync(OpcoesDdlExtracao opcoes)
+    {
+        if (string.IsNullOrWhiteSpace(opcoes.Database))
+            throw new ArgumentException("Banco nao informado (--database).");
+
+        var (arquivoSql, arquivoJson) = ResolverArquivosSaida(opcoes);
+        Directory.CreateDirectory(Path.GetDirectoryName(arquivoSql)!);
+
+        var snapshot = await ExtrairSnapshotAsync(opcoes);
 
         var sql = GeradorDdlSql.Gerar(snapshot);
         await File.WriteAllTextAsync(arquivoSql, sql);

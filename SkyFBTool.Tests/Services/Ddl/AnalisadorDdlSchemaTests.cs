@@ -6,6 +6,37 @@ namespace SkyFBTool.Tests.Services.Ddl;
 public class AnalisadorDdlSchemaTests
 {
     [Fact]
+    public async Task AnalisarAsync_SemInputESemDatabase_DeveFalhar()
+    {
+        var opcoes = new SkyFBTool.Core.OpcoesDdlAnalise();
+
+        await Assert.ThrowsAsync<ArgumentException>(() => AnalisadorDdlSchema.AnalisarAsync(opcoes));
+    }
+
+    [Fact]
+    public async Task AnalisarAsync_ComInputEDatabase_DeveFalhar()
+    {
+        var opcoes = new SkyFBTool.Core.OpcoesDdlAnalise
+        {
+            Entrada = "arquivo.schema.json",
+            Database = "C:\\dados\\origem.fdb"
+        };
+
+        await Assert.ThrowsAsync<ArgumentException>(() => AnalisadorDdlSchema.AnalisarAsync(opcoes));
+    }
+
+    [Fact]
+    public async Task AnalisarAsync_ComWildcardNoDatabase_DeveFalhar()
+    {
+        var opcoes = new SkyFBTool.Core.OpcoesDdlAnalise
+        {
+            Database = "C:\\dados\\*.fdb"
+        };
+
+        await Assert.ThrowsAsync<ArgumentException>(() => AnalisadorDdlSchema.AnalisarAsync(opcoes));
+    }
+
+    [Fact]
     public void Analisar_QuandoPkReferenciaColunaInexistente_DeveMarcarComoCritico()
     {
         var snapshot = new SnapshotSchema

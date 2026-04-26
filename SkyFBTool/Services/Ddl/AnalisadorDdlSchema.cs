@@ -9,10 +9,63 @@ public static class AnalisadorDdlSchema
     {
         IdiomaSaida idioma = IdiomaSaidaDetector.Detectar();
 
-        if (string.IsNullOrWhiteSpace(opcoes.Entrada))
-            throw new ArgumentException(M(idioma, "Input file not provided (--input).", "Arquivo de entrada não informado (--input)."));
+        bool possuiEntradaArquivo = !string.IsNullOrWhiteSpace(opcoes.Entrada);
+        bool possuiEntradaBanco = !string.IsNullOrWhiteSpace(opcoes.Database);
+        bool possuiEntradaLote = !string.IsNullOrWhiteSpace(opcoes.DatabasesBatch);
 
-        var (snapshot, origemSnapshot) = await CarregadorSnapshotSchema.CarregarSnapshotComOrigemAsync(opcoes.Entrada);
+        if (!possuiEntradaArquivo && !possuiEntradaBanco && !possuiEntradaLote)
+        {
+            throw new ArgumentException(M(
+                idioma,
+                "Provide one input source: --input/--source, --database, or --databases-batch.",
+                "Informe uma origem de entrada: --input/--source, --database ou --databases-batch."));
+        }
+
+        int totalOrigens = (possuiEntradaArquivo ? 1 : 0) + (possuiEntradaBanco ? 1 : 0) + (possuiEntradaLote ? 1 : 0);
+        if (totalOrigens > 1)
+        {
+            throw new ArgumentException(M(
+                idioma,
+                "Do not combine --input/--source, --database, and --databases-batch. Choose only one source.",
+                "Não combine --input/--source, --database e --databases-batch. Escolha apenas uma origem."));
+        }
+
+        if (possuiEntradaBanco && ContemWildcard(opcoes.Database))
+        {
+            throw new ArgumentException(M(
+                idioma,
+                "Wildcard in --database is not allowed. Use --databases-batch for batch mode.",
+                "Wildcard em --database não é permitido. Use --databases-batch para modo em lote."));
+        }
+
+        if (possuiEntradaLote)
+        {
+            throw new ArgumentException(M(
+                idioma,
+                "Batch mode must be handled by CLI command layer (--databases-batch).",
+                "O modo em lote deve ser tratado pela camada de comando CLI (--databases-batch)."));
+        }
+
+        SnapshotSchema snapshot;
+        string origemSnapshot;
+        if (possuiEntradaBanco)
+        {
+            snapshot = await ExtratorDdlFirebird.ExtrairSnapshotAsync(new OpcoesDdlExtracao
+            {
+                Host = opcoes.Host,
+                Porta = opcoes.Porta,
+                Database = opcoes.Database,
+                Usuario = opcoes.Usuario,
+                Senha = opcoes.Senha,
+                Charset = opcoes.Charset
+            });
+
+            origemSnapshot = opcoes.Database.Trim();
+        }
+        else
+        {
+            (snapshot, origemSnapshot) = await CarregadorSnapshotSchema.CarregarSnapshotComOrigemAsync(opcoes.Entrada);
+        }
 
         Dictionary<string, string>? severidadesOverride = null;
         if (!string.IsNullOrWhiteSpace(opcoes.ArquivoConfiguracaoSeveridade))
@@ -192,7 +245,7 @@ public static class AnalisadorDdlSchema
         {
             AdicionarAchado(
                 resultado,
-                "low",
+                "high",
                 "TABELA_SEM_PK",
                 tabela.Nome,
                 M(idioma, $"Table {tabela.Nome} has no primary key.", $"Tabela {tabela.Nome} não possui chave primária."),
@@ -581,6 +634,11 @@ public static class AnalisadorDdlSchema
     private static string M(IdiomaSaida idioma, string english, string portuguese)
     {
         return idioma == IdiomaSaida.PortugueseBrazil ? portuguese : english;
+    }
+
+    private static bool ContemWildcard(string valor)
+    {
+        return valor.Contains('*') || valor.Contains('?');
     }
 
     private static readonly JsonSerializerOptions JsonOptions = new()

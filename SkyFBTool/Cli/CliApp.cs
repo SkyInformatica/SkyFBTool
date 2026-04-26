@@ -11,39 +11,48 @@ public static class CliApp
         Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
         Console.OutputEncoding = Encoding.UTF8;
 
-        args = CliArgumentParser.NormalizarArgs(args);
-
-        if (args.Length == 0 || args.Contains("--help") || args.Contains("-h"))
+        try
         {
-            ExibirAjuda();
-            return;
-        }
+            args = CliArgumentParser.NormalizarArgs(args);
 
-        string comando = args[0].ToLowerInvariant();
-        string[] argsComando = args.Skip(1).ToArray();
-
-        switch (comando)
-        {
-            case "export":
-                await ExportCommand.ExecuteAsync(argsComando);
-                break;
-            case "import":
-            case "exec-sql":
-                await ImportCommand.ExecuteAsync(argsComando);
-                break;
-            case "ddl-extract":
-                await DdlExtractCommand.ExecuteAsync(argsComando);
-                break;
-            case "ddl-diff":
-                await DdlDiffCommand.ExecuteAsync(argsComando);
-                break;
-            case "ddl-analyze":
-                await DdlAnalyzeCommand.ExecuteAsync(argsComando);
-                break;
-            default:
-                Console.WriteLine($"Comando desconhecido: {comando}");
+            if (args.Length == 0 || args.Contains("--help") || args.Contains("-h"))
+            {
                 ExibirAjuda();
-                break;
+                return;
+            }
+
+            string comando = args[0].ToLowerInvariant();
+            string[] argsComando = args.Skip(1).ToArray();
+
+            switch (comando)
+            {
+                case "export":
+                    await ExportCommand.ExecuteAsync(argsComando);
+                    break;
+                case "import":
+                case "exec-sql":
+                    await ImportCommand.ExecuteAsync(argsComando);
+                    break;
+                case "ddl-extract":
+                    await DdlExtractCommand.ExecuteAsync(argsComando);
+                    break;
+                case "ddl-diff":
+                    await DdlDiffCommand.ExecuteAsync(argsComando);
+                    break;
+                case "ddl-analyze":
+                    await DdlAnalyzeCommand.ExecuteAsync(argsComando);
+                    break;
+                default:
+                    Console.WriteLine($"Comando desconhecido: {comando}");
+                    ExibirAjuda();
+                    Environment.ExitCode = 1;
+                    break;
+            }
+        }
+        catch (Exception ex)
+        {
+            CliErrorHandler.Exibir(ex);
+            Environment.ExitCode = 1;
         }
     }
 
@@ -73,6 +82,7 @@ OPCOES:
   --output ARQUIVO.SQL        Saida SQL (arquivo ou diretorio) / SQL output (file or directory)
   --charset CHARSET           WIN1252 | ISO8859_1 | UTF8 | NONE
   --blob-format FORMATO       Hex (padrao) | Base64
+  --insert-mode MODO          Insert (padrao) | Upsert (UPDATE OR INSERT ... MATCHING PK)
   --commit-every N            COMMIT a cada N linhas / COMMIT every N rows
   --split-size-mb N           Divide em partes de N MB (padrao: 100; 0 desativa)
   --progress-every N          Exibe progresso / Progress interval
@@ -168,8 +178,15 @@ EXEMPLO:
 ===========================
 
 OPCOES:
-  --input ARQUIVO            Entrada (.schema.json ou .sql do ddl-extract)
+  --input ARQUIVO            Entrada por arquivo (.schema.json ou .sql)
   --source ARQUIVO           Alias de --input
+  --database CAMINHO         Entrada por conexao direta em banco unico
+  --databases-batch PADRAO   Entrada em lote por wildcard (ex.: C:\dados\*.fdb)
+  --host SERVIDOR            (padrao: localhost)
+  --port PORTA               (padrao: 3050)
+  --user USUARIO             (padrao: sysdba)
+  --password SENHA           (padrao: masterkey)
+  --charset CHARSET          (opcional)
   --output CAMINHO           Prefixo/arquivo/diretorio de saida
   --ignore-table-prefix TXT  Ignora tabelas por prefixo (pode repetir)
   --ignore-table-prefixes L  Ignora prefixos separados por virgula
@@ -178,10 +195,13 @@ OPCOES:
 SAIDA:
   <prefixo>.json             Achados estruturados
   <prefixo>.html             Relatorio visual de risco DDL
+  (modo lote)                batch_analysis_summary_*.json/.html
 
 EXEMPLO:
   SkyFBTool ddl-analyze --input C:\ddl\origem.schema.json --output C:\ddl\analise
   SkyFBTool ddl-analyze --input C:\ddl\origem.schema.json --ignore-table-prefix LOG_ --ignore-table-prefixes TMP_,IBE$
+  SkyFBTool ddl-analyze --database C:\dados\origem.fdb --output C:\ddl\analise_db
+  SkyFBTool ddl-analyze --databases-batch C:\dados\*.fdb --output C:\ddl\analises\
   SkyFBTool ddl-analyze --input C:\ddl\origem.schema.json --severity-config .\docs\examples\ddl-severity.sample.json
 
 ");
