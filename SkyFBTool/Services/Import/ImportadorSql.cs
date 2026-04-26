@@ -84,27 +84,27 @@ public static class ImportadorSql
 
             if (string.IsNullOrWhiteSpace(linhaAnalise) && comandoAtual.Length == 0)
             {
-                MostrarProgresso(totalLinhasLidas, totalComandos, comandosDesdeUltimaMedicao, cronometroVelocidade, opcoes);
+                MostrarProgresso(totalLinhasProcessadas, totalComandos, comandosDesdeUltimaMedicao, cronometroVelocidade, opcoes);
                 continue;
             }
 
             if (linhaAnalise.StartsWith("SET SQL DIALECT", StringComparison.OrdinalIgnoreCase)
                 && comandoAtual.Length == 0)
             {
-                MostrarProgresso(totalLinhasLidas, totalComandos, comandosDesdeUltimaMedicao, cronometroVelocidade, opcoes);
+                MostrarProgresso(totalLinhasProcessadas, totalComandos, comandosDesdeUltimaMedicao, cronometroVelocidade, opcoes);
                 continue;
             }
 
             if (linhaAnalise.StartsWith("SET NAMES", StringComparison.OrdinalIgnoreCase)
                 && comandoAtual.Length == 0)
             {
-                MostrarProgresso(totalLinhasLidas, totalComandos, comandosDesdeUltimaMedicao, cronometroVelocidade, opcoes);
+                MostrarProgresso(totalLinhasProcessadas, totalComandos, comandosDesdeUltimaMedicao, cronometroVelocidade, opcoes);
                 continue;
             }
 
             if (TentarProcessarSetTerm(linhaAnalise, ref delimitadorAtual) && comandoAtual.Length == 0)
             {
-                MostrarProgresso(totalLinhasLidas, totalComandos, comandosDesdeUltimaMedicao, cronometroVelocidade, opcoes);
+                MostrarProgresso(totalLinhasProcessadas, totalComandos, comandosDesdeUltimaMedicao, cronometroVelocidade, opcoes);
                 continue;
             }
 
@@ -235,7 +235,7 @@ public static class ImportadorSql
             if (!dentroComentarioBloco && !dentroComentarioLinha)
                 comandoAtual.AppendLine();
 
-            MostrarProgresso(totalLinhasLidas, totalComandos, comandosDesdeUltimaMedicao, cronometroVelocidade, opcoes);
+            MostrarProgresso(totalLinhasProcessadas, totalComandos, comandosDesdeUltimaMedicao, cronometroVelocidade, opcoes);
         }
 
         if (comandoAtual.Length > 0)
