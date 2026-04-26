@@ -1,4 +1,5 @@
 using FirebirdSql.Data.FirebirdClient;
+using SkyFBTool.Cli.Commands;
 using SkyFBTool.Core;
 using SkyFBTool.Infra;
 using SkyFBTool.Services.Export;
@@ -455,6 +456,166 @@ public class ExportImportRoundTripTests
 
             string valorLinha1 = await ObterNomePorIdAsync(arquivoBanco, "UTF8", tabela, 1);
             Assert.Equal("texto com ; no meio", valorLinha1);
+        }
+        finally
+        {
+            TentarExcluirDiretorio(pastaTemp);
+        }
+    }
+
+    [Fact]
+    public async Task Import_Progresso_NaoContaCabecalhoSqlNoContadorDeLinhas()
+    {
+        if (!IntegracaoHabilitada())
+            return;
+
+        string pastaTemp = CriarPastaTemp();
+        string arquivoBanco = Path.Combine(pastaTemp, "import_progresso.fdb");
+        string arquivoSql = Path.Combine(pastaTemp, "import_progresso.sql");
+        const string tabela = "TESTE_IMPORT_PROGRESSO";
+
+        try
+        {
+            await CriarBancoAsync(arquivoBanco, "UTF8");
+            await CriarTabelaVaziaAsync(arquivoBanco, "UTF8", tabela);
+
+            string conteudo = $"""
+                               SET SQL DIALECT 3;
+                               SET NAMES UTF8;
+
+                               INSERT INTO {tabela} (ID, NOME) VALUES (1, 'ok');
+                               COMMIT;
+                               """;
+
+            await File.WriteAllTextAsync(arquivoSql, conteudo, CharsetSql.ResolverEncodingLeituraSql("UTF8"));
+
+            var opcoesImportacao = CriarOpcoesImportacao(arquivoBanco, arquivoSql, continuarEmCasoDeErro: false);
+            opcoesImportacao.ProgressoACada = 1;
+
+            var saidaOriginal = Console.Out;
+            using var writer = new StringWriter();
+            Console.SetOut(writer);
+            try
+            {
+                await ImportadorSql.ImportarAsync(opcoesImportacao);
+            }
+            finally
+            {
+                Console.SetOut(saidaOriginal);
+            }
+
+            string saida = writer.ToString();
+            Assert.Contains("Linhas: 1 | Comandos: 1", saida);
+            Assert.DoesNotContain("Linhas: 4 | Comandos: 1", saida);
+        }
+        finally
+        {
+            TentarExcluirDiretorio(pastaTemp);
+        }
+    }
+
+    [Fact]
+    public async Task ImportCommand_InputsBatch_ComMultiplosArquivos_ImportaTodos()
+    {
+        if (!IntegracaoHabilitada())
+            return;
+
+        string pastaTemp = CriarPastaTemp();
+        string arquivoBanco = Path.Combine(pastaTemp, "import_batch_inline.fdb");
+        string arquivoSql1 = Path.Combine(pastaTemp, "batch_001.sql");
+        string arquivoSql2 = Path.Combine(pastaTemp, "batch_002.sql");
+        const string tabela = "TESTE_IMPORT_BATCH_INLINE";
+
+        try
+        {
+            await CriarBancoAsync(arquivoBanco, "UTF8");
+            await CriarTabelaVaziaAsync(arquivoBanco, "UTF8", tabela);
+
+            string conteudo1 = $"""
+                                SET SQL DIALECT 3;
+                                SET NAMES UTF8;
+
+                                INSERT INTO {tabela} (ID, NOME) VALUES (1, 'lote_1');
+                                COMMIT;
+                                """;
+
+            string conteudo2 = $"""
+                                SET SQL DIALECT 3;
+                                SET NAMES UTF8;
+
+                                INSERT INTO {tabela} (ID, NOME) VALUES (2, 'lote_2');
+                                COMMIT;
+                                """;
+
+            await File.WriteAllTextAsync(arquivoSql1, conteudo1, CharsetSql.ResolverEncodingLeituraSql("UTF8"));
+            await File.WriteAllTextAsync(arquivoSql2, conteudo2, CharsetSql.ResolverEncodingLeituraSql("UTF8"));
+
+            var saidaOriginal = Console.Out;
+            using var writer = new StringWriter();
+            Console.SetOut(writer);
+            try
+            {
+                await ImportCommand.ExecuteAsync(
+                [
+                    "--database", arquivoBanco,
+                    "--inputs-batch", Path.Combine(pastaTemp, "batch_*.sql")
+                ]);
+            }
+            finally
+            {
+                Console.SetOut(saidaOriginal);
+            }
+
+            int totalLinhas = await ContarLinhasAsync(arquivoBanco, "UTF8", tabela);
+            Assert.Equal(2, totalLinhas);
+
+            string saida = writer.ToString();
+            Assert.True(
+                saida.Contains("Importação em lote concluída.", StringComparison.OrdinalIgnoreCase) ||
+                saida.Contains("Batch import finished.", StringComparison.OrdinalIgnoreCase));
+        }
+        finally
+        {
+            TentarExcluirDiretorio(pastaTemp);
+        }
+    }
+
+    [Fact]
+    public async Task Import_SemContinueOnError_DeveLancarFalhaImportacaoComContexto()
+    {
+        if (!IntegracaoHabilitada())
+            return;
+
+        string pastaTemp = CriarPastaTemp();
+        string arquivoBanco = Path.Combine(pastaTemp, "import_falha_contexto.fdb");
+        string arquivoSql = Path.Combine(pastaTemp, "import_falha_contexto.sql");
+        const string tabela = "TESTE_IMPORT_FALHA_CTX";
+
+        try
+        {
+            await CriarBancoAsync(arquivoBanco, "UTF8");
+            await CriarTabelaVaziaAsync(arquivoBanco, "UTF8", tabela);
+
+            string conteudo = $"""
+                               SET SQL DIALECT 3;
+                               SET NAMES UTF8;
+
+                               INSERT INTO {tabela} (ID, NOME) VALUES (1, 'ok');
+                               INSERT INTO {tabela} (ID, COLUNA_INVALIDA) VALUES (2, 'erro');
+                               INSERT INTO {tabela} (ID, NOME) VALUES (3, 'nao_deve_executar');
+                               COMMIT;
+                               """;
+
+            await File.WriteAllTextAsync(arquivoSql, conteudo, CharsetSql.ResolverEncodingLeituraSql("UTF8"));
+
+            var opcoesImportacao = CriarOpcoesImportacao(arquivoBanco, arquivoSql, continuarEmCasoDeErro: false);
+
+            var ex = await Assert.ThrowsAsync<FalhaImportacaoSqlException>(async () =>
+                await ImportadorSql.ImportarAsync(opcoesImportacao));
+
+            Assert.Equal(arquivoSql, ex.Arquivo);
+            Assert.Equal(5, ex.LinhaInicioComando);
+            Assert.Contains("COLUNA_INVALIDA", ex.ComandoSql, StringComparison.OrdinalIgnoreCase);
         }
         finally
         {
