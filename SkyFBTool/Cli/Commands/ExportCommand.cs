@@ -64,6 +64,18 @@ public static class ExportCommand
                         ? fmt
                         : FormatoBlob.Hex;
                     break;
+                case "insert-mode":
+                    var valorInsertMode = CliArgumentParser.LerValorOpcao(args, ref i, chave);
+                    if (!Enum.TryParse<ModoInsertExportacao>(valorInsertMode, true, out var modoInsert))
+                    {
+                        throw new ArgumentException(M(
+                            idioma,
+                            $"Invalid value for --insert-mode: {valorInsertMode}. Use: insert | upsert",
+                            $"Valor inválido para --insert-mode: {valorInsertMode}. Use: insert | upsert"));
+                    }
+
+                    op.ModoInsert = modoInsert;
+                    break;
                 case "commit-every":
                     op.CommitACada = int.Parse(CliArgumentParser.LerValorOpcao(args, ref i, chave));
                     break;
@@ -247,6 +259,7 @@ public static class ExportCommand
             : "Advanced/Avancado (--query-file)";
 
         Console.WriteLine($"Modo de consulta / Query mode: {modo}");
+        Console.WriteLine($"Modo de escrita / Write mode: {op.ModoInsert}");
     }
 
     private static void ExibirResumoArquivosExportacao(IReadOnlyList<(string Caminho, long TamanhoBytes)> arquivosGerados)

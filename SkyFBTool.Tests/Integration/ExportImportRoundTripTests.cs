@@ -116,6 +116,40 @@ public class ExportImportRoundTripTests
     }
 
     [Fact]
+    public async Task Export_InsertModeUpsert_GeraUpdateOrInsertComMatchingPk()
+    {
+        if (!IntegracaoHabilitada())
+            return;
+
+        string pastaTemp = CriarPastaTemp();
+        string arquivoBanco = Path.Combine(pastaTemp, "export_upsert.fdb");
+        string arquivoSql = Path.Combine(pastaTemp, "export_upsert.sql");
+        const string tabela = "TESTE_EXPORT_UPSERT";
+
+        try
+        {
+            await CriarBancoAsync(arquivoBanco, "UTF8");
+            await CriarTabelaComPkEInserirLinhaAsync(arquivoBanco, "UTF8", tabela, 1, "nome_1");
+
+            var opcoes = CriarOpcoesExportacao(arquivoBanco, "UTF8", arquivoSql, tabela);
+            opcoes.ModoInsert = ModoInsertExportacao.Upsert;
+
+            await using (var destino = new DestinoArquivo(arquivoSql, 100, CharsetSql.ResolverEncodingLeituraSql("UTF8")))
+                await ExportadorTabelaFirebird.ExportarAsync(opcoes, destino);
+
+            string sql = await File.ReadAllTextAsync(arquivoSql, CharsetSql.ResolverEncodingLeituraSql("UTF8"));
+            Assert.Contains(
+                $"UPDATE OR INSERT INTO {tabela} (ID, NOME) VALUES (1, 'nome_1') MATCHING (ID);",
+                sql,
+                StringComparison.OrdinalIgnoreCase);
+        }
+        finally
+        {
+            TentarExcluirDiretorio(pastaTemp);
+        }
+    }
+
+    [Fact]
     public async Task Export_ForceWin1252_EmCharsetNone_GeraSetNamesWin1252()
     {
         if (!IntegracaoHabilitada())
@@ -248,6 +282,41 @@ public class ExportImportRoundTripTests
 
             int valorCalculado = await ObterValorCalculadoAsync(arquivoBanco, "UTF8", tabela, 1);
             Assert.Equal(14, valorCalculado);
+        }
+        finally
+        {
+            TentarExcluirDiretorio(pastaTemp);
+        }
+    }
+
+    [Fact]
+    public async Task Export_QueryFile_PreservaColunasEOrdemDaConsulta()
+    {
+        if (!IntegracaoHabilitada())
+            return;
+
+        string pastaTemp = CriarPastaTemp();
+        string arquivoBanco = Path.Combine(pastaTemp, "export_query_file_ordem.fdb");
+        string arquivoSql = Path.Combine(pastaTemp, "export_query_file_ordem.sql");
+        const string tabela = "TESTE_EXPORT_QUERY_FILE";
+
+        try
+        {
+            await CriarBancoAsync(arquivoBanco, "UTF8");
+            await CriarTabelaComCampoCalculadoEInserirLinhaAsync(arquivoBanco, "UTF8", tabela);
+
+            var opcoesExportacao = CriarOpcoesExportacao(arquivoBanco, "UTF8", arquivoSql, tabela);
+            opcoesExportacao.ConsultaSqlCompleta = $"SELECT ID, VALOR_X2, VALOR FROM {tabela} WHERE ID = 1";
+
+            await using (var destino = new DestinoArquivo(arquivoSql, 100, CharsetSql.ResolverEncodingLeituraSql("UTF8")))
+                await ExportadorTabelaFirebird.ExportarAsync(opcoesExportacao, destino);
+
+            string sqlGerado = await File.ReadAllTextAsync(arquivoSql, CharsetSql.ResolverEncodingLeituraSql("UTF8"));
+
+            Assert.Contains(
+                $"INSERT INTO {tabela} (ID, VALOR_X2, VALOR) VALUES (1, 14, 7);",
+                sqlGerado,
+                StringComparison.OrdinalIgnoreCase);
         }
         finally
         {
@@ -501,6 +570,35 @@ public class ExportImportRoundTripTests
 
         await using var cmd = new FbCommand($"CREATE TABLE {tabela} (ID INTEGER, NOME VARCHAR(100));", conexao);
         await cmd.ExecuteNonQueryAsync();
+    }
+
+    private static async Task CriarTabelaComPkEInserirLinhaAsync(
+        string arquivoBanco,
+        string charset,
+        string tabela,
+        int id,
+        string nome)
+    {
+        await using var conexao = new FbConnection(CriarConnectionString(arquivoBanco, charset));
+        await conexao.OpenAsync();
+
+        string sqlCreate = $"""
+                            CREATE TABLE {tabela} (
+                              ID INTEGER NOT NULL,
+                              NOME VARCHAR(100),
+                              CONSTRAINT PK_{tabela} PRIMARY KEY (ID)
+                            );
+                            """;
+
+        await using (var cmd = new FbCommand(sqlCreate, conexao))
+            await cmd.ExecuteNonQueryAsync();
+
+        await using (var cmd = new FbCommand($"INSERT INTO {tabela} (ID, NOME) VALUES (@ID, @NOME);", conexao))
+        {
+            cmd.Parameters.AddWithValue("ID", id);
+            cmd.Parameters.AddWithValue("NOME", nome);
+            await cmd.ExecuteNonQueryAsync();
+        }
     }
 
     private static async Task InserirMuitasLinhasAsync(string arquivoBanco, string charset, string tabela, int totalLinhas)

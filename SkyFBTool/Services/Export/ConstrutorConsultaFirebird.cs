@@ -29,6 +29,29 @@ public static class ConstrutorConsultaFirebird
         return sb.ToString();
     }
 
+    public static string MontarSelectComColunas(OpcoesExportacao opcoes, IReadOnlyList<string> colunas)
+    {
+        if (colunas is null || colunas.Count == 0)
+            throw new ArgumentException("Nenhuma coluna válida foi informada para exportação.");
+
+        if (!string.IsNullOrWhiteSpace(opcoes.ConsultaSqlCompleta))
+            return ValidarSelectCompleto(opcoes.ConsultaSqlCompleta);
+
+        var nomeTabela = ValidarNomeTabela(opcoes.Tabela);
+        var where = NormalizarEValidarWhere(opcoes.CondicaoWhere);
+
+        var sb = new StringBuilder();
+        sb.Append("SELECT ")
+            .Append(string.Join(", ", colunas.Select(QuoteIdentifier)))
+            .Append(" FROM ")
+            .Append(nomeTabela);
+
+        if (!string.IsNullOrWhiteSpace(where))
+            sb.Append(" WHERE ").Append(where);
+
+        return sb.ToString();
+    }
+
     private static string ValidarSelectCompleto(string sql)
     {
         string texto = sql.Trim();
@@ -94,5 +117,14 @@ public static class ConstrutorConsultaFirebird
                || valor.Contains("--", StringComparison.Ordinal)
                || valor.Contains("/*", StringComparison.Ordinal)
                || valor.Contains("*/", StringComparison.Ordinal);
+    }
+
+    private static string QuoteIdentifier(string nomeColuna)
+    {
+        string nome = (nomeColuna ?? string.Empty).Trim();
+        if (string.IsNullOrWhiteSpace(nome))
+            throw new ArgumentException("Nome de coluna inválido: vazio.");
+
+        return $"\"{nome.Replace("\"", "\"\"")}\"";
     }
 }

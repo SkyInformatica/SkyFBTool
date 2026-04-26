@@ -21,6 +21,30 @@ public class ConstrutorConsultaFirebirdTests
     }
 
     [Fact]
+    public void MontarSelectComColunas_ComDadosValidos_GeraSqlEsperado()
+    {
+        var opcoes = new OpcoesExportacao
+        {
+            Tabela = "RECIBOS",
+            CondicaoWhere = "NUMERORECIBO = 1"
+        };
+
+        var sql = ConstrutorConsultaFirebird.MontarSelectComColunas(opcoes, new[] { "NUMERORECIBO", "TALAORECIBO" });
+
+        Assert.Equal("SELECT \"NUMERORECIBO\", \"TALAORECIBO\" FROM RECIBOS WHERE NUMERORECIBO = 1", sql);
+    }
+
+    [Fact]
+    public void MontarSelectComColunas_SemColunas_DisparaErro()
+    {
+        var opcoes = new OpcoesExportacao { Tabela = "RECIBOS" };
+
+        var ex = Assert.Throws<ArgumentException>(() => ConstrutorConsultaFirebird.MontarSelectComColunas(opcoes, Array.Empty<string>()));
+
+        Assert.Contains("Nenhuma coluna válida", ex.Message);
+    }
+
+    [Fact]
     public void MontarSelect_ComQueryCompleta_UsaSelectDoArquivo()
     {
         var opcoes = new OpcoesExportacao

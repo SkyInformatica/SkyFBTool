@@ -15,6 +15,8 @@ public static class ConstrutorInsert
         FbDataReader leitor,
         string tabelaDestino,
         (int Ordinal, string Nome)[] colunas,
+        ModoInsertExportacao modoInsert,
+        IReadOnlyList<string>? colunasMatching,
         FormatoBlob formatoBlob,
         bool forcarWin1252,
         bool sanitizarTexto,
@@ -22,7 +24,11 @@ public static class ConstrutorInsert
     {
         var sb = new StringBuilder();
 
-        sb.Append("INSERT INTO ")
+        string comando = modoInsert == ModoInsertExportacao.Upsert
+            ? "UPDATE OR INSERT INTO "
+            : "INSERT INTO ";
+
+        sb.Append(comando)
           .Append(tabelaDestino)
           .Append(" (")
           .Append(string.Join(", ", colunas.Select(c => c.Nome)))
@@ -118,8 +124,34 @@ public static class ConstrutorInsert
             }
         }
 
-        sb.Append(");");
-        return sb.ToString();
+        sb.Append(')');
+
+        if (modoInsert == ModoInsertExportacao.Upsert)
+        {
+            if (colunasMatching is null || colunasMatching.Count == 0)
+                throw new InvalidOperationException("Modo upsert exige colunas MATCHING.");
+
+            sb.Append(" MATCHING (")
+              .Append(string.Join(", ", colunasMatching))
+              .Append(')');
+        }
+
+        sb.Append(';');
+        var insertSql = sb.ToString();
+
+        if (!ValidadorInsertSql.TentarContarColunasEValores(insertSql, out int totalColunas, out int totalValores, out string? erro))
+        {
+            throw new InvalidOperationException(
+                $"Falha de consistência ao gerar INSERT para '{tabelaDestino}'. {erro}");
+        }
+
+        if (totalColunas != totalValores)
+        {
+            throw new InvalidOperationException(
+                $"Falha de consistência ao gerar INSERT para '{tabelaDestino}': {totalColunas} colunas e {totalValores} valores.");
+        }
+
+        return insertSql;
     }
 
     private static string FormatarBlobBinario(byte[] dados, FormatoBlob formatoBlob)

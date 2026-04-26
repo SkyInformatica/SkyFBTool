@@ -2,8 +2,6 @@
 using SkyFBTool.Core;
 using SkyFBTool.Infra;
 
-using System.Data;
-
 namespace SkyFBTool.Services.Export;
 
 public static class ExportadorTabelaFirebird
@@ -31,7 +29,7 @@ public static class ExportadorTabelaFirebird
         {
             await destino.EscreverLinhaAsync($"SET NAMES WIN1252;");
         }
-        else
+        else if (!string.IsNullOrWhiteSpace(opcoes.Charset))
         {
             await destino.EscreverLinhaAsync($"SET NAMES {opcoes.Charset};");
         }
@@ -41,60 +39,91 @@ public static class ExportadorTabelaFirebird
         using var conexao = FabricaConexaoFirebird.CriarConexao(opcoes);
         await conexao.OpenAsync();
 
-        var sqlSelect = ConstrutorConsultaFirebird.MontarSelect(opcoes);
+        var colunasPk = opcoes.ModoInsert == ModoInsertExportacao.Upsert
+            ? await ObterColunasChavePrimariaAsync(conexao, tabelaOrigem)
+            : Array.Empty<string>();
 
-        await using var cmd = new FbCommand(sqlSelect, conexao)
+        if (opcoes.ModoInsert == ModoInsertExportacao.Upsert && colunasPk.Count == 0)
+        {
+            throw new InvalidOperationException(
+                $"Modo upsert exige chave primária. A tabela '{tabelaOrigem}' não possui PK.");
+        }
+
+        if (!string.IsNullOrWhiteSpace(opcoes.ConsultaSqlCompleta))
+        {
+            var sqlSelect = ConstrutorConsultaFirebird.MontarSelect(opcoes);
+
+            await using var cmd = new FbCommand(sqlSelect, conexao)
+            {
+                CommandTimeout = 0
+            };
+
+            await using var leitor = await cmd.ExecuteReaderAsync();
+            var colunas = MontarColunasDaConsulta(leitor);
+            var colunasMatching = ResolverColunasMatching(opcoes, tabelaOrigem, colunas, colunasPk);
+
+            await ExportarLinhasAsync(opcoes, destino, leitor, tabelaDestino, colunas, colunasMatching, cronometro);
+            return;
+        }
+
+        var colunasGravaveis = await ObterColunasGravaveisOrdenadasAsync(conexao, tabelaOrigem);
+        if (colunasGravaveis.Count == 0)
+            throw new InvalidOperationException("Nenhuma coluna gravável foi encontrada para exportação.");
+
+        var sqlSelectComColunas = ConstrutorConsultaFirebird.MontarSelectComColunas(opcoes, colunasGravaveis);
+
+        await using var cmdComColunas = new FbCommand(sqlSelectComColunas, conexao)
         {
             CommandTimeout = 0
         };
 
-        await using var leitor = await cmd.ExecuteReaderAsync();
+        await using var leitorComColunas = await cmdComColunas.ExecuteReaderAsync();
+        var mapeamentoColunas = MontarColunasPorNome(leitorComColunas, colunasGravaveis);
+        var colunasMatchingModoSimples = ResolverColunasMatching(opcoes, tabelaOrigem, mapeamentoColunas, colunasPk);
+        await ExportarLinhasAsync(
+            opcoes,
+            destino,
+            leitorComColunas,
+            tabelaDestino,
+            mapeamentoColunas,
+            colunasMatchingModoSimples,
+            cronometro);
+    }
 
-        var schema = leitor.GetSchemaTable()
-                     ?? throw new InvalidOperationException("Não foi possível obter o schema da tabela.");
-
-        var camposCalculados = await ObterCamposCalculadosAsync(conexao, tabelaOrigem);
-
-        var colunas = schema.Rows
-            .Cast<DataRow>()
-            .Select(r => new
-            {
-                Nome = ((string)r["ColumnName"]).Trim(),
-                Ordinal = Convert.ToInt32(r["ColumnOrdinal"]),
-                SomenteLeitura = r.Table.Columns.Contains("IsReadOnly") &&
-                                 r["IsReadOnly"] != DBNull.Value &&
-                                 Convert.ToBoolean(r["IsReadOnly"])
-            })
-            .Where(c => !camposCalculados.Contains(c.Nome) && !c.SomenteLeitura)
-            .OrderBy(c => c.Ordinal)
-            .Select(c => (c.Ordinal, c.Nome))
-            .ToArray();
-
-        if (colunas.Length == 0)
-            throw new InvalidOperationException("Nenhuma coluna gravável foi encontrada para exportação.");
-
-        if (camposCalculados.Count > 0)
-        {
-            Console.WriteLine(
-                $"Campos calculados ignorados na exportação: {string.Join(", ", camposCalculados.OrderBy(c => c))}");
-        }
-
+    private static async Task ExportarLinhasAsync(
+        OpcoesExportacao opcoes,
+        IDestinoArquivo destino,
+        FbDataReader leitor,
+        string tabelaDestino,
+        (int Ordinal, string Nome)[] colunas,
+        IReadOnlyList<string>? colunasMatching,
+        System.Diagnostics.Stopwatch cronometro)
+    {
         long totalLinhas = 0;
 
         while (await leitor.ReadAsync())
         {
             totalLinhas++;
-
-            string insert = ConstrutorInsert.MontarInsert(
-                leitor,
-                tabelaDestino,
-                colunas,
-                opcoes.FormatoBlob,
-                opcoes.ForcarWin1252,
-                opcoes.SanitizarTexto,
-                opcoes.EscaparQuebrasDeLinha
-            );
-
+            string insert;
+            try
+            {
+                insert = ConstrutorInsert.MontarInsert(
+                    leitor,
+                    tabelaDestino,
+                    colunas,
+                    opcoes.ModoInsert,
+                    colunasMatching,
+                    opcoes.FormatoBlob,
+                    opcoes.ForcarWin1252,
+                    opcoes.SanitizarTexto,
+                    opcoes.EscaparQuebrasDeLinha);
+            }
+            catch (Exception ex)
+            {
+                throw new InvalidOperationException(
+                    $"Falha ao gerar INSERT da tabela '{tabelaDestino}' na linha {totalLinhas}. {ex.Message}",
+                    ex);
+            }
             try
             {
                 await destino.EscreverLinhaAsync(insert);
@@ -135,30 +164,127 @@ public static class ExportadorTabelaFirebird
 
         Console.WriteLine($"Linhas exportadas: {totalLinhas:N0}");
         Console.WriteLine($"Tempo total:       {cronometro.Elapsed:hh\\:mm\\:ss\\.fff}");
-
     }
 
-    private static async Task<HashSet<string>> ObterCamposCalculadosAsync(FbConnection conexao, string tabela)
+    private static async Task<IReadOnlyList<string>> ObterColunasGravaveisOrdenadasAsync(FbConnection conexao, string tabela)
     {
         const string sql = """
                            SELECT TRIM(rf.RDB$FIELD_NAME) AS CAMPO
                            FROM RDB$RELATION_FIELDS rf
                            JOIN RDB$FIELDS f ON f.RDB$FIELD_NAME = rf.RDB$FIELD_SOURCE
                            WHERE UPPER(TRIM(rf.RDB$RELATION_NAME)) = @TABELA
-                             AND f.RDB$COMPUTED_SOURCE IS NOT NULL
+                             AND f.RDB$COMPUTED_SOURCE IS NULL
+                           ORDER BY rf.RDB$FIELD_POSITION
                            """;
 
-        var campos = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-
+        var colunas = new List<string>();
         await using var cmd = new FbCommand(sql, conexao);
         cmd.Parameters.AddWithValue("TABELA", tabela.Trim().ToUpperInvariant());
 
         await using var reader = await cmd.ExecuteReaderAsync();
         while (await reader.ReadAsync())
         {
-            campos.Add(reader.GetString(0).Trim());
+            colunas.Add(reader.GetString(0).Trim());
         }
 
-        return campos;
+        return colunas;
+    }
+
+    private static (int Ordinal, string Nome)[] MontarColunasPorNome(FbDataReader leitor, IReadOnlyList<string> nomesColunas)
+    {
+        var colunas = new List<(int Ordinal, string Nome)>(nomesColunas.Count);
+        foreach (var nomeColuna in nomesColunas)
+        {
+            int ordinal;
+            try
+            {
+                ordinal = leitor.GetOrdinal(nomeColuna);
+            }
+            catch (IndexOutOfRangeException ex)
+            {
+                throw new InvalidOperationException(
+                    $"A coluna '{nomeColuna}' não foi retornada pela consulta de exportação.", ex);
+            }
+
+            colunas.Add((ordinal, nomeColuna));
+        }
+
+        return colunas.ToArray();
+    }
+
+    private static (int Ordinal, string Nome)[] MontarColunasDaConsulta(FbDataReader leitor)
+    {
+        var nomes = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        var colunas = new List<(int Ordinal, string Nome)>(leitor.FieldCount);
+
+        for (int i = 0; i < leitor.FieldCount; i++)
+        {
+            var nome = leitor.GetName(i)?.Trim() ?? string.Empty;
+            if (string.IsNullOrWhiteSpace(nome))
+                throw new InvalidOperationException($"A coluna na posição {i} da consulta não possui nome.");
+
+            if (!nomes.Add(nome))
+            {
+                throw new InvalidOperationException(
+                    $"A consulta possui colunas duplicadas com o nome '{nome}'. Use aliases únicos no --query-file.");
+            }
+
+            colunas.Add((i, nome));
+        }
+
+        if (colunas.Count == 0)
+            throw new InvalidOperationException("A consulta não retornou colunas para exportação.");
+
+        return colunas.ToArray();
+    }
+
+    private static IReadOnlyList<string>? ResolverColunasMatching(
+        OpcoesExportacao opcoes,
+        string tabelaOrigem,
+        IReadOnlyList<(int Ordinal, string Nome)> colunasSelecionadas,
+        IReadOnlyList<string> colunasPk)
+    {
+        if (opcoes.ModoInsert != ModoInsertExportacao.Upsert)
+            return null;
+
+        var colunasDisponiveis = new HashSet<string>(
+            colunasSelecionadas.Select(c => c.Nome.Trim()),
+            StringComparer.OrdinalIgnoreCase);
+
+        var colunasFaltantes = colunasPk
+            .Where(pk => !colunasDisponiveis.Contains(pk))
+            .ToArray();
+
+        if (colunasFaltantes.Length > 0)
+        {
+            throw new InvalidOperationException(
+                $"Modo upsert exige todas as colunas da PK na consulta. Tabela '{tabelaOrigem}', faltando: {string.Join(", ", colunasFaltantes)}.");
+        }
+
+        return colunasPk.ToArray();
+    }
+
+    private static async Task<IReadOnlyList<string>> ObterColunasChavePrimariaAsync(FbConnection conexao, string tabela)
+    {
+        const string sql = """
+                           SELECT TRIM(seg.RDB$FIELD_NAME) AS CAMPO
+                           FROM RDB$RELATION_CONSTRAINTS rc
+                           JOIN RDB$INDEX_SEGMENTS seg ON seg.RDB$INDEX_NAME = rc.RDB$INDEX_NAME
+                           WHERE UPPER(TRIM(rc.RDB$RELATION_NAME)) = @TABELA
+                             AND UPPER(TRIM(rc.RDB$CONSTRAINT_TYPE)) = 'PRIMARY KEY'
+                           ORDER BY seg.RDB$FIELD_POSITION
+                           """;
+
+        var colunas = new List<string>();
+        await using var cmd = new FbCommand(sql, conexao);
+        cmd.Parameters.AddWithValue("TABELA", tabela.Trim().ToUpperInvariant());
+
+        await using var reader = await cmd.ExecuteReaderAsync();
+        while (await reader.ReadAsync())
+        {
+            colunas.Add(reader.GetString(0).Trim());
+        }
+
+        return colunas;
     }
 }
