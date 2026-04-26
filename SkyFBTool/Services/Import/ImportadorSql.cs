@@ -201,13 +201,15 @@ public static class ImportadorSql
                             if (resultadoExecucao.HouveErro)
                                 totalErros++;
                         }
-                        catch
+                        catch (Exception ex)
                         {
                             if (!opcoes.ContinuarEmCasoDeErro)
                             {
-                                Console.WriteLine();
-                                Console.WriteLine($"Erro no comando iniciado na linha {linhaInicioComando}.");
-                                throw;
+                                throw new FalhaImportacaoSqlException(
+                                    opcoes.ArquivoEntrada,
+                                    linhaInicioComando,
+                                    comandoCompleto,
+                                    ex);
                             }
                         }
 
@@ -258,13 +260,15 @@ public static class ImportadorSql
                     if (resultadoExecucao.HouveErro)
                         totalErros++;
                 }
-                catch
+                catch (Exception ex)
                 {
                     if (!opcoes.ContinuarEmCasoDeErro)
                     {
-                        Console.WriteLine();
-                        Console.WriteLine($"Erro no comando final iniciado na linha {linhaInicioComando}.");
-                        throw;
+                        throw new FalhaImportacaoSqlException(
+                            opcoes.ArquivoEntrada,
+                            linhaInicioComando,
+                            comandoFinal,
+                            ex);
                     }
                 }
             }

@@ -1,6 +1,7 @@
 using System.Text.RegularExpressions;
 using FirebirdSql.Data.FirebirdClient;
 using SkyFBTool.Services.Ddl;
+using SkyFBTool.Services.Import;
 
 namespace SkyFBTool.Cli.Common;
 
@@ -19,6 +20,19 @@ public static class CliErrorHandler
 
         switch (ex)
         {
+            case FalhaImportacaoSqlException falhaImportacao:
+                Console.Error.WriteLine(M(
+                    idioma,
+                    "Import failed while executing a SQL command.",
+                    "A importação falhou ao executar um comando SQL."));
+                Console.Error.WriteLine($"{M(idioma, "File", "Arquivo")}: {falhaImportacao.Arquivo}");
+                Console.Error.WriteLine($"{M(idioma, "Command start line", "Linha inicial do comando")}: {falhaImportacao.LinhaInicioComando}");
+                Console.Error.WriteLine($"{M(idioma, "Command preview", "Prévia do comando")}: {GerarPreviaComando(falhaImportacao.ComandoSql)}");
+                if (falhaImportacao.InnerException is FbException fbInterno)
+                    Console.Error.WriteLine($"{M(idioma, "Firebird error:", "Erro do Firebird:")} {fbInterno.Message}");
+                else if (falhaImportacao.InnerException is not null)
+                    Console.Error.WriteLine($"{M(idioma, "Error:", "Erro:")} {falhaImportacao.InnerException.Message}");
+                break;
             case ArgumentException arg:
                 Console.Error.WriteLine($"{M(idioma, "Invalid arguments:", "Argumentos inválidos:")} {arg.Message}");
                 break;
@@ -103,5 +117,19 @@ public static class CliErrorHandler
     private static string M(IdiomaSaida idioma, string english, string portuguese)
     {
         return idioma == IdiomaSaida.PortugueseBrazil ? portuguese : english;
+    }
+
+    private static string GerarPreviaComando(string comandoSql)
+    {
+        if (string.IsNullOrWhiteSpace(comandoSql))
+            return string.Empty;
+
+        string comandoCompactado = Regex.Replace(comandoSql, @"\s+", " ").Trim();
+        const int limite = 180;
+
+        if (comandoCompactado.Length <= limite)
+            return comandoCompactado;
+
+        return comandoCompactado.Substring(0, limite) + "...";
     }
 }
