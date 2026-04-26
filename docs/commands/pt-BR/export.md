@@ -1,43 +1,44 @@
 # Comando `export`
 
 ## O que faz
-Exporta dados de uma tabela Firebird para script SQL (`INSERT`s), com processamento em streaming.
+Exporta dados de tabela Firebird para script SQL em modo streaming.
 
 ## Como usar
 ```powershell
 SkyFBTool export --database CAMINHO.fdb --table TABELA [opções]
 ```
 
-## Opções principais
+## Todas as opções
 - `--database`: caminho do banco.
 - `--table`: tabela de origem.
+- `--target-table`: nome da tabela destino no SQL gerado.
 - `--output`: arquivo ou diretório de saída.
-- `--filter` / `--filter-file`: filtro simples.
-- `--query-file`: `SELECT` completo (não combinar com `--filter`).
-- `--insert-mode`: `Insert` (padrão) ou `Upsert` (`UPDATE OR INSERT ... MATCHING (PK)`).
-- `--commit-every`: gera `COMMIT` a cada N linhas.
-- `--split-size-mb`: divide arquivo em partes.
+- `--host`: host do servidor (padrão: `localhost`).
+- `--port`: porta do servidor (padrão: `3050`).
+- `--user`: usuário (padrão: `sysdba`).
+- `--password`: senha (padrão: `masterkey`).
+- `--charset`: charset da conexão/saída.
+- `--filter`: filtro simples (com prefixo `WHERE` opcional).
+- `--filter-file`: filtro simples em arquivo.
+- `--query-file`: `SELECT` completo em arquivo (modo avançado).
 - `--blob-format`: `Hex` ou `Base64`.
+- `--insert-mode`: `insert` (padrão) ou `upsert` (`UPDATE OR INSERT ... MATCHING`).
+- `--commit-every`: gera `COMMIT` a cada N linhas.
+- `--progress-every`: intervalo de progresso.
+- `--split-size-mb`: tamanho de divisão do arquivo em MB (`0` desativa divisão).
+- `--legacy-win1252`: força comportamento WIN1252 para bases legadas com `CHARSET NONE`.
+- `--sanitize-text`: sanitiza textos antes de escrever no SQL.
+- `--escape-newlines`: escapa quebras de linha em campos de texto.
+- `--continue-on-error`: continua exportando após erro de escrita de linha.
+
+## Regras
+- Não combinar `--query-file` com `--filter` ou `--filter-file`.
+- Em `--insert-mode upsert`, as colunas da PK precisam estar disponíveis para `MATCHING`.
 
 ## Exemplos
 ```powershell
 SkyFBTool export --database "C:\dados\erp.fdb" --table CLIENTES --output "C:\exports\"
 SkyFBTool export --database "C:\dados\erp.fdb" --table PEDIDOS --filter "STATUS = 'A'" --output "C:\exports\pedidos.sql"
 SkyFBTool export --database "C:\dados\erp.fdb" --table ITENS --query-file ".\sql\itens.sql" --split-size-mb 200 --output "C:\exports\"
-SkyFBTool export --database "C:\dados\erp.fdb" --table CLIENTES --insert-mode upsert --output "C:\exports\clientes_upsert.sql"
-```
-
-## Exemplo de saída
-```text
-Modo de consulta / Query mode: Simple/Simples (--table + --filter)
-Divisão de arquivo ativa: 200 MB por arquivo.
-Iniciando exportação...
-
-Resumo da exportação
-------------------------------------------------------------------------
-Arquivos gerados : 2
-[1] 199.8 MB  C:\exports\ITENS_20260425_101500_123.sql
-[2]  12.4 MB  C:\exports\ITENS_20260425_101500_123_part002.sql
-Arquivo final    : C:\exports\ITENS_20260425_101500_123_part002.sql
-------------------------------------------------------------------------
+SkyFBTool export --database "C:\dados\erp.fdb" --table CLIENTES --insert-mode upsert --escape-newlines --output "C:\exports\clientes_upsert.sql"
 ```

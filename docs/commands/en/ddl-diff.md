@@ -11,23 +11,15 @@ Compares two schemas and generates:
 SkyFBTool ddl-diff --source SOURCE --target TARGET --output PREFIX
 ```
 
-## Accepted inputs
-- `.schema.json`
-- `.sql` (if side-by-side `.schema.json` exists, it is preferred)
-- raw `.sql` (internal parser)
+## All options
+- `--source`: source input (`.schema.json` or `.sql`).
+- `--source-ddl`: alias for `--source`.
+- `--target`: target input (`.schema.json` or `.sql`).
+- `--target-ddl`: alias for `--target`.
+- `--output`: output prefix/file base/directory.
 
 ## Examples
 ```powershell
 SkyFBTool ddl-diff --source "C:\ddl\source.schema.json" --target "C:\ddl\target.schema.json" --output "C:\ddl\diff"
-SkyFBTool ddl-diff --source "C:\ddl\source.sql" --target "C:\ddl\target.sql" --output "C:\ddl\diff_from_sql"
-```
-
-## Output example
-```text
-Starting DDL comparison...
-
-Comparison finished.
-Diff SQL   : C:\ddl\diff.sql
-Diff JSON  : C:\ddl\diff.json
-Report     : C:\ddl\diff.html
+SkyFBTool ddl-diff --source-ddl "C:\ddl\source.sql" --target-ddl "C:\ddl\target.sql" --output "C:\ddl\diff_from_sql"
 ```

@@ -12,9 +12,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - `ddl-analyze` now supports direct database input (`--database` + connection options), extracting metadata internally before analysis.
 - `ddl-analyze` now supports batch mode via `--databases-batch` (`*`, `?`) to run analysis over multiple `.fdb` files.
+- New `import_batch` command to execute multiple SQL files using wildcard patterns (`--inputs-batch`, aliases: `--input-batch`, `--scripts-batch`).
+- Import now always generates a per-execution log file with unique name (`*_import_log_*.log`), including explicit success/error completion status.
 
 ### Changed
 - `ddl-analyze` help and command docs were updated to document file mode and direct DB mode.
+- Command documentation was completed to explicitly list all supported CLI parameters and aliases (EN/PT-BR).
+
+### Fixed
+- `import` default behavior for `--continue-on-error` was corrected: without the flag, import now stops on first SQL execution error.
 
 ## [0.2.0] - 2026-04-25
 

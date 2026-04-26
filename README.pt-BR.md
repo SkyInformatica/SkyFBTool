@@ -27,7 +27,7 @@ git push origin v0.1.0
 
 ## Recursos Principais
 
-- Comandos `export`, `import` e `exec-sql`
+- Comandos `export`, `import`, `import_batch` e `exec-sql`
 - Comandos `ddl-extract`, `ddl-diff` e `ddl-analyze` para extração, comparação e análise de risco de schema
 - Exportação/importação em streaming para arquivos SQL grandes
 - `--filter`, `--filter-file` e modo avançado `--query-file`
@@ -53,6 +53,7 @@ git push origin v0.1.0
 ```powershell
 SkyFBTool export [opções]
 SkyFBTool import [opções]
+SkyFBTool import_batch [opções]
 SkyFBTool exec-sql [opções]
 SkyFBTool ddl-extract [opções]
 SkyFBTool ddl-diff [opções]
@@ -161,6 +162,7 @@ $env:SKYFBTOOL_TEST_RUN_INTEGRATION="true"
 
 - `export`: [docs/commands/pt-BR/export.md](./docs/commands/pt-BR/export.md)
 - `import`: [docs/commands/pt-BR/import.md](./docs/commands/pt-BR/import.md)
+- `import_batch`: [docs/commands/pt-BR/import-batch.md](./docs/commands/pt-BR/import-batch.md)
 - `exec-sql`: [docs/commands/pt-BR/exec-sql.md](./docs/commands/pt-BR/exec-sql.md)
 - `ddl-extract`: [docs/commands/pt-BR/ddl-extract.md](./docs/commands/pt-BR/ddl-extract.md)
 - `ddl-diff`: [docs/commands/pt-BR/ddl-diff.md](./docs/commands/pt-BR/ddl-diff.md)

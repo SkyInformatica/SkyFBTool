@@ -1,33 +1,29 @@
 # `import` command
 
 ## What it does
-Executes a SQL file on Firebird using streaming, with progress reporting and optional continue-on-error.
+Executes SQL scripts on Firebird using streaming.
 
 ## How to use
 ```powershell
 SkyFBTool import --database PATH.fdb --input FILE.sql [options]
 ```
 
-## Main options
+## All options
 - `--database`: database path.
 - `--input`: input SQL file.
-- `--host`, `--port`, `--user`, `--password`: connection settings.
+- `--script`: explicit alias for `--input`.
+- `--host`: server host (default: `localhost`).
+- `--port`: server port (default: `3050`).
+- `--user`: user (default: `sysdba`).
+- `--password`: password (default: `masterkey`).
 - `--progress-every`: progress interval.
-- `--continue-on-error`: keeps running after command failures.
+- `--continue-on-error`: keep running after SQL execution errors.
+
+## Execution log
+- A log file is always generated per execution with a unique name (`*_import_log_*.log`), including success or error status.
 
 ## Examples
 ```powershell
 SkyFBTool import --database "C:\data\erp.fdb" --input "C:\exports\customers.sql"
-SkyFBTool import --database "C:\data\erp.fdb" --input "C:\exports\orders.sql" --progress-every 5000 --continue-on-error
-```
-
-## Output example
-```text
-Starting import...
-Lines: 50,000 | Commands: 49,990 | Speed: 2,100 cmd/s
-Import finished.
-Total lines processed : 52,143
-Total commands executed: 51,998
-Total execution time   : 00:00:24.318
-Average speed          : 2,137.42 commands/second
+SkyFBTool import --database "C:\data\erp.fdb" --script ".\sql\patch.sql" --continue-on-error
 ```
