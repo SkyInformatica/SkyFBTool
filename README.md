@@ -33,6 +33,7 @@ git push origin v0.1.0
 - `--filter`, `--filter-file`, and advanced `--query-file`
 - Target table remap with `--target-table`
 - `--blob-format` (`Hex` or `Base64`)
+- `--insert-mode` (`insert` or `upsert` with `UPDATE OR INSERT ... MATCHING`)
 - Configurable `--commit-every` and `--progress-every`
 - File splitting with `--split-size-mb` (default: 100 MB)
 - Legacy charset mode for `CHARSET NONE` via `--legacy-win1252`
@@ -79,6 +80,8 @@ SkyFBTool ddl-extract --database "C:\data\target.fdb" --output "C:\ddl\target"
 SkyFBTool ddl-diff --source "C:\ddl\source.schema.json" --target "C:\ddl\target.schema.json" --output "C:\ddl\diff"
 SkyFBTool ddl-analyze --input "C:\ddl\source.schema.json" --output "C:\ddl\analysis"
 SkyFBTool ddl-analyze --input "C:\ddl\source.schema.json" --ignore-table-prefix LOG_ --ignore-table-prefixes TMP_,IBE$
+SkyFBTool ddl-analyze --database "C:\data\source.fdb" --output "C:\ddl\analysis_from_db"
+SkyFBTool ddl-analyze --databases-batch "C:\data\*.fdb" --output "C:\ddl\analysis_batch\"
 SkyFBTool ddl-analyze --input "C:\ddl\source.schema.json" --severity-config ".\docs\examples\ddl-severity.sample.json"
 ```
 
@@ -87,6 +90,9 @@ Notes:
 - `ddl-diff` output files: `.sql`, `.json`, and `.html`.
 - `ddl-diff` report includes Top 10 critical target findings (with severity), suggested SQL block order, and a post-apply checklist.
 - `ddl-analyze` output files: `.json` and `.html`, with summary by code/table and HTML filters.
+- In `ddl-analyze --databases-batch`, an additional consolidated summary is generated: `batch_analysis_summary_*.json` and `.html`.
+- `ddl-analyze` supports two input modes: file (`--input/--source`) or direct DB connection (`--database` + connection options).
+- `ddl-analyze` supports batch DB mode with `--databases-batch` (`*` and `?`) to analyze multiple `.fdb` files.
 - `ddl-analyze` accepts `--ignore-table-prefix` (repeatable) and `--ignore-table-prefixes` (comma-separated list) to suppress technical-table noise.
 - `ddl-analyze` accepts `--severity-config` to override severity by finding code.
 - Use `docs/examples/ddl-severity.sample.json` as the reference schema (it covers all current finding codes).
@@ -108,6 +114,7 @@ Notes:
 - `--filter-file` read simple condition from file
 - `--query-file` read full `SELECT` from file (advanced mode)
 - `--blob-format` `Hex | Base64`
+- `--insert-mode` `insert | upsert` (`upsert` requires PK and writes `MATCHING`)
 - `--commit-every` add `COMMIT` every N rows
 - `--progress-every` progress interval
 - `--split-size-mb` output split size in MB (`0` disables)

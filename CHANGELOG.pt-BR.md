@@ -9,6 +9,13 @@ e o projeto adota [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Não Lançado]
 
+### Adicionado
+- `ddl-analyze` agora suporta entrada direta por banco (`--database` + opções de conexão), extraindo metadados internamente antes da análise.
+- `ddl-analyze` agora suporta modo em lote via `--databases-batch` (`*`, `?`) para executar análise sobre múltiplos arquivos `.fdb`.
+
+### Alterado
+- Ajuda e documentação de comando do `ddl-analyze` atualizadas para descrever o modo por arquivo e o modo por conexão direta.
+
 ## [0.2.0] - 2026-04-25
 
 ### Adicionado

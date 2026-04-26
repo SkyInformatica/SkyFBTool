@@ -14,6 +14,7 @@ SkyFBTool export --database CAMINHO.fdb --table TABELA [opções]
 - `--output`: arquivo ou diretório de saída.
 - `--filter` / `--filter-file`: filtro simples.
 - `--query-file`: `SELECT` completo (não combinar com `--filter`).
+- `--insert-mode`: `Insert` (padrão) ou `Upsert` (`UPDATE OR INSERT ... MATCHING (PK)`).
 - `--commit-every`: gera `COMMIT` a cada N linhas.
 - `--split-size-mb`: divide arquivo em partes.
 - `--blob-format`: `Hex` ou `Base64`.
@@ -23,6 +24,7 @@ SkyFBTool export --database CAMINHO.fdb --table TABELA [opções]
 SkyFBTool export --database "C:\dados\erp.fdb" --table CLIENTES --output "C:\exports\"
 SkyFBTool export --database "C:\dados\erp.fdb" --table PEDIDOS --filter "STATUS = 'A'" --output "C:\exports\pedidos.sql"
 SkyFBTool export --database "C:\dados\erp.fdb" --table ITENS --query-file ".\sql\itens.sql" --split-size-mb 200 --output "C:\exports\"
+SkyFBTool export --database "C:\dados\erp.fdb" --table CLIENTES --insert-mode upsert --output "C:\exports\clientes_upsert.sql"
 ```
 
 ## Exemplo de saída

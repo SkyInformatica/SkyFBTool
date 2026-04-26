@@ -9,6 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- `ddl-analyze` now supports direct database input (`--database` + connection options), extracting metadata internally before analysis.
+- `ddl-analyze` now supports batch mode via `--databases-batch` (`*`, `?`) to run analysis over multiple `.fdb` files.
+
+### Changed
+- `ddl-analyze` help and command docs were updated to document file mode and direct DB mode.
+
 ## [0.2.0] - 2026-04-25
 
 ### Added

@@ -33,6 +33,7 @@ git push origin v0.1.0
 - `--filter`, `--filter-file` e modo avançado `--query-file`
 - Remapeamento de tabela destino com `--target-table`
 - `--blob-format` (`Hex` ou `Base64`)
+- `--insert-mode` (`insert` ou `upsert` com `UPDATE OR INSERT ... MATCHING`)
 - `--commit-every` e `--progress-every` configuráveis
 - Divisão de arquivo com `--split-size-mb` (padrão: 100 MB)
 - Modo legado de charset para `CHARSET NONE` com `--legacy-win1252`
@@ -79,6 +80,8 @@ SkyFBTool ddl-extract --database "C:\dados\alvo.fdb" --output "C:\ddl\alvo"
 SkyFBTool ddl-diff --source "C:\ddl\origem.schema.json" --target "C:\ddl\alvo.schema.json" --output "C:\ddl\comparacao"
 SkyFBTool ddl-analyze --input "C:\ddl\origem.schema.json" --output "C:\ddl\analise"
 SkyFBTool ddl-analyze --input "C:\ddl\origem.schema.json" --ignore-table-prefix LOG_ --ignore-table-prefixes TMP_,IBE$
+SkyFBTool ddl-analyze --database "C:\dados\origem.fdb" --output "C:\ddl\analise_do_banco"
+SkyFBTool ddl-analyze --databases-batch "C:\dados\*.fdb" --output "C:\ddl\analises_lote\"
 SkyFBTool ddl-analyze --input "C:\ddl\origem.schema.json" --severity-config ".\docs\examples\ddl-severity.sample.json"
 ```
 
@@ -87,6 +90,9 @@ Observações:
 - Arquivos de saída do `ddl-diff`: `.sql`, `.json` e `.html`.
 - O relatório do `ddl-diff` inclui Top 10 achados críticos do alvo (com severidade), ordem sugerida de blocos SQL e checklist pós-aplicação.
 - Arquivos de saída do `ddl-analyze`: `.json` e `.html`, com resumo por tipo/tabela e filtros no HTML.
+- No `ddl-analyze --databases-batch`, também é gerado um resumo consolidado: `batch_analysis_summary_*.json` e `.html`.
+- `ddl-analyze` suporta dois modos de entrada: arquivo (`--input/--source`) ou conexão direta no banco (`--database` + opções de conexão).
+- `ddl-analyze` suporta modo em lote com `--databases-batch` (`*` e `?`) para analisar vários arquivos `.fdb`.
 - `ddl-analyze` aceita `--ignore-table-prefix` (repetível) e `--ignore-table-prefixes` (lista por vírgula) para reduzir ruído de tabelas técnicas.
 - `ddl-analyze` aceita `--severity-config` para sobrescrever severidade por código de achado.
 - Use `docs/examples/ddl-severity.sample.json` como referência de formato (cobre todos os códigos atuais).
@@ -108,6 +114,7 @@ Observações:
 - `--filter-file` lê condição simples de arquivo
 - `--query-file` lê `SELECT` completo de arquivo (modo avançado)
 - `--blob-format` `Hex | Base64`
+- `--insert-mode` `insert | upsert` (`upsert` exige PK e escreve `MATCHING`)
 - `--commit-every` adiciona `COMMIT` a cada N linhas
 - `--progress-every` intervalo de progresso
 - `--split-size-mb` tamanho da divisão em MB (`0` desativa)
