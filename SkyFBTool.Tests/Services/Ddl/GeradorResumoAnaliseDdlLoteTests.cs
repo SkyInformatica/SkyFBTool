@@ -92,4 +92,60 @@ public class GeradorResumoAnaliseDdlLoteTests
                 Directory.Delete(pastaTemp, recursive: true);
         }
     }
+
+    [Fact]
+    public async Task GerarAsync_EmPortugues_DeveExibirSeveridadeLocalizadaNoHtml()
+    {
+        string pastaTemp = Path.Combine(Path.GetTempPath(), "SkyFBTool.Tests.BatchSummary", Guid.NewGuid().ToString("N"));
+        Directory.CreateDirectory(pastaTemp);
+
+        try
+        {
+            string json = Path.Combine(pastaTemp, "db_analysis.json");
+            string html = Path.Combine(pastaTemp, "db_analysis.html");
+
+            await File.WriteAllTextAsync(json, JsonSerializer.Serialize(new ResultadoAnaliseDdl
+            {
+                Origem = @"C:\dados\db.fdb",
+                TotalTabelas = 2,
+                TotalAchados = 1,
+                TotalCriticos = 1,
+                TotalAltos = 0,
+                TotalMedios = 0,
+                TotalBaixos = 0,
+                ResumoPorCodigo =
+                [
+                    new ItemResumoAnaliseDdl { Chave = "TABELA_SEM_PK", Quantidade = 1, Percentual = 100m }
+                ]
+            }));
+
+            await File.WriteAllTextAsync(html, "<html></html>");
+
+            var entradas = new List<EntradaResumoAnaliseDdlLote>
+            {
+                new() { Banco = @"C:\dados\db.fdb", ArquivoJson = json, ArquivoHtml = html }
+            };
+
+            var (_, arquivoResumoHtml) =
+                await GeradorResumoAnaliseDdlLote.GerarAsync(
+                    entradas,
+                    pastaTemp + Path.DirectorySeparatorChar,
+                    IdiomaSaida.PortugueseBrazil);
+
+            string htmlResumo = await File.ReadAllTextAsync(arquivoResumoHtml);
+            Assert.True(
+                htmlResumo.Contains(">Crítico<", StringComparison.Ordinal) ||
+                htmlResumo.Contains(">Cr&#237;tico<", StringComparison.Ordinal));
+            Assert.Contains(">Alto<", htmlResumo);
+            Assert.True(
+                htmlResumo.Contains(">Médio<", StringComparison.Ordinal) ||
+                htmlResumo.Contains(">M&#233;dio<", StringComparison.Ordinal));
+            Assert.Contains(">Baixo<", htmlResumo);
+        }
+        finally
+        {
+            if (Directory.Exists(pastaTemp))
+                Directory.Delete(pastaTemp, recursive: true);
+        }
+    }
 }

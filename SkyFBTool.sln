@@ -30,6 +30,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "pt-BR", "pt-BR", "{96D61037
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "examples", "examples", "{4724E81D-E562-4D42-AFEB-744180606EB8}"
 	ProjectSection(SolutionItems) = preProject
+		docs\examples\ddl-analyze-batch-summary-example.png = docs\examples\ddl-analyze-batch-summary-example.png
+		docs\examples\ddl-analyze-report-example.png = docs\examples\ddl-analyze-report-example.png
 		docs\examples\ddl-severity.sample.json = docs\examples\ddl-severity.sample.json
 	EndProjectSection
 EndProject

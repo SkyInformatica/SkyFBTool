@@ -97,6 +97,8 @@ Observações:
 - `ddl-analyze` aceita `--ignore-table-prefix` (repetível) e `--ignore-table-prefixes` (lista por vírgula) para reduzir ruído de tabelas técnicas.
 - `ddl-analyze` aceita `--severity-config` para sobrescrever severidade por código de achado.
 - Use `docs/examples/ddl-severity.sample.json` como referência de formato (cobre todos os códigos atuais).
+- Exemplo de imagem do relatório `ddl-analyze`: `docs/examples/ddl-analyze-report-example.png`.
+- Exemplo de imagem do resumo em lote do `ddl-analyze`: `docs/examples/ddl-analyze-batch-summary-example.png`.
 - Valores aceitos de severidade: `critical`, `high`, `medium`, `low`.
 - O formato do JSON é somente em inglês: `overrides`, `code`, `severity`.
 

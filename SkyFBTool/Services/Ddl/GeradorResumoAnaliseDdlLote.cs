@@ -134,7 +134,12 @@ public static class GeradorResumoAnaliseDdlLote
         sb.AppendLine("<div class=\"table-wrap\">");
         sb.AppendLine("<table><thead><tr>");
         sb.AppendLine($"<th>{Html(M(idioma, "Database", "Banco"))}</th>");
-        sb.AppendLine("<th>Critical</th><th>High</th><th>Medium</th><th>Low</th><th>Total</th>");
+        sb.AppendLine(
+            $"<th>{Html(SeveridadeRotulo("critical", idioma))}</th>" +
+            $"<th>{Html(SeveridadeRotulo("high", idioma))}</th>" +
+            $"<th>{Html(SeveridadeRotulo("medium", idioma))}</th>" +
+            $"<th>{Html(SeveridadeRotulo("low", idioma))}</th>" +
+            $"<th>{Html(M(idioma, "Total", "Total"))}</th>");
         sb.AppendLine($"<th>{Html(M(idioma, "Highest severity", "Maior severidade"))}</th>");
         sb.AppendLine($"<th>{Html(M(idioma, "Top codes", "Top códigos"))}</th>");
         sb.AppendLine("</tr></thead><tbody>");
@@ -148,7 +153,7 @@ public static class GeradorResumoAnaliseDdlLote
             sb.AppendLine($"<td>{item.TotalMedios}</td>");
             sb.AppendLine($"<td>{item.TotalBaixos}</td>");
             sb.AppendLine($"<td>{item.TotalAchados}</td>");
-            sb.AppendLine($"<td class='{Html(item.MaiorSeveridade)}'>{Html(item.MaiorSeveridade)}</td>");
+            sb.AppendLine($"<td class='{Html(item.MaiorSeveridade)}'>{Html(SeveridadeRotulo(item.MaiorSeveridade, idioma))}</td>");
             sb.AppendLine($"<td>{Html(item.TopCodigos.Count == 0 ? "-" : string.Join(", ", item.TopCodigos))}</td>");
             sb.AppendLine("</tr>");
         }
@@ -216,6 +221,28 @@ public static class GeradorResumoAnaliseDdlLote
             "high" => 3,
             "medium" => 2,
             _ => 1
+        };
+    }
+
+    private static string SeveridadeRotulo(string severidade, IdiomaSaida idioma)
+    {
+        if (idioma != IdiomaSaida.PortugueseBrazil)
+            return severidade.ToLowerInvariant() switch
+            {
+                "critical" => "Critical",
+                "high" => "High",
+                "medium" => "Medium",
+                "low" => "Low",
+                _ => severidade
+            };
+
+        return severidade.ToLowerInvariant() switch
+        {
+            "critical" => "Crítico",
+            "high" => "Alto",
+            "medium" => "Médio",
+            "low" => "Baixo",
+            _ => severidade
         };
     }
 
