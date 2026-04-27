@@ -15,11 +15,14 @@ public static class CliErrorHandler
         Console.Error.WriteLine(M(idioma, "Execution failed.", "Execução falhou."));
         Console.ResetColor();
 
-        if (TentarExibirErroOdsIncompativel(ex, idioma))
+        if (ex is not FalhaExtracaoDdlException && TentarExibirErroOdsIncompativel(ex, idioma))
             return;
 
         switch (ex)
         {
+            case FalhaExtracaoDdlException falhaExtracao:
+                ExibirFalhaExtracaoDdl(falhaExtracao, idioma);
+                break;
             case FalhaImportacaoSqlException falhaImportacao:
                 Console.Error.WriteLine(M(
                     idioma,
@@ -28,8 +31,8 @@ public static class CliErrorHandler
                 Console.Error.WriteLine($"{M(idioma, "File", "Arquivo")}: {falhaImportacao.Arquivo}");
                 Console.Error.WriteLine($"{M(idioma, "Command start line", "Linha inicial do comando")}: {falhaImportacao.LinhaInicioComando}");
                 Console.Error.WriteLine($"{M(idioma, "Command preview", "Prévia do comando")}: {GerarPreviaComando(falhaImportacao.ComandoSql)}");
-                if (falhaImportacao.InnerException is FbException fbInterno)
-                    Console.Error.WriteLine($"{M(idioma, "Firebird error:", "Erro do Firebird:")} {fbInterno.Message}");
+                if (falhaImportacao.InnerException is FbException fbInternoImport)
+                    Console.Error.WriteLine($"{M(idioma, "Firebird error:", "Erro do Firebird:")} {fbInternoImport.Message}");
                 else if (falhaImportacao.InnerException is not null)
                     Console.Error.WriteLine($"{M(idioma, "Error:", "Erro:")} {falhaImportacao.InnerException.Message}");
                 break;
@@ -58,12 +61,42 @@ public static class CliErrorHandler
         }
     }
 
+    private static void ExibirFalhaExtracaoDdl(FalhaExtracaoDdlException falhaExtracao, IdiomaSaida idioma)
+    {
+        string mensagemCompleta = ObterMensagemCompleta(falhaExtracao);
+        string categoria = ClassificarFalhaExtracaoDdl(mensagemCompleta);
+
+        Console.Error.WriteLine(M(
+            idioma,
+            "DDL extraction failed.",
+            "A extração de DDL falhou."));
+        Console.Error.WriteLine($"{M(idioma, "Database", "Banco")}: {falhaExtracao.Database}");
+        Console.Error.WriteLine($"{M(idioma, "Failure category", "Categoria da falha")}: {categoria}");
+
+        if (categoria == "incompatible_ods")
+        {
+            ExibirErroOdsIncompativel(mensagemCompleta, idioma);
+            return;
+        }
+
+        if (falhaExtracao.InnerException is FbException fbInterno)
+            Console.Error.WriteLine($"{M(idioma, "Firebird error:", "Erro do Firebird:")} {fbInterno.Message}");
+        else if (falhaExtracao.InnerException is not null)
+            Console.Error.WriteLine($"{M(idioma, "Error:", "Erro:")} {falhaExtracao.InnerException.Message}");
+    }
+
     private static bool TentarExibirErroOdsIncompativel(Exception ex, IdiomaSaida idioma)
     {
         string mensagem = ObterMensagemCompleta(ex);
         if (!mensagem.Contains("unsupported on-disk structure", StringComparison.OrdinalIgnoreCase))
             return false;
 
+        ExibirErroOdsIncompativel(mensagem, idioma);
+        return true;
+    }
+
+    private static void ExibirErroOdsIncompativel(string mensagem, IdiomaSaida idioma)
+    {
         string arquivo = ExtrairArquivoOds(mensagem);
         string encontrado = ExtrairGrupo(mensagem, @"found\s+(?<v>\d+(\.\d+)?)", "v");
         string suportado = ExtrairGrupo(mensagem, @"support\s+(?<v>\d+(\.\d+)?)", "v");
@@ -84,8 +117,38 @@ public static class CliErrorHandler
             idioma,
             "Use a Firebird client/server compatible with this database version, or migrate the database to a supported version.",
             "Use um cliente/servidor Firebird compatível com essa versão de banco, ou migre o banco para uma versão suportada."));
+    }
 
-        return true;
+    private static string ClassificarFalhaExtracaoDdl(string mensagemCompleta)
+    {
+        string mensagem = mensagemCompleta.ToLowerInvariant();
+
+        if (mensagem.Contains("unsupported on-disk structure"))
+            return "incompatible_ods";
+
+        if (mensagem.Contains("no permission for read-write access to database")
+            || mensagem.Contains("access denied")
+            || mensagem.Contains("not owner of database"))
+            return "permission_denied";
+
+        if (mensagem.Contains("i/o error for file")
+            || mensagem.Contains("error while trying to open file")
+            || mensagem.Contains("operating system directive open failed")
+            || mensagem.Contains("cannot open file"))
+            return "database_file_access";
+
+        if (mensagem.Contains("token unknown")
+            || mensagem.Contains("dynamic sql error")
+            || mensagem.Contains("column unknown")
+            || mensagem.Contains("table unknown"))
+            return "metadata_query_failure";
+
+        if (mensagem.Contains("unable to complete network request")
+            || mensagem.Contains("connection rejected")
+            || mensagem.Contains("connection shutdown"))
+            return "connection_failure";
+
+        return "unknown";
     }
 
     private static string ObterMensagemCompleta(Exception ex)

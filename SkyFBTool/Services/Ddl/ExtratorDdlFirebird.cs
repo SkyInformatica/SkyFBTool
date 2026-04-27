@@ -12,16 +12,23 @@ public static class ExtratorDdlFirebird
         if (string.IsNullOrWhiteSpace(opcoes.Database))
             throw new ArgumentException("Banco nao informado (--database).");
 
-        await using var conexao = FabricaConexaoFirebird.CriarConexao(
-            opcoes.Host,
-            opcoes.Porta,
-            opcoes.Database,
-            opcoes.Usuario,
-            opcoes.Senha,
-            opcoes.Charset);
+        try
+        {
+            await using var conexao = FabricaConexaoFirebird.CriarConexao(
+                opcoes.Host,
+                opcoes.Porta,
+                opcoes.Database,
+                opcoes.Usuario,
+                opcoes.Senha,
+                opcoes.Charset);
 
-        await conexao.OpenAsync();
-        return await CarregarSnapshotAsync(conexao);
+            await conexao.OpenAsync();
+            return await CarregarSnapshotAsync(conexao);
+        }
+        catch (Exception ex) when (ex is not FalhaExtracaoDdlException)
+        {
+            throw new FalhaExtracaoDdlException(opcoes.Database, ex);
+        }
     }
 
     public static async Task<(string ArquivoSql, string ArquivoJson)> ExtrairAsync(OpcoesDdlExtracao opcoes)
