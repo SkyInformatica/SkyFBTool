@@ -176,6 +176,7 @@ $env:SKYFBTOOL_TEST_RUN_INTEGRATION="true"
 - `ddl-extract`: [docs/commands/en/ddl-extract.md](./docs/commands/en/ddl-extract.md)
 - `ddl-diff`: [docs/commands/en/ddl-diff.md](./docs/commands/en/ddl-diff.md)
 - `ddl-analyze`: [docs/commands/en/ddl-analyze.md](./docs/commands/en/ddl-analyze.md)
+- `ddl-analyze` severity/validation criteria: [docs/commands/en/ddl-analyze-severity-and-validations.md](./docs/commands/en/ddl-analyze-severity-and-validations.md)
 
 ## Dependencies
 

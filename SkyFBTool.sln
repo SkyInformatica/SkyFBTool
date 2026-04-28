@@ -11,6 +11,7 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "en", "en", "{B0E06EA5-EC6E-4A22-9A74-0B5DB845F84F}"
 	ProjectSection(SolutionItems) = preProject
 		docs\commands\en\ddl-analyze.md = docs\commands\en\ddl-analyze.md
+		docs\commands\en\ddl-analyze-severity-and-validations.md = docs\commands\en\ddl-analyze-severity-and-validations.md
 		docs\commands\en\ddl-diff.md = docs\commands\en\ddl-diff.md
 		docs\commands\en\ddl-extract.md = docs\commands\en\ddl-extract.md
 		docs\commands\en\exec-sql.md = docs\commands\en\exec-sql.md
@@ -21,6 +22,7 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "pt-BR", "pt-BR", "{96D61037-7515-4A7A-BB63-5DBD7156E267}"
 	ProjectSection(SolutionItems) = preProject
 		docs\commands\pt-BR\ddl-analyze.md = docs\commands\pt-BR\ddl-analyze.md
+		docs\commands\pt-BR\ddl-analyze-severity-and-validations.md = docs\commands\pt-BR\ddl-analyze-severity-and-validations.md
 		docs\commands\pt-BR\ddl-diff.md = docs\commands\pt-BR\ddl-diff.md
 		docs\commands\pt-BR\ddl-extract.md = docs\commands\pt-BR\ddl-extract.md
 		docs\commands\pt-BR\exec-sql.md = docs\commands\pt-BR\exec-sql.md

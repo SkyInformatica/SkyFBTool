@@ -56,3 +56,6 @@ SkyFBTool ddl-analyze --input "C:\ddl\source.schema.json" --description "analysi
 - Basic sample output: `docs/examples/ddl-analyze-sample.html` and `docs/examples/ddl-analyze-sample.json`
 - Rich sample input: `docs/examples/ddl-analyze-sample-rich-input.sql`
 - Rich sample output: `docs/examples/ddl-analyze-sample-rich.html` and `docs/examples/ddl-analyze-sample-rich.json`
+
+## Classification and validation criteria
+- [`ddl-analyze` severity and validation matrix](./ddl-analyze-severity-and-validations.md)
