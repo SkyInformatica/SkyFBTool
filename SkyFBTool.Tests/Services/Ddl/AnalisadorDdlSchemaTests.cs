@@ -169,6 +169,55 @@ public class AnalisadorDdlSchemaTests
     }
 
     [Fact]
+    public void Analisar_QuandoIndicePrefixoRedundante_DeveRegistrarAchadoMedium()
+    {
+        var snapshot = new SnapshotSchema
+        {
+            Tabelas =
+            [
+                new TabelaSchema
+                {
+                    Nome = "MOVIMENTO",
+                    Colunas =
+                    [
+                        new ColunaSchema { Nome = "ID", TipoSql = "INTEGER", AceitaNulo = false },
+                        new ColunaSchema { Nome = "DATA", TipoSql = "DATE", AceitaNulo = false },
+                        new ColunaSchema { Nome = "TIPO", TipoSql = "VARCHAR(10)", AceitaNulo = false }
+                    ],
+                    ChavePrimaria = new ChavePrimariaSchema
+                    {
+                        Nome = "PK_MOVIMENTO",
+                        Colunas = ["ID"]
+                    },
+                    Indices =
+                    [
+                        new IndiceSchema
+                        {
+                            Nome = "IDX_MOV_DATA",
+                            Unico = false,
+                            Descendente = false,
+                            Colunas = ["DATA"]
+                        },
+                        new IndiceSchema
+                        {
+                            Nome = "IDX_MOV_DATA_TIPO",
+                            Unico = false,
+                            Descendente = false,
+                            Colunas = ["DATA", "TIPO"]
+                        }
+                    ]
+                }
+            ]
+        };
+
+        var resultado = AnalisadorDdlSchema.Analisar(snapshot);
+
+        Assert.Contains(resultado.Achados, a =>
+            a.Codigo == "INDICE_REDUNDANTE_PREFIXO" &&
+            a.Severidade == "medium");
+    }
+
+    [Fact]
     public void Analisar_ComPrefixoIgnorado_DeveExcluirTabelaDoResultado()
     {
         var snapshot = new SnapshotSchema

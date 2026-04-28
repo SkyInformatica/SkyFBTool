@@ -16,6 +16,7 @@ e o projeto adota [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - `import` agora suporta modo em lote para executar múltiplos arquivos SQL por padrão wildcard (`--inputs-batch`, aliases: `--input-batch`, `--scripts-batch`).
 - Importação agora sempre gera arquivo de log por execução com nome único (`*_import_log_*.log`), incluindo status explícito de conclusão com/sem erros.
 - `ddl-extract` agora classifica falhas de extração por categoria raiz (`incompatible_ods`, `permission_denied`, `database_file_access`, `metadata_query_failure`, `connection_failure`, `unknown`).
+- `ddl-analyze` agora detecta índice redundante por prefixo (`REDUNDANT_PREFIX_INDEX`) como achado de otimização.
 
 ### Alterado
 - Ajuda e documentação de comando do `ddl-analyze` atualizadas para descrever o modo por arquivo e o modo por conexão direta.

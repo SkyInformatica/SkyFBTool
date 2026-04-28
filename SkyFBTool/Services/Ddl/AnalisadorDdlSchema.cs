@@ -124,6 +124,7 @@ public static class AnalisadorDdlSchema
             ValidarFks(tabela, mapaTabelas, tabelasIgnoradas, resultado, idioma, severidadesOverride);
             ValidarIndices(tabela, resultado, idioma, severidadesOverride);
             ValidarDuplicidadeIndices(tabela, resultado, idioma, severidadesOverride);
+            ValidarRedundanciaIndicesPrefixo(tabela, resultado, idioma, severidadesOverride);
             ValidarDuplicidadeFks(tabela, resultado, idioma, severidadesOverride);
         }
 
@@ -499,6 +500,59 @@ public static class AnalisadorDdlSchema
         }
     }
 
+    private static void ValidarRedundanciaIndicesPrefixo(
+        TabelaSchema tabela,
+        ResultadoAnaliseDdl resultado,
+        IdiomaSaida idioma,
+        IReadOnlyDictionary<string, string>? severidadesOverride)
+    {
+        var indices = tabela.Indices
+            .Where(i => i.Colunas.Count > 0)
+            .OrderBy(i => i.Nome, StringComparer.OrdinalIgnoreCase)
+            .ToList();
+
+        for (int i = 0; i < indices.Count; i++)
+        {
+            var indiceCurto = indices[i];
+
+            for (int j = 0; j < indices.Count; j++)
+            {
+                if (i == j)
+                    continue;
+
+                var indiceLongo = indices[j];
+                if (indiceCurto.Unico || indiceLongo.Unico)
+                    continue;
+
+                if (indiceCurto.Descendente != indiceLongo.Descendente)
+                    continue;
+
+                if (!EhPrefixo(indiceCurto.Colunas, indiceLongo.Colunas))
+                    continue;
+
+                if (indiceCurto.Colunas.Count == indiceLongo.Colunas.Count)
+                    continue;
+
+                AdicionarAchado(
+                    resultado,
+                    "medium",
+                    "INDICE_REDUNDANTE_PREFIXO",
+                    tabela.Nome,
+                    M(
+                        idioma,
+                        $"Index {indiceCurto.Nome} may be redundant because {indiceLongo.Nome} already covers its prefix.",
+                        $"Índice {indiceCurto.Nome} pode ser redundante porque {indiceLongo.Nome} já cobre seu prefixo."),
+                    M(
+                        idioma,
+                        "Validate query plans and keep only the index with better selectivity/coverage.",
+                        "Valide planos de execução e mantenha apenas o índice com melhor seletividade/cobertura."),
+                    severidadesOverride);
+
+                break;
+            }
+        }
+    }
+
     private static void ValidarDuplicidadeFks(
         TabelaSchema tabela,
         ResultadoAnaliseDdl resultado,
@@ -571,6 +625,20 @@ public static class AnalisadorDdlSchema
         for (int i = 0; i < colunasFk.Count; i++)
         {
             if (!string.Equals(colunasIndice[i], colunasFk[i], StringComparison.OrdinalIgnoreCase))
+                return false;
+        }
+
+        return true;
+    }
+
+    private static bool EhPrefixo(IReadOnlyList<string> colunasCurtas, IReadOnlyList<string> colunasLongas)
+    {
+        if (colunasCurtas.Count == 0 || colunasLongas.Count < colunasCurtas.Count)
+            return false;
+
+        for (int i = 0; i < colunasCurtas.Count; i++)
+        {
+            if (!string.Equals(colunasCurtas[i], colunasLongas[i], StringComparison.OrdinalIgnoreCase))
                 return false;
         }
 

@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `import` now supports batch input mode to execute multiple SQL files using wildcard patterns (`--inputs-batch`, aliases: `--input-batch`, `--scripts-batch`).
 - Import now always generates a per-execution log file with unique name (`*_import_log_*.log`), including explicit success/error completion status.
 - `ddl-extract` now classifies extraction failures by root category (`incompatible_ods`, `permission_denied`, `database_file_access`, `metadata_query_failure`, `connection_failure`, `unknown`).
+- `ddl-analyze` now detects redundant prefix indexes (`REDUNDANT_PREFIX_INDEX`) as optimization findings.
 
 ### Changed
 - `ddl-analyze` help and command docs were updated to document file mode and direct DB mode.

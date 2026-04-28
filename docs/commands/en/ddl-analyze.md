@@ -8,6 +8,8 @@ Analyzes schema structural risk and generates:
 
 When used with `--database`, it also runs operational checks from Firebird monitoring tables (`MON$`) and adds findings to the same report.
 
+It also detects index redundancy by prefix (for example, `(A)` potentially redundant when `(A,B)` already exists with same direction).
+
 ## How to use
 ```powershell
 SkyFBTool ddl-analyze --input INPUT --output PREFIX [options]

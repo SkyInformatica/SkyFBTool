@@ -95,6 +95,7 @@ Notes:
 - In `ddl-analyze --databases-batch`, an additional consolidated summary is generated: `batch_analysis_summary_*.json` and `.html`.
 - `ddl-analyze` supports two input modes: file (`--input/--source`) or direct DB connection (`--database` + connection options).
 - In `ddl-analyze --database`, the report also includes operational findings based on Firebird monitoring tables (`MON$`), such as transaction retention pressure signals.
+- `ddl-analyze` detects redundant prefix indexes (for example, `(A)` vs `(A,B)`) as optimization findings.
 - `ddl-analyze` supports batch DB mode with `--databases-batch` (`*` and `?`) to analyze multiple `.fdb` files.
 - `ddl-analyze` accepts `--ignore-table-prefix` (repeatable) and `--ignore-table-prefixes` (comma-separated list) to suppress technical-table noise.
 - `ddl-analyze` accepts `--severity-config` to override severity by finding code.

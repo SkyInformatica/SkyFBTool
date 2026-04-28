@@ -16,6 +16,7 @@
     { "code": "FK_MISSING_REFERENCED_COLUMN", "severity": "critical" },
     { "code": "INDEX_WITHOUT_COLUMNS", "severity": "high" },
     { "code": "INDEX_MISSING_COLUMN", "severity": "high" },
+    { "code": "REDUNDANT_PREFIX_INDEX", "severity": "medium" },
     { "code": "DUPLICATED_FK", "severity": "low" },
 
     { "code": "OPERATIONAL_OIT_OAT_GAP_CRITICAL", "severity": "critical" },

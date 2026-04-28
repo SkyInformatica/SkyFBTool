@@ -8,6 +8,8 @@ Analisa risco estrutural do schema e gera:
 
 Quando usado com `--database`, também executa checks operacionais nas tabelas de monitoramento do Firebird (`MON$`) e adiciona esses achados ao mesmo relatório.
 
+Também detecta redundância de índice por prefixo (por exemplo, `(A)` potencialmente redundante quando `(A,B)` já existe na mesma direção).
+
 ## Como usar
 ```powershell
 SkyFBTool ddl-analyze --input ENTRADA --output PREFIXO [opções]
