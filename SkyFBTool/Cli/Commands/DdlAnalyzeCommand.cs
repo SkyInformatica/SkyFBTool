@@ -56,6 +56,9 @@ public static class DdlAnalyzeCommand
                 case "severity-config":
                     op.ArquivoConfiguracaoSeveridade = CliArgumentParser.LerValorOpcao(args, ref i, chave);
                     break;
+                case "description":
+                    op.Descricao = CliArgumentParser.LerValorOpcao(args, ref i, chave);
+                    break;
                 default:
                     throw new ArgumentException(M(
                         idioma,
@@ -127,6 +130,7 @@ public static class DdlAnalyzeCommand
             Charset = baseOp.Charset,
             Saida = ResolverSaidaPorBanco(baseOp.Saida, banco),
             ArquivoConfiguracaoSeveridade = baseOp.ArquivoConfiguracaoSeveridade,
+            Descricao = baseOp.Descricao,
             PrefixosTabelaIgnorados = [.. baseOp.PrefixosTabelaIgnorados]
         };
     }

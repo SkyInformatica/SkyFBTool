@@ -31,6 +31,7 @@ SkyFBTool ddl-analyze --databases-batch "C:\data\*.fdb" --output DIRECTORY [opti
 - `--ignore-table-prefix`: ignore table prefix (repeatable).
 - `--ignore-table-prefixes`: comma-separated ignore prefixes.
 - `--severity-config`: severity override JSON.
+- `--description`: free text included in JSON/HTML report metadata.
 
 ## Rules
 - Use only one input mode: file (`--input/--source`) or single DB (`--database`) or batch (`--databases-batch`).
@@ -43,6 +44,7 @@ SkyFBTool ddl-analyze --input "C:\ddl\source.schema.json" --output "C:\ddl\analy
 SkyFBTool ddl-analyze --database "C:\data\source.fdb" --output "C:\ddl\analysis_from_db"
 SkyFBTool ddl-analyze --databases-batch "C:\data\*.fdb" --output "C:\ddl\analysis_batch\"
 SkyFBTool ddl-analyze --input "C:\ddl\source.sql" --ignore-table-prefix LOG_ --ignore-table-prefixes TMP_,IBE$ --severity-config ".\docs\examples\ddl-severity.sample.json" --output "C:\ddl\analysis_custom"
+SkyFBTool ddl-analyze --input "C:\ddl\source.schema.json" --description "analysis performed on customer Ubirici database" --output "C:\ddl\analysis_with_context"
 ```
 
 ## Report examples

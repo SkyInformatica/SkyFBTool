@@ -3,6 +3,7 @@ namespace SkyFBTool.Services.Ddl;
 public class ResultadoAnaliseDdl
 {
     public string Origem { get; set; } = string.Empty;
+    public string Description { get; set; } = string.Empty;
     public DateTime GeradoEmUtc { get; set; } = DateTime.UtcNow;
     public int TotalTabelas { get; set; }
     public int TotalAchados { get; set; }

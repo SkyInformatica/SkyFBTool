@@ -31,6 +31,7 @@ SkyFBTool ddl-analyze --databases-batch "C:\dados\*.fdb" --output DIRETÓRIO [op
 - `--ignore-table-prefix`: ignora prefixo de tabela (repetível).
 - `--ignore-table-prefixes`: lista de prefixos ignorados separados por vírgula.
 - `--severity-config`: JSON de override de severidade.
+- `--description`: texto livre incluído nos metadados do relatório JSON/HTML.
 
 ## Regras
 - Use apenas um modo de entrada: arquivo (`--input/--source`) ou banco único (`--database`) ou lote (`--databases-batch`).
@@ -43,6 +44,7 @@ SkyFBTool ddl-analyze --input "C:\ddl\origem.schema.json" --output "C:\ddl\anali
 SkyFBTool ddl-analyze --database "C:\dados\origem.fdb" --output "C:\ddl\analise_do_banco"
 SkyFBTool ddl-analyze --databases-batch "C:\dados\*.fdb" --output "C:\ddl\analises_lote\"
 SkyFBTool ddl-analyze --input "C:\ddl\origem.sql" --ignore-table-prefix LOG_ --ignore-table-prefixes TMP_,IBE$ --severity-config ".\docs\examples\ddl-severity.sample.json" --output "C:\ddl\analise_custom"
+SkyFBTool ddl-analyze --input "C:\ddl\origem.schema.json" --description "análise feita no banco de dados do cliente de Ubirici" --output "C:\ddl\analise_com_contexto"
 ```
 
 ## Exemplos de relatório

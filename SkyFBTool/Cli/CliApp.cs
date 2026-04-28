@@ -195,6 +195,7 @@ OPCOES:
   --ignore-table-prefix TXT  Ignora tabelas por prefixo (pode repetir)
   --ignore-table-prefixes L  Ignora prefixos separados por virgula
   --severity-config ARQ.JSON Sobrescreve severidade por codigo de achado
+  --description TEXTO        Description text included in JSON/HTML report
 
 SAIDA:
   <prefixo>.json             Achados estruturados
@@ -207,6 +208,7 @@ EXEMPLO:
   SkyFBTool ddl-analyze --database C:\dados\origem.fdb --output C:\ddl\analise_db
   SkyFBTool ddl-analyze --databases-batch C:\dados\*.fdb --output C:\ddl\analises\
   SkyFBTool ddl-analyze --input C:\ddl\origem.schema.json --severity-config .\docs\examples\ddl-severity.sample.json
+  SkyFBTool ddl-analyze --input C:\ddl\origem.schema.json --description ""Analysis performed on customer Ubirici database""
 
 ");
     }

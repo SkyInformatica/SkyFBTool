@@ -84,6 +84,7 @@ SkyFBTool ddl-analyze --input "C:\ddl\origem.schema.json" --ignore-table-prefix 
 SkyFBTool ddl-analyze --database "C:\dados\origem.fdb" --output "C:\ddl\analise_do_banco"
 SkyFBTool ddl-analyze --databases-batch "C:\dados\*.fdb" --output "C:\ddl\analises_lote\"
 SkyFBTool ddl-analyze --input "C:\ddl\origem.schema.json" --severity-config ".\docs\examples\ddl-severity.sample.json"
+SkyFBTool ddl-analyze --input "C:\ddl\origem.schema.json" --description "análise feita no banco de dados do cliente de Ubirici" --output "C:\ddl\analise_com_contexto"
 ```
 
 Observações:
@@ -99,6 +100,7 @@ Observações:
 - `ddl-analyze` suporta modo em lote com `--databases-batch` (`*` e `?`) para analisar vários arquivos `.fdb`.
 - `ddl-analyze` aceita `--ignore-table-prefix` (repetível) e `--ignore-table-prefixes` (lista por vírgula) para reduzir ruído de tabelas técnicas.
 - `ddl-analyze` aceita `--severity-config` para sobrescrever severidade por código de achado.
+- `ddl-analyze` aceita `--description` para incluir texto de contexto nos metadados do JSON e do HTML.
 - Use `docs/examples/ddl-severity.sample.json` como referência de formato (cobre todos os códigos atuais).
 - Saídas reproduzíveis de exemplo do `ddl-analyze`: `docs/examples/ddl-analyze-sample*.{sql,json,html}`.
 - Valores aceitos de severidade: `critical`, `high`, `medium`, `low`.

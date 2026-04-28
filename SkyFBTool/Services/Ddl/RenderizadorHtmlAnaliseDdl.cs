@@ -32,6 +32,9 @@ public static class RenderizadorHtmlAnaliseDdl
             OrigemLabel = M(idioma, "Source", "Origem"),
             OrigemExibicao = H(origemExibicao),
             OrigemTooltip = H(resultado.Origem),
+            DescriptionLabel = M(idioma, "Description", "Descrição"),
+            Description = H(resultado.Description),
+            HasDescription = !string.IsNullOrWhiteSpace(resultado.Description),
             GeradoEmLabel = M(idioma, "Generated at (UTC)", "Gerado em (UTC)"),
             GeradoEm = resultado.GeradoEmUtc.ToString("yyyy-MM-dd HH:mm:ss"),
             TotalLabel = M(idioma, "Total findings", "Total de achados"),
@@ -220,6 +223,9 @@ public static class RenderizadorHtmlAnaliseDdl
         public string OrigemLabel { get; init; } = string.Empty;
         public string OrigemExibicao { get; init; } = string.Empty;
         public string OrigemTooltip { get; init; } = string.Empty;
+        public string DescriptionLabel { get; init; } = string.Empty;
+        public string Description { get; init; } = string.Empty;
+        public bool HasDescription { get; init; }
         public string GeradoEmLabel { get; init; } = string.Empty;
         public string GeradoEm { get; init; } = string.Empty;
         public string TotalLabel { get; init; } = string.Empty;

@@ -78,6 +78,8 @@ public static class AnalisadorDdlSchema
             opcoes.PrefixosTabelaIgnorados,
             severidadesOverride);
 
+        resultado.Description = opcoes.Descricao?.Trim() ?? string.Empty;
+
         if (possuiEntradaBanco)
             await EnriquecerComAchadosOperacionaisAsync(resultado, opcoes, idioma, severidadesOverride);
 
