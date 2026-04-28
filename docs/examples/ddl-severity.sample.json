@@ -16,6 +16,15 @@
     { "code": "FK_MISSING_REFERENCED_COLUMN", "severity": "critical" },
     { "code": "INDEX_WITHOUT_COLUMNS", "severity": "high" },
     { "code": "INDEX_MISSING_COLUMN", "severity": "high" },
-    { "code": "DUPLICATED_FK", "severity": "low" }
+    { "code": "DUPLICATED_FK", "severity": "low" },
+
+    { "code": "OPERATIONAL_OIT_OAT_GAP_CRITICAL", "severity": "critical" },
+    { "code": "OPERATIONAL_OIT_OAT_GAP_HIGH", "severity": "high" },
+    { "code": "OPERATIONAL_OIT_OAT_GAP_MEDIUM", "severity": "medium" },
+    { "code": "OPERATIONAL_OAT_OST_GAP_HIGH", "severity": "high" },
+    { "code": "OPERATIONAL_OAT_OST_GAP_MEDIUM", "severity": "medium" },
+    { "code": "OPERATIONAL_LONG_ACTIVE_TRANSACTION_CRITICAL", "severity": "critical" },
+    { "code": "OPERATIONAL_LONG_ACTIVE_TRANSACTION_HIGH", "severity": "high" },
+    { "code": "OPERATIONAL_LONG_ACTIVE_TRANSACTION_MEDIUM", "severity": "medium" }
   ]
 }

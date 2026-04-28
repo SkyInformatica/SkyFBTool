@@ -6,6 +6,8 @@ Analisa risco estrutural do schema e gera:
 - relatório HTML (`.html`)
 - resumo consolidado em lote (`batch_analysis_summary_*.json/.html`) no modo batch
 
+Quando usado com `--database`, também executa checks operacionais nas tabelas de monitoramento do Firebird (`MON$`) e adiciona esses achados ao mesmo relatório.
+
 ## Como usar
 ```powershell
 SkyFBTool ddl-analyze --input ENTRADA --output PREFIXO [opções]
@@ -31,6 +33,7 @@ SkyFBTool ddl-analyze --databases-batch "C:\dados\*.fdb" --output DIRETÓRIO [op
 ## Regras
 - Use apenas um modo de entrada: arquivo (`--input/--source`) ou banco único (`--database`) ou lote (`--databases-batch`).
 - `--database` não aceita wildcard; wildcard é via `--databases-batch`.
+- Checks operacionais estão disponíveis apenas no modo por banco (`--database`), não no modo por arquivo (`--input/--source`).
 
 ## Exemplos
 ```powershell

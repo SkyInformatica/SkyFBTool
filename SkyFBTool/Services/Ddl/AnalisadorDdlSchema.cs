@@ -78,6 +78,9 @@ public static class AnalisadorDdlSchema
             opcoes.PrefixosTabelaIgnorados,
             severidadesOverride);
 
+        if (possuiEntradaBanco)
+            await EnriquecerComAchadosOperacionaisAsync(resultado, opcoes, idioma, severidadesOverride);
+
         var (arquivoJsonSaida, arquivoHtmlSaida) = ResolverArquivosSaida(opcoes);
         Directory.CreateDirectory(Path.GetDirectoryName(arquivoJsonSaida)!);
 
@@ -593,6 +596,50 @@ public static class AnalisadorDdlSchema
             Descricao = descricao,
             Recomendacao = recomendacao
         });
+    }
+
+    private static async Task EnriquecerComAchadosOperacionaisAsync(
+        ResultadoAnaliseDdl resultado,
+        OpcoesDdlAnalise opcoes,
+        IdiomaSaida idioma,
+        IReadOnlyDictionary<string, string>? severidadesOverride)
+    {
+        List<AchadoOperacionalDdl> achadosOperacionais;
+
+        try
+        {
+            achadosOperacionais = await AnalisadorOperacionalFirebird.ColetarAchadosAsync(opcoes, idioma);
+        }
+        catch
+        {
+            return;
+        }
+
+        foreach (var achado in achadosOperacionais)
+        {
+            AdicionarAchado(
+                resultado,
+                achado.Severidade,
+                achado.Codigo,
+                achado.Escopo,
+                achado.Descricao,
+                achado.Recomendacao,
+                severidadesOverride);
+        }
+
+        resultado.Achados = resultado.Achados
+            .OrderByDescending(a => PesoSeveridade(a.Severidade))
+            .ThenBy(a => a.Codigo, StringComparer.OrdinalIgnoreCase)
+            .ThenBy(a => a.Escopo, StringComparer.OrdinalIgnoreCase)
+            .ToList();
+
+        resultado.TotalAchados = resultado.Achados.Count;
+        resultado.TotalCriticos = resultado.Achados.Count(a => a.Severidade == "critical");
+        resultado.TotalAltos = resultado.Achados.Count(a => a.Severidade == "high");
+        resultado.TotalMedios = resultado.Achados.Count(a => a.Severidade == "medium");
+        resultado.TotalBaixos = resultado.Achados.Count(a => a.Severidade == "low");
+        resultado.ResumoPorCodigo = MontarResumo(resultado.Achados, a => a.Codigo);
+        resultado.ResumoPorTabela = MontarResumo(resultado.Achados, a => NomeTabelaDoEscopo(a.Escopo));
     }
 
     private static int PesoSeveridade(string severidade)

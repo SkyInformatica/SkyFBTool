@@ -12,6 +12,7 @@ e o projeto adota [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ### Adicionado
 - `ddl-analyze` agora suporta entrada direta por banco (`--database` + opções de conexão), extraindo metadados internamente antes da análise.
 - `ddl-analyze` agora suporta modo em lote via `--databases-batch` (`*`, `?`) para executar análise sobre múltiplos arquivos `.fdb`.
+- `ddl-analyze --database` agora inclui achados operacionais das tabelas de monitoramento do Firebird (`MON$`) no mesmo relatório de risco.
 - `import` agora suporta modo em lote para executar múltiplos arquivos SQL por padrão wildcard (`--inputs-batch`, aliases: `--input-batch`, `--scripts-batch`).
 - Importação agora sempre gera arquivo de log por execução com nome único (`*_import_log_*.log`), incluindo status explícito de conclusão com/sem erros.
 - `ddl-extract` agora classifica falhas de extração por categoria raiz (`incompatible_ods`, `permission_denied`, `database_file_access`, `metadata_query_failure`, `connection_failure`, `unknown`).
