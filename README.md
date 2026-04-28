@@ -102,6 +102,7 @@ Notes:
 - Use `docs/examples/ddl-severity.sample.json` as the reference schema (it covers all current finding codes).
 - DDL analyze report screenshot example: `docs/examples/ddl-analyze-report-example.png`.
 - DDL analyze batch summary screenshot example: `docs/examples/ddl-analyze-batch-summary-example.png`.
+- Reproducible `ddl-analyze` sample outputs: `docs/examples/ddl-analyze-sample*.{sql,json,html}`.
 - Accepted severity values: `critical`, `high`, `medium`, `low`.
 - JSON schema is English-only: `overrides`, `code`, `severity`.
 

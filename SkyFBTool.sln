@@ -32,6 +32,12 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "examples", "examples", "{47
 	ProjectSection(SolutionItems) = preProject
 		docs\examples\ddl-analyze-batch-summary-example.png = docs\examples\ddl-analyze-batch-summary-example.png
 		docs\examples\ddl-analyze-report-example.png = docs\examples\ddl-analyze-report-example.png
+		docs\examples\ddl-analyze-sample-input.sql = docs\examples\ddl-analyze-sample-input.sql
+		docs\examples\ddl-analyze-sample-rich-input.sql = docs\examples\ddl-analyze-sample-rich-input.sql
+		docs\examples\ddl-analyze-sample-rich.html = docs\examples\ddl-analyze-sample-rich.html
+		docs\examples\ddl-analyze-sample-rich.json = docs\examples\ddl-analyze-sample-rich.json
+		docs\examples\ddl-analyze-sample.html = docs\examples\ddl-analyze-sample.html
+		docs\examples\ddl-analyze-sample.json = docs\examples\ddl-analyze-sample.json
 		docs\examples\ddl-severity.sample.json = docs\examples\ddl-severity.sample.json
 	EndProjectSection
 EndProject

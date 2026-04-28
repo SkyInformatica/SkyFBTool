@@ -50,3 +50,9 @@ SkyFBTool ddl-analyze --input "C:\ddl\origem.sql" --ignore-table-prefix LOG_ --i
 
 ## Exemplo de resumo em lote
 ![Exemplo de resumo em lote do ddl-analyze](../../examples/ddl-analyze-batch-summary-example.png)
+
+## Arquivos de exemplo reproduzíveis
+- Entrada simples: `docs/examples/ddl-analyze-sample-input.sql`
+- Saída simples: `docs/examples/ddl-analyze-sample.html` e `docs/examples/ddl-analyze-sample.json`
+- Entrada rica: `docs/examples/ddl-analyze-sample-rich-input.sql`
+- Saída rica: `docs/examples/ddl-analyze-sample-rich.html` e `docs/examples/ddl-analyze-sample-rich.json`

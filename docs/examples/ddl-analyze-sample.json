@@ -1,0 +1,57 @@
+{
+  "Origem": "D:\\Projetos\\SkyFBTool\\docs\\examples\\ddl-analyze-sample-input.sql",
+  "GeradoEmUtc": "2026-04-28T02:50:15.7057791Z",
+  "TotalTabelas": 2,
+  "TotalAchados": 3,
+  "TotalCriticos": 0,
+  "TotalAltos": 2,
+  "TotalMedios": 0,
+  "TotalBaixos": 1,
+  "Achados": [
+    {
+      "Severidade": "high",
+      "Codigo": "TABELA_SEM_PK",
+      "Escopo": "CLIENTES",
+      "Descricao": "Tabela CLIENTES n\u00E3o possui chave prim\u00E1ria.",
+      "Recomendacao": "Revise se isso \u00E9 esperado. Aus\u00EAncia de PK pode mascarar duplicidades."
+    },
+    {
+      "Severidade": "high",
+      "Codigo": "TABELA_SEM_PK",
+      "Escopo": "PEDIDOS",
+      "Descricao": "Tabela PEDIDOS n\u00E3o possui chave prim\u00E1ria.",
+      "Recomendacao": "Revise se isso \u00E9 esperado. Aus\u00EAncia de PK pode mascarar duplicidades."
+    },
+    {
+      "Severidade": "low",
+      "Codigo": "INDICE_DUPLICADO",
+      "Escopo": "PEDIDOS",
+      "Descricao": "Assinatura de \u00EDndice duplicada em PEDIDOS: IND_PEDIDOS_CLIENTE_A, IND_PEDIDOS_CLIENTE_B.",
+      "Recomendacao": "Mantenha apenas um \u00EDndice por assinatura ap\u00F3s validar carga de trabalho."
+    }
+  ],
+  "ResumoPorCodigo": [
+    {
+      "Chave": "TABELA_SEM_PK",
+      "Quantidade": 2,
+      "Percentual": 66.67
+    },
+    {
+      "Chave": "INDICE_DUPLICADO",
+      "Quantidade": 1,
+      "Percentual": 33.33
+    }
+  ],
+  "ResumoPorTabela": [
+    {
+      "Chave": "PEDIDOS",
+      "Quantidade": 2,
+      "Percentual": 66.67
+    },
+    {
+      "Chave": "CLIENTES",
+      "Quantidade": 1,
+      "Percentual": 33.33
+    }
+  ]
+}

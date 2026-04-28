@@ -1,0 +1,330 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Análise de Risco DDL</title>
+  <style>
+    body { font-family: Segoe UI, Arial, sans-serif; margin: 20px; color: #1f2937; }
+    h1, h2 { margin: 0 0 12px 0; }
+    .meta { margin-bottom: 14px; font-size: 14px; }
+    .kpi { display: flex; gap: 10px; flex-wrap: wrap; margin: 10px 0 18px; }
+    .pill { border: 1px solid #d1d5db; border-radius: 12px; padding: 8px 10px; background: #f9fafb; font-size: 13px; }
+    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 8px 0 16px; }
+    .card { border: 1px solid #e5e7eb; border-radius: 10px; background: #fff; padding: 10px; }
+    .toolbar { display: flex; gap: 10px; flex-wrap: wrap; margin: 8px 0 10px; align-items: center; }
+    .toolbar input, .toolbar select { padding: 6px 8px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 13px; }
+    .count { font-size: 13px; color: #374151; }
+    .criteria { margin: 8px 0 16px; }
+    .table-wrap { max-height: 70vh; overflow: auto; border: 1px solid #e5e7eb; border-radius: 8px; }
+    table { width: 100%; border-collapse: collapse; }
+    th, td { border-bottom: 1px solid #eef2f7; padding: 8px; text-align: left; vertical-align: top; font-size: 13px; }
+    th { position: sticky; top: 0; background: #f3f4f6; z-index: 1; }
+    .critical { color: #991b1b; font-weight: 700; }
+    .high { color: #92400e; font-weight: 700; }
+    .medium { color: #1d4ed8; font-weight: 700; }
+    .low { color: #065f46; font-weight: 700; }
+    @media (max-width: 900px) { .grid { grid-template-columns: 1fr; } body { margin: 12px; } }
+  </style>
+</head>
+<body>
+  <h1>Análise de Risco DDL</h1>
+  <div class="meta">
+    <div><strong>Origem:</strong> <span title="D:\Projetos\SkyFBTool\docs\examples\ddl-analyze-sample-rich-input.sql">ddl-analyze-sample-rich-input.sql</span></div>
+    <div><strong>Gerado em (UTC):</strong> 2026-04-28 03:19:58</div>
+  </div>
+  <div class="kpi">
+    <div class="pill"><strong>Total de achados:</strong> 19</div>
+    <div class="pill"><strong>Críticos:</strong> 6</div>
+    <div class="pill"><strong>Altos:</strong> 6</div>
+    <div class="pill"><strong>Médios:</strong> 5</div>
+    <div class="pill"><strong>Baixos:</strong> 2</div>
+  </div>
+  <div class="card criteria">
+    <h2>Critérios de severidade</h2>
+    <table><thead><tr>
+      <th>Nível</th>
+      <th>Quando se aplica</th>
+      <th>Impacto esperado</th>
+    </tr></thead><tbody>
+      
+            <tr>
+              <td class="critical">cr&#237;tico</td>
+              <td>Metadado estrutural quebrado: colunas ausentes ou inv&#225;lidas em PK/FK, constraints vazias ou refer&#234;ncias imposs&#237;veis.</td>
+              <td>Alta chance de falha funcional, sintomas de corrup&#231;&#227;o ou impossibilidade de sincronismo seguro sem reparo manual.</td>
+            </tr>
+            
+            <tr>
+              <td class="high">alto</td>
+              <td>Inconsist&#234;ncia de alto risco que pode quebrar integridade ou performance em carga.</td>
+              <td>Risco relevante em produ&#231;&#227;o; corrigir antes de migra&#231;&#227;o ou importa&#231;&#227;o/exporta&#231;&#227;o intensa.</td>
+            </tr>
+            
+            <tr>
+              <td class="medium">m&#233;dio</td>
+              <td>Lacuna importante de qualidade ou performance, normalmente sem corrup&#231;&#227;o imediata.</td>
+              <td>Pode degradar vaz&#227;o e aumentar risco de lock/conten&#231;&#227;o ao longo do tempo.</td>
+            </tr>
+            
+            <tr>
+              <td class="low">baixo</td>
+              <td>Padr&#227;o consultivo ou smell de modelagem com menor risco imediato.</td>
+              <td>Recomendado para endurecimento e manutenibilidade; pode ser planejado.</td>
+            </tr>
+            
+    </tbody></table>
+  </div>
+  <div class="grid">
+    <div class="card">
+      <h2>Resumo por tipo de achado</h2>
+      <table><thead><tr>
+        <th>Código</th><th>Qtde</th><th>%</th>
+      </tr></thead><tbody>
+        
+                <tr><td>FK_SEM_INDICE_COBERTURA</td><td>5</td><td>26,32</td></tr>
+                
+                <tr><td>TABELA_SEM_PK</td><td>3</td><td>15,79</td></tr>
+                
+                <tr><td>FK_CARDINALIDADE_INVALIDA</td><td>1</td><td>5,26</td></tr>
+                
+                <tr><td>FK_COLUNA_LOCAL_INEXISTENTE</td><td>1</td><td>5,26</td></tr>
+                
+                <tr><td>FK_COLUNA_REFERENCIA_INEXISTENTE</td><td>1</td><td>5,26</td></tr>
+                
+                <tr><td>FK_DUPLICADA</td><td>1</td><td>5,26</td></tr>
+                
+                <tr><td>FK_TABELA_REFERENCIA_INEXISTENTE</td><td>1</td><td>5,26</td></tr>
+                
+                <tr><td>INDICE_COLUNA_INEXISTENTE</td><td>1</td><td>5,26</td></tr>
+                
+                <tr><td>INDICE_DUPLICADO</td><td>1</td><td>5,26</td></tr>
+                
+                <tr><td>INDICE_SEM_COLUNAS</td><td>1</td><td>5,26</td></tr>
+                
+        
+      </tbody></table>
+    </div>
+    <div class="card">
+      <h2>Top tabelas com achados</h2>
+      <table><thead><tr>
+        <th>Escopo</th><th>Qtde</th><th>%</th>
+      </tr></thead><tbody>
+        
+                <tr><td>PEDIDOS</td><td>13</td><td>68,42</td></tr>
+                
+                <tr><td>CLIENTES</td><td>2</td><td>10,53</td></tr>
+                
+                <tr><td>ITENS_PEDIDO</td><td>2</td><td>10,53</td></tr>
+                
+                <tr><td>LOG_EVENTOS</td><td>2</td><td>10,53</td></tr>
+                
+        
+      </tbody></table>
+    </div>
+  </div>
+  
+    <h2>Filtros</h2>
+    <div class="toolbar">
+      <label>Severidade <select id="f-sev"><option value="">Todos</option><option value="critical">cr&#237;tico</option><option value="high">alto</option><option value="medium">m&#233;dio</option><option value="low">baixo</option></select></label>
+      <label>Código <select id="f-code"><option value="">Todos</option><option value="FK_SEM_INDICE_COBERTURA">FK_SEM_INDICE_COBERTURA</option><option value="TABELA_SEM_PK">TABELA_SEM_PK</option><option value="FK_CARDINALIDADE_INVALIDA">FK_CARDINALIDADE_INVALIDA</option><option value="FK_COLUNA_LOCAL_INEXISTENTE">FK_COLUNA_LOCAL_INEXISTENTE</option><option value="FK_COLUNA_REFERENCIA_INEXISTENTE">FK_COLUNA_REFERENCIA_INEXISTENTE</option><option value="FK_DUPLICADA">FK_DUPLICADA</option><option value="FK_TABELA_REFERENCIA_INEXISTENTE">FK_TABELA_REFERENCIA_INEXISTENTE</option><option value="INDICE_COLUNA_INEXISTENTE">INDICE_COLUNA_INEXISTENTE</option><option value="INDICE_DUPLICADO">INDICE_DUPLICADO</option><option value="INDICE_SEM_COLUNAS">INDICE_SEM_COLUNAS</option><option value="PK_REFERENCIA_COLUNA_INEXISTENTE">PK_REFERENCIA_COLUNA_INEXISTENTE</option><option value="TABELA_SEM_COLUNAS">TABELA_SEM_COLUNAS</option><option value="TIPO_DESCONHECIDO">TIPO_DESCONHECIDO</option></select></label>
+      <label>Busca <input id="f-q" type="text" placeholder="tabela, código ou texto..." /></label>
+      <span class="count" id="f-count">Exibindo 0 de 19</span>
+    </div>
+    <div class="table-wrap">
+    <table id="achados">
+      <thead><tr>
+        <th>Severidade</th>
+        <th>Código</th>
+        <th>Escopo</th>
+        <th>Descrição</th>
+        <th>Recomendação</th>
+      </tr></thead>
+      <tbody>
+        
+            <tr data-sev="critical" data-code="FK_CARDINALIDADE_INVALIDA" data-text="pedidos.fk_pedidos_card fk_cardinalidade_invalida fk fk_pedidos_card possui cardinalidade diferente entre colunas locais e de refer&#234;ncia. recrie a fk preservando cardinalidade equivalente.">
+              <td class="critical">cr&#237;tico</td>
+              <td>FK_CARDINALIDADE_INVALIDA</td>
+              <td>PEDIDOS.FK_PEDIDOS_CARD</td>
+              <td>FK FK_PEDIDOS_CARD possui cardinalidade diferente entre colunas locais e de refer&#234;ncia.</td>
+              <td>Recrie a FK preservando cardinalidade equivalente.</td>
+            </tr>
+            
+            <tr data-sev="critical" data-code="FK_COLUNA_LOCAL_INEXISTENTE" data-text="pedidos.fk_pedidos_local_missing fk_coluna_local_inexistente fk fk_pedidos_local_missing referencia coluna local inexistente cliente_inexistente. valide os campos da rela&#231;&#227;o e recrie a fk.">
+              <td class="critical">cr&#237;tico</td>
+              <td>FK_COLUNA_LOCAL_INEXISTENTE</td>
+              <td>PEDIDOS.FK_PEDIDOS_LOCAL_MISSING</td>
+              <td>FK FK_PEDIDOS_LOCAL_MISSING referencia coluna local inexistente CLIENTE_INEXISTENTE.</td>
+              <td>Valide os campos da rela&#231;&#227;o e recrie a FK.</td>
+            </tr>
+            
+            <tr data-sev="critical" data-code="FK_COLUNA_REFERENCIA_INEXISTENTE" data-text="pedidos.fk_pedidos_ref_column_missing fk_coluna_referencia_inexistente fk fk_pedidos_ref_column_missing aponta para coluna referenciada inexistente id_x. recrie a fk ap&#243;s validar a defini&#231;&#227;o da chave referenciada.">
+              <td class="critical">cr&#237;tico</td>
+              <td>FK_COLUNA_REFERENCIA_INEXISTENTE</td>
+              <td>PEDIDOS.FK_PEDIDOS_REF_COLUMN_MISSING</td>
+              <td>FK FK_PEDIDOS_REF_COLUMN_MISSING aponta para coluna referenciada inexistente ID_X.</td>
+              <td>Recrie a FK ap&#243;s validar a defini&#231;&#227;o da chave referenciada.</td>
+            </tr>
+            
+            <tr data-sev="critical" data-code="FK_TABELA_REFERENCIA_INEXISTENTE" data-text="pedidos.fk_pedidos_ref_table_missing fk_tabela_referencia_inexistente fk fk_pedidos_ref_table_missing aponta para tabela inexistente clientes_x. valide ordem de depend&#234;ncia e integridade de metadados da tabela referenciada.">
+              <td class="critical">cr&#237;tico</td>
+              <td>FK_TABELA_REFERENCIA_INEXISTENTE</td>
+              <td>PEDIDOS.FK_PEDIDOS_REF_TABLE_MISSING</td>
+              <td>FK FK_PEDIDOS_REF_TABLE_MISSING aponta para tabela inexistente CLIENTES_X.</td>
+              <td>Valide ordem de depend&#234;ncia e integridade de metadados da tabela referenciada.</td>
+            </tr>
+            
+            <tr data-sev="critical" data-code="PK_REFERENCIA_COLUNA_INEXISTENTE" data-text="pedidos pk_referencia_coluna_inexistente pk pk_pedidos referencia coluna inexistente id_coluna_inexistente. recrie a pk e valide o cat&#225;logo de campos da rela&#231;&#227;o.">
+              <td class="critical">cr&#237;tico</td>
+              <td>PK_REFERENCIA_COLUNA_INEXISTENTE</td>
+              <td>PEDIDOS</td>
+              <td>PK PK_PEDIDOS referencia coluna inexistente ID_COLUNA_INEXISTENTE.</td>
+              <td>Recrie a PK e valide o cat&#225;logo de campos da rela&#231;&#227;o.</td>
+            </tr>
+            
+            <tr data-sev="critical" data-code="TABELA_SEM_COLUNAS" data-text="log_eventos tabela_sem_colunas tabela log_eventos n&#227;o possui colunas. reextraia o metadado e valide esta tabela diretamente nos cat&#225;logos do firebird.">
+              <td class="critical">cr&#237;tico</td>
+              <td>TABELA_SEM_COLUNAS</td>
+              <td>LOG_EVENTOS</td>
+              <td>Tabela LOG_EVENTOS n&#227;o possui colunas.</td>
+              <td>Reextraia o metadado e valide esta tabela diretamente nos cat&#225;logos do Firebird.</td>
+            </tr>
+            
+            <tr data-sev="high" data-code="INDICE_COLUNA_INEXISTENTE" data-text="pedidos.ind_pedidos_coluna_inexistente indice_coluna_inexistente &#237;ndice ind_pedidos_coluna_inexistente referencia coluna inexistente cliente_id_nao_existe. recrie o &#237;ndice e valide o cat&#225;logo de campos da rela&#231;&#227;o.">
+              <td class="high">alto</td>
+              <td>INDICE_COLUNA_INEXISTENTE</td>
+              <td>PEDIDOS.IND_PEDIDOS_COLUNA_INEXISTENTE</td>
+              <td>&#205;ndice IND_PEDIDOS_COLUNA_INEXISTENTE referencia coluna inexistente CLIENTE_ID_NAO_EXISTE.</td>
+              <td>Recrie o &#237;ndice e valide o cat&#225;logo de campos da rela&#231;&#227;o.</td>
+            </tr>
+            
+            <tr data-sev="high" data-code="INDICE_SEM_COLUNAS" data-text="pedidos.ind_pedidos_sem_coluna indice_sem_colunas &#237;ndice ind_pedidos_sem_coluna n&#227;o possui colunas. recrie o &#237;ndice com lista expl&#237;cita de colunas.">
+              <td class="high">alto</td>
+              <td>INDICE_SEM_COLUNAS</td>
+              <td>PEDIDOS.IND_PEDIDOS_SEM_COLUNA</td>
+              <td>&#205;ndice IND_PEDIDOS_SEM_COLUNA n&#227;o possui colunas.</td>
+              <td>Recrie o &#237;ndice com lista expl&#237;cita de colunas.</td>
+            </tr>
+            
+            <tr data-sev="high" data-code="TABELA_SEM_PK" data-text="clientes tabela_sem_pk tabela clientes n&#227;o possui chave prim&#225;ria. revise se isso &#233; esperado. aus&#234;ncia de pk pode mascarar duplicidades.">
+              <td class="high">alto</td>
+              <td>TABELA_SEM_PK</td>
+              <td>CLIENTES</td>
+              <td>Tabela CLIENTES n&#227;o possui chave prim&#225;ria.</td>
+              <td>Revise se isso &#233; esperado. Aus&#234;ncia de PK pode mascarar duplicidades.</td>
+            </tr>
+            
+            <tr data-sev="high" data-code="TABELA_SEM_PK" data-text="itens_pedido tabela_sem_pk tabela itens_pedido n&#227;o possui chave prim&#225;ria. revise se isso &#233; esperado. aus&#234;ncia de pk pode mascarar duplicidades.">
+              <td class="high">alto</td>
+              <td>TABELA_SEM_PK</td>
+              <td>ITENS_PEDIDO</td>
+              <td>Tabela ITENS_PEDIDO n&#227;o possui chave prim&#225;ria.</td>
+              <td>Revise se isso &#233; esperado. Aus&#234;ncia de PK pode mascarar duplicidades.</td>
+            </tr>
+            
+            <tr data-sev="high" data-code="TABELA_SEM_PK" data-text="log_eventos tabela_sem_pk tabela log_eventos n&#227;o possui chave prim&#225;ria. revise se isso &#233; esperado. aus&#234;ncia de pk pode mascarar duplicidades.">
+              <td class="high">alto</td>
+              <td>TABELA_SEM_PK</td>
+              <td>LOG_EVENTOS</td>
+              <td>Tabela LOG_EVENTOS n&#227;o possui chave prim&#225;ria.</td>
+              <td>Revise se isso &#233; esperado. Aus&#234;ncia de PK pode mascarar duplicidades.</td>
+            </tr>
+            
+            <tr data-sev="high" data-code="TIPO_DESCONHECIDO" data-text="clientes.tipo_invalido tipo_desconhecido coluna clientes.tipo_invalido possui mapeamento de tipo desconhecido: type_999. valide compatibilidade de vers&#227;o e confira a defini&#231;&#227;o no rdb$fields.">
+              <td class="high">alto</td>
+              <td>TIPO_DESCONHECIDO</td>
+              <td>CLIENTES.TIPO_INVALIDO</td>
+              <td>Coluna CLIENTES.TIPO_INVALIDO possui mapeamento de tipo desconhecido: TYPE_999.</td>
+              <td>Valide compatibilidade de vers&#227;o e confira a defini&#231;&#227;o no RDB$FIELDS.</td>
+            </tr>
+            
+            <tr data-sev="medium" data-code="FK_SEM_INDICE_COBERTURA" data-text="itens_pedido.fk_item_pedido fk_sem_indice_cobertura fk fk_item_pedido n&#227;o possui &#237;ndice local de cobertura. crie &#237;ndice para as colunas da fk para reduzir conten&#231;&#227;o e custo de valida&#231;&#227;o.">
+              <td class="medium">m&#233;dio</td>
+              <td>FK_SEM_INDICE_COBERTURA</td>
+              <td>ITENS_PEDIDO.FK_ITEM_PEDIDO</td>
+              <td>FK FK_ITEM_PEDIDO n&#227;o possui &#237;ndice local de cobertura.</td>
+              <td>Crie &#237;ndice para as colunas da FK para reduzir conten&#231;&#227;o e custo de valida&#231;&#227;o.</td>
+            </tr>
+            
+            <tr data-sev="medium" data-code="FK_SEM_INDICE_COBERTURA" data-text="pedidos.fk_pedidos_card fk_sem_indice_cobertura fk fk_pedidos_card n&#227;o possui &#237;ndice local de cobertura. crie &#237;ndice para as colunas da fk para reduzir conten&#231;&#227;o e custo de valida&#231;&#227;o.">
+              <td class="medium">m&#233;dio</td>
+              <td>FK_SEM_INDICE_COBERTURA</td>
+              <td>PEDIDOS.FK_PEDIDOS_CARD</td>
+              <td>FK FK_PEDIDOS_CARD n&#227;o possui &#237;ndice local de cobertura.</td>
+              <td>Crie &#237;ndice para as colunas da FK para reduzir conten&#231;&#227;o e custo de valida&#231;&#227;o.</td>
+            </tr>
+            
+            <tr data-sev="medium" data-code="FK_SEM_INDICE_COBERTURA" data-text="pedidos.fk_pedidos_local_missing fk_sem_indice_cobertura fk fk_pedidos_local_missing n&#227;o possui &#237;ndice local de cobertura. crie &#237;ndice para as colunas da fk para reduzir conten&#231;&#227;o e custo de valida&#231;&#227;o.">
+              <td class="medium">m&#233;dio</td>
+              <td>FK_SEM_INDICE_COBERTURA</td>
+              <td>PEDIDOS.FK_PEDIDOS_LOCAL_MISSING</td>
+              <td>FK FK_PEDIDOS_LOCAL_MISSING n&#227;o possui &#237;ndice local de cobertura.</td>
+              <td>Crie &#237;ndice para as colunas da FK para reduzir conten&#231;&#227;o e custo de valida&#231;&#227;o.</td>
+            </tr>
+            
+            <tr data-sev="medium" data-code="FK_SEM_INDICE_COBERTURA" data-text="pedidos.fk_pedidos_ref_column_missing fk_sem_indice_cobertura fk fk_pedidos_ref_column_missing n&#227;o possui &#237;ndice local de cobertura. crie &#237;ndice para as colunas da fk para reduzir conten&#231;&#227;o e custo de valida&#231;&#227;o.">
+              <td class="medium">m&#233;dio</td>
+              <td>FK_SEM_INDICE_COBERTURA</td>
+              <td>PEDIDOS.FK_PEDIDOS_REF_COLUMN_MISSING</td>
+              <td>FK FK_PEDIDOS_REF_COLUMN_MISSING n&#227;o possui &#237;ndice local de cobertura.</td>
+              <td>Crie &#237;ndice para as colunas da FK para reduzir conten&#231;&#227;o e custo de valida&#231;&#227;o.</td>
+            </tr>
+            
+            <tr data-sev="medium" data-code="FK_SEM_INDICE_COBERTURA" data-text="pedidos.fk_pedidos_ref_table_missing fk_sem_indice_cobertura fk fk_pedidos_ref_table_missing n&#227;o possui &#237;ndice local de cobertura. crie &#237;ndice para as colunas da fk para reduzir conten&#231;&#227;o e custo de valida&#231;&#227;o.">
+              <td class="medium">m&#233;dio</td>
+              <td>FK_SEM_INDICE_COBERTURA</td>
+              <td>PEDIDOS.FK_PEDIDOS_REF_TABLE_MISSING</td>
+              <td>FK FK_PEDIDOS_REF_TABLE_MISSING n&#227;o possui &#237;ndice local de cobertura.</td>
+              <td>Crie &#237;ndice para as colunas da FK para reduzir conten&#231;&#227;o e custo de valida&#231;&#227;o.</td>
+            </tr>
+            
+            <tr data-sev="low" data-code="FK_DUPLICADA" data-text="pedidos fk_duplicada assinatura de fk duplicada em pedidos: fk_pedidos_cliente, fk_pedidos_cliente_dup. consolide fks equivalentes e mantenha apenas uma restri&#231;&#227;o validada.">
+              <td class="low">baixo</td>
+              <td>FK_DUPLICADA</td>
+              <td>PEDIDOS</td>
+              <td>Assinatura de FK duplicada em PEDIDOS: FK_PEDIDOS_CLIENTE, FK_PEDIDOS_CLIENTE_DUP.</td>
+              <td>Consolide FKs equivalentes e mantenha apenas uma restri&#231;&#227;o validada.</td>
+            </tr>
+            
+            <tr data-sev="low" data-code="INDICE_DUPLICADO" data-text="pedidos indice_duplicado assinatura de &#237;ndice duplicada em pedidos: ind_pedidos_cliente_a, ind_pedidos_cliente_b. mantenha apenas um &#237;ndice por assinatura ap&#243;s validar carga de trabalho.">
+              <td class="low">baixo</td>
+              <td>INDICE_DUPLICADO</td>
+              <td>PEDIDOS</td>
+              <td>Assinatura de &#237;ndice duplicada em PEDIDOS: IND_PEDIDOS_CLIENTE_A, IND_PEDIDOS_CLIENTE_B.</td>
+              <td>Mantenha apenas um &#237;ndice por assinatura ap&#243;s validar carga de trabalho.</td>
+            </tr>
+            
+      </tbody>
+    </table>
+    </div>
+    <script>
+      (function(){
+        const sev = document.getElementById('f-sev');
+        const code = document.getElementById('f-code');
+        const q = document.getElementById('f-q');
+        const rows = Array.from(document.querySelectorAll('#achados tbody tr'));
+        const count = document.getElementById('f-count');
+        const total = 19;
+        function run(){
+          const s = (sev.value || '').toLowerCase();
+          const c = code.value || '';
+          const t = (q.value || '').toLowerCase();
+          let visible = 0;
+          rows.forEach(r => {
+            const okS = !s || r.dataset.sev === s;
+            const okC = !c || r.dataset.code === c;
+            const okT = !t || (r.dataset.text || '').includes(t);
+            const ok = okS && okC && okT;
+            r.style.display = ok ? '' : 'none';
+            if (ok) visible++;
+          });
+          count.textContent = 'Exibindo ' + visible + ' de ' + total;
+        }
+        sev.addEventListener('change', run);
+        code.addEventListener('change', run);
+        q.addEventListener('input', run);
+        run();
+      })();
+    </script>
+    
+</body>
+</html>

@@ -102,6 +102,7 @@ Observações:
 - Use `docs/examples/ddl-severity.sample.json` como referência de formato (cobre todos os códigos atuais).
 - Exemplo de imagem do relatório `ddl-analyze`: `docs/examples/ddl-analyze-report-example.png`.
 - Exemplo de imagem do resumo em lote do `ddl-analyze`: `docs/examples/ddl-analyze-batch-summary-example.png`.
+- Saídas reproduzíveis de exemplo do `ddl-analyze`: `docs/examples/ddl-analyze-sample*.{sql,json,html}`.
 - Valores aceitos de severidade: `critical`, `high`, `medium`, `low`.
 - O formato do JSON é somente em inglês: `overrides`, `code`, `severity`.
 

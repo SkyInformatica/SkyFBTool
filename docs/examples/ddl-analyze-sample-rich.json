@@ -1,0 +1,234 @@
+{
+  "Origem": "D:\\Projetos\\SkyFBTool\\docs\\examples\\ddl-analyze-sample-rich-input.sql",
+  "GeradoEmUtc": "2026-04-28T03:19:58.4555534Z",
+  "TotalTabelas": 4,
+  "TotalAchados": 19,
+  "TotalCriticos": 6,
+  "TotalAltos": 6,
+  "TotalMedios": 5,
+  "TotalBaixos": 2,
+  "Achados": [
+    {
+      "Severidade": "critical",
+      "Codigo": "FK_CARDINALIDADE_INVALIDA",
+      "Escopo": "PEDIDOS.FK_PEDIDOS_CARD",
+      "Descricao": "FK FK_PEDIDOS_CARD possui cardinalidade diferente entre colunas locais e de refer\u00EAncia.",
+      "Recomendacao": "Recrie a FK preservando cardinalidade equivalente."
+    },
+    {
+      "Severidade": "critical",
+      "Codigo": "FK_COLUNA_LOCAL_INEXISTENTE",
+      "Escopo": "PEDIDOS.FK_PEDIDOS_LOCAL_MISSING",
+      "Descricao": "FK FK_PEDIDOS_LOCAL_MISSING referencia coluna local inexistente CLIENTE_INEXISTENTE.",
+      "Recomendacao": "Valide os campos da rela\u00E7\u00E3o e recrie a FK."
+    },
+    {
+      "Severidade": "critical",
+      "Codigo": "FK_COLUNA_REFERENCIA_INEXISTENTE",
+      "Escopo": "PEDIDOS.FK_PEDIDOS_REF_COLUMN_MISSING",
+      "Descricao": "FK FK_PEDIDOS_REF_COLUMN_MISSING aponta para coluna referenciada inexistente ID_X.",
+      "Recomendacao": "Recrie a FK ap\u00F3s validar a defini\u00E7\u00E3o da chave referenciada."
+    },
+    {
+      "Severidade": "critical",
+      "Codigo": "FK_TABELA_REFERENCIA_INEXISTENTE",
+      "Escopo": "PEDIDOS.FK_PEDIDOS_REF_TABLE_MISSING",
+      "Descricao": "FK FK_PEDIDOS_REF_TABLE_MISSING aponta para tabela inexistente CLIENTES_X.",
+      "Recomendacao": "Valide ordem de depend\u00EAncia e integridade de metadados da tabela referenciada."
+    },
+    {
+      "Severidade": "critical",
+      "Codigo": "PK_REFERENCIA_COLUNA_INEXISTENTE",
+      "Escopo": "PEDIDOS",
+      "Descricao": "PK PK_PEDIDOS referencia coluna inexistente ID_COLUNA_INEXISTENTE.",
+      "Recomendacao": "Recrie a PK e valide o cat\u00E1logo de campos da rela\u00E7\u00E3o."
+    },
+    {
+      "Severidade": "critical",
+      "Codigo": "TABELA_SEM_COLUNAS",
+      "Escopo": "LOG_EVENTOS",
+      "Descricao": "Tabela LOG_EVENTOS n\u00E3o possui colunas.",
+      "Recomendacao": "Reextraia o metadado e valide esta tabela diretamente nos cat\u00E1logos do Firebird."
+    },
+    {
+      "Severidade": "high",
+      "Codigo": "INDICE_COLUNA_INEXISTENTE",
+      "Escopo": "PEDIDOS.IND_PEDIDOS_COLUNA_INEXISTENTE",
+      "Descricao": "\u00CDndice IND_PEDIDOS_COLUNA_INEXISTENTE referencia coluna inexistente CLIENTE_ID_NAO_EXISTE.",
+      "Recomendacao": "Recrie o \u00EDndice e valide o cat\u00E1logo de campos da rela\u00E7\u00E3o."
+    },
+    {
+      "Severidade": "high",
+      "Codigo": "INDICE_SEM_COLUNAS",
+      "Escopo": "PEDIDOS.IND_PEDIDOS_SEM_COLUNA",
+      "Descricao": "\u00CDndice IND_PEDIDOS_SEM_COLUNA n\u00E3o possui colunas.",
+      "Recomendacao": "Recrie o \u00EDndice com lista expl\u00EDcita de colunas."
+    },
+    {
+      "Severidade": "high",
+      "Codigo": "TABELA_SEM_PK",
+      "Escopo": "CLIENTES",
+      "Descricao": "Tabela CLIENTES n\u00E3o possui chave prim\u00E1ria.",
+      "Recomendacao": "Revise se isso \u00E9 esperado. Aus\u00EAncia de PK pode mascarar duplicidades."
+    },
+    {
+      "Severidade": "high",
+      "Codigo": "TABELA_SEM_PK",
+      "Escopo": "ITENS_PEDIDO",
+      "Descricao": "Tabela ITENS_PEDIDO n\u00E3o possui chave prim\u00E1ria.",
+      "Recomendacao": "Revise se isso \u00E9 esperado. Aus\u00EAncia de PK pode mascarar duplicidades."
+    },
+    {
+      "Severidade": "high",
+      "Codigo": "TABELA_SEM_PK",
+      "Escopo": "LOG_EVENTOS",
+      "Descricao": "Tabela LOG_EVENTOS n\u00E3o possui chave prim\u00E1ria.",
+      "Recomendacao": "Revise se isso \u00E9 esperado. Aus\u00EAncia de PK pode mascarar duplicidades."
+    },
+    {
+      "Severidade": "high",
+      "Codigo": "TIPO_DESCONHECIDO",
+      "Escopo": "CLIENTES.TIPO_INVALIDO",
+      "Descricao": "Coluna CLIENTES.TIPO_INVALIDO possui mapeamento de tipo desconhecido: TYPE_999.",
+      "Recomendacao": "Valide compatibilidade de vers\u00E3o e confira a defini\u00E7\u00E3o no RDB$FIELDS."
+    },
+    {
+      "Severidade": "medium",
+      "Codigo": "FK_SEM_INDICE_COBERTURA",
+      "Escopo": "ITENS_PEDIDO.FK_ITEM_PEDIDO",
+      "Descricao": "FK FK_ITEM_PEDIDO n\u00E3o possui \u00EDndice local de cobertura.",
+      "Recomendacao": "Crie \u00EDndice para as colunas da FK para reduzir conten\u00E7\u00E3o e custo de valida\u00E7\u00E3o."
+    },
+    {
+      "Severidade": "medium",
+      "Codigo": "FK_SEM_INDICE_COBERTURA",
+      "Escopo": "PEDIDOS.FK_PEDIDOS_CARD",
+      "Descricao": "FK FK_PEDIDOS_CARD n\u00E3o possui \u00EDndice local de cobertura.",
+      "Recomendacao": "Crie \u00EDndice para as colunas da FK para reduzir conten\u00E7\u00E3o e custo de valida\u00E7\u00E3o."
+    },
+    {
+      "Severidade": "medium",
+      "Codigo": "FK_SEM_INDICE_COBERTURA",
+      "Escopo": "PEDIDOS.FK_PEDIDOS_LOCAL_MISSING",
+      "Descricao": "FK FK_PEDIDOS_LOCAL_MISSING n\u00E3o possui \u00EDndice local de cobertura.",
+      "Recomendacao": "Crie \u00EDndice para as colunas da FK para reduzir conten\u00E7\u00E3o e custo de valida\u00E7\u00E3o."
+    },
+    {
+      "Severidade": "medium",
+      "Codigo": "FK_SEM_INDICE_COBERTURA",
+      "Escopo": "PEDIDOS.FK_PEDIDOS_REF_COLUMN_MISSING",
+      "Descricao": "FK FK_PEDIDOS_REF_COLUMN_MISSING n\u00E3o possui \u00EDndice local de cobertura.",
+      "Recomendacao": "Crie \u00EDndice para as colunas da FK para reduzir conten\u00E7\u00E3o e custo de valida\u00E7\u00E3o."
+    },
+    {
+      "Severidade": "medium",
+      "Codigo": "FK_SEM_INDICE_COBERTURA",
+      "Escopo": "PEDIDOS.FK_PEDIDOS_REF_TABLE_MISSING",
+      "Descricao": "FK FK_PEDIDOS_REF_TABLE_MISSING n\u00E3o possui \u00EDndice local de cobertura.",
+      "Recomendacao": "Crie \u00EDndice para as colunas da FK para reduzir conten\u00E7\u00E3o e custo de valida\u00E7\u00E3o."
+    },
+    {
+      "Severidade": "low",
+      "Codigo": "FK_DUPLICADA",
+      "Escopo": "PEDIDOS",
+      "Descricao": "Assinatura de FK duplicada em PEDIDOS: FK_PEDIDOS_CLIENTE, FK_PEDIDOS_CLIENTE_DUP.",
+      "Recomendacao": "Consolide FKs equivalentes e mantenha apenas uma restri\u00E7\u00E3o validada."
+    },
+    {
+      "Severidade": "low",
+      "Codigo": "INDICE_DUPLICADO",
+      "Escopo": "PEDIDOS",
+      "Descricao": "Assinatura de \u00EDndice duplicada em PEDIDOS: IND_PEDIDOS_CLIENTE_A, IND_PEDIDOS_CLIENTE_B.",
+      "Recomendacao": "Mantenha apenas um \u00EDndice por assinatura ap\u00F3s validar carga de trabalho."
+    }
+  ],
+  "ResumoPorCodigo": [
+    {
+      "Chave": "FK_SEM_INDICE_COBERTURA",
+      "Quantidade": 5,
+      "Percentual": 26.32
+    },
+    {
+      "Chave": "TABELA_SEM_PK",
+      "Quantidade": 3,
+      "Percentual": 15.79
+    },
+    {
+      "Chave": "FK_CARDINALIDADE_INVALIDA",
+      "Quantidade": 1,
+      "Percentual": 5.26
+    },
+    {
+      "Chave": "FK_COLUNA_LOCAL_INEXISTENTE",
+      "Quantidade": 1,
+      "Percentual": 5.26
+    },
+    {
+      "Chave": "FK_COLUNA_REFERENCIA_INEXISTENTE",
+      "Quantidade": 1,
+      "Percentual": 5.26
+    },
+    {
+      "Chave": "FK_DUPLICADA",
+      "Quantidade": 1,
+      "Percentual": 5.26
+    },
+    {
+      "Chave": "FK_TABELA_REFERENCIA_INEXISTENTE",
+      "Quantidade": 1,
+      "Percentual": 5.26
+    },
+    {
+      "Chave": "INDICE_COLUNA_INEXISTENTE",
+      "Quantidade": 1,
+      "Percentual": 5.26
+    },
+    {
+      "Chave": "INDICE_DUPLICADO",
+      "Quantidade": 1,
+      "Percentual": 5.26
+    },
+    {
+      "Chave": "INDICE_SEM_COLUNAS",
+      "Quantidade": 1,
+      "Percentual": 5.26
+    },
+    {
+      "Chave": "PK_REFERENCIA_COLUNA_INEXISTENTE",
+      "Quantidade": 1,
+      "Percentual": 5.26
+    },
+    {
+      "Chave": "TABELA_SEM_COLUNAS",
+      "Quantidade": 1,
+      "Percentual": 5.26
+    },
+    {
+      "Chave": "TIPO_DESCONHECIDO",
+      "Quantidade": 1,
+      "Percentual": 5.26
+    }
+  ],
+  "ResumoPorTabela": [
+    {
+      "Chave": "PEDIDOS",
+      "Quantidade": 13,
+      "Percentual": 68.42
+    },
+    {
+      "Chave": "CLIENTES",
+      "Quantidade": 2,
+      "Percentual": 10.53
+    },
+    {
+      "Chave": "ITENS_PEDIDO",
+      "Quantidade": 2,
+      "Percentual": 10.53
+    },
+    {
+      "Chave": "LOG_EVENTOS",
+      "Quantidade": 2,
+      "Percentual": 10.53
+    }
+  ]
+}
