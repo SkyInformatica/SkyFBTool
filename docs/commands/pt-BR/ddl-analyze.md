@@ -45,11 +45,9 @@ SkyFBTool ddl-analyze --databases-batch "C:\dados\*.fdb" --output "C:\ddl\analis
 SkyFBTool ddl-analyze --input "C:\ddl\origem.sql" --ignore-table-prefix LOG_ --ignore-table-prefixes TMP_,IBE$ --severity-config ".\docs\examples\ddl-severity.sample.json" --output "C:\ddl\analise_custom"
 ```
 
-## Exemplo de relatório
-![Exemplo de relatório do ddl-analyze](../../examples/ddl-analyze-report-example.png)
-
-## Exemplo de resumo em lote
-![Exemplo de resumo em lote do ddl-analyze](../../examples/ddl-analyze-batch-summary-example.png)
+## Exemplos de relatório
+- [Exemplo simples de relatório em HTML](../../examples/ddl-analyze-sample.html)
+- [Exemplo rico de relatório em HTML](../../examples/ddl-analyze-sample-rich.html)
 
 ## Arquivos de exemplo reproduzíveis
 - Entrada simples: `docs/examples/ddl-analyze-sample-input.sql`
