@@ -9,6 +9,8 @@ e o projeto adota [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Não Lançado]
 
+## [0.3.0] - 2026-04-28
+
 ### Adicionado
 - `ddl-analyze` agora suporta entrada direta por banco (`--database` + opções de conexão), extraindo metadados internamente antes da análise.
 - `ddl-analyze` agora suporta modo em lote via `--databases-batch` (`*`, `?`) para executar análise sobre múltiplos arquivos `.fdb`.
@@ -18,10 +20,14 @@ e o projeto adota [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - `ddl-extract` agora classifica falhas de extração por categoria raiz (`incompatible_ods`, `permission_denied`, `database_file_access`, `metadata_query_failure`, `connection_failure`, `unknown`).
 - `ddl-analyze` agora detecta índice redundante por prefixo (`REDUNDANT_PREFIX_INDEX`) como achado de otimização.
 - Novos arquivos reproduzíveis de exemplo do `ddl-analyze` foram adicionados em `docs/examples` (`sample` e `sample-rich` em `.sql/.json/.html`).
+- `ddl-analyze` agora suporta `--description` para incluir texto de contexto nos metadados do relatório (`Description`) tanto no JSON quanto no HTML.
 
 ### Alterado
 - Ajuda e documentação de comando do `ddl-analyze` atualizadas para descrever o modo por arquivo e o modo por conexão direta.
 - Documentação dos comandos foi completada para listar explicitamente todos os parâmetros e aliases suportados (EN/PT-BR).
+- Documentação do relatório `ddl-analyze` agora aponta para exemplos HTML vivos em vez de screenshots estáticos.
+- Estilos de impressão do HTML do `ddl-analyze` foram melhorados para exportação em PDF (layout A4, quebra de linhas em tabelas e páginas mais limpa).
+- PNGs obsoletos de screenshot foram removidos de `docs/examples` e os mapeamentos legados na solução foram limpos.
 
 ### Corrigido
 - Comportamento padrão do `import` para `--continue-on-error` foi corrigido: sem a flag, a importação agora para no primeiro erro de execução SQL.
@@ -61,6 +67,7 @@ e o projeto adota [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Compatibilidade com Firebird 2.5, 3.0, 4.0 e 5.0 nos fluxos de exportação/importação.
 - Suíte de testes unitários e de integração.
 
-[Não Lançado]: https://github.com/SkyInformatica/SkyFBTool/compare/v0.2.0...HEAD
+[Não Lançado]: https://github.com/SkyInformatica/SkyFBTool/compare/v0.3.0...HEAD
+[0.3.0]: https://github.com/SkyInformatica/SkyFBTool/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/SkyInformatica/SkyFBTool/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/SkyInformatica/SkyFBTool/releases/tag/v0.1.0

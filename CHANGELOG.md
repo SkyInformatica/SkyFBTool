@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-04-28
+
 ### Added
 - `ddl-analyze` now supports direct database input (`--database` + connection options), extracting metadata internally before analysis.
 - `ddl-analyze` now supports batch mode via `--databases-batch` (`*`, `?`) to run analysis over multiple `.fdb` files.
@@ -18,10 +20,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `ddl-extract` now classifies extraction failures by root category (`incompatible_ods`, `permission_denied`, `database_file_access`, `metadata_query_failure`, `connection_failure`, `unknown`).
 - `ddl-analyze` now detects redundant prefix indexes (`REDUNDANT_PREFIX_INDEX`) as optimization findings.
 - New reproducible `ddl-analyze` sample files were added under `docs/examples` (`sample` and `sample-rich` in `.sql/.json/.html`).
+- `ddl-analyze` now supports `--description` to include contextual text in report metadata (`Description`) for both JSON and HTML outputs.
 
 ### Changed
 - `ddl-analyze` help and command docs were updated to document file mode and direct DB mode.
 - Command documentation was completed to explicitly list all supported CLI parameters and aliases (EN/PT-BR).
+- `ddl-analyze` report documentation now links directly to live HTML examples instead of static screenshots.
+- `ddl-analyze` HTML report print styles were improved for better PDF export (A4 layout, better table wrapping, cleaner page breaks).
+- Removed obsolete PNG screenshot assets from `docs/examples` and cleaned stale solution mappings.
 
 ### Fixed
 - `import` default behavior for `--continue-on-error` was corrected: without the flag, import now stops on first SQL execution error.
@@ -61,6 +67,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Firebird 2.5, 3.0, 4.0, and 5.0 compatibility for export/import workflows.
 - Unit and integration test suite.
 
-[Unreleased]: https://github.com/SkyInformatica/SkyFBTool/compare/v0.2.0...HEAD
+[Unreleased]: https://github.com/SkyInformatica/SkyFBTool/compare/v0.3.0...HEAD
+[0.3.0]: https://github.com/SkyInformatica/SkyFBTool/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/SkyInformatica/SkyFBTool/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/SkyInformatica/SkyFBTool/releases/tag/v0.1.0
