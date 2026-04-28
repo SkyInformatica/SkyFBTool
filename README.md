@@ -88,6 +88,7 @@ SkyFBTool ddl-analyze --input "C:\ddl\source.schema.json" --severity-config ".\d
 
 Notes:
 - DDL report/output language uses OS culture detection (`English` by default, `pt-BR` localized).
+- `ddl-extract` classifies extraction failures by root category (`incompatible_ods`, `permission_denied`, `database_file_access`, `metadata_query_failure`, `connection_failure`, `unknown`).
 - `ddl-diff` output files: `.sql`, `.json`, and `.html`.
 - `ddl-diff` report includes Top 10 critical target findings (with severity), suggested SQL block order, and a post-apply checklist.
 - `ddl-analyze` output files: `.json` and `.html`, with summary by code/table and HTML filters.

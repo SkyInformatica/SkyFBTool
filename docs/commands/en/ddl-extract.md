@@ -19,6 +19,15 @@ SkyFBTool ddl-extract --database PATH.fdb --output PREFIX [options]
 - `--password`: password (default: `masterkey`).
 - `--charset`: optional connection charset.
 
+## Extraction failure categories
+When extraction fails, the CLI classifies the failure by root category:
+- `incompatible_ods`
+- `permission_denied`
+- `database_file_access`
+- `metadata_query_failure`
+- `connection_failure`
+- `unknown`
+
 ## Examples
 ```powershell
 SkyFBTool ddl-extract --database "C:\data\source.fdb" --output "C:\ddl\source"
