@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>{{ Titulo }}</title>
   <style>
+    @page { size: A4 portrait; margin: 12mm; }
     body { font-family: Segoe UI, Arial, sans-serif; margin: 20px; color: #1f2937; }
     h1, h2 { margin: 0 0 12px 0; }
     .meta { margin-bottom: 14px; font-size: 14px; }
@@ -25,12 +26,28 @@
     .medium { color: #1d4ed8; font-weight: 700; }
     .low { color: #065f46; font-weight: 700; }
     @media (max-width: 900px) { .grid { grid-template-columns: 1fr; } body { margin: 12px; } }
+    @media print {
+      body { margin: 0; font-size: 11px; color: #000; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+      .toolbar { display: none; }
+      .count { display: none; }
+      .grid { grid-template-columns: 1fr; gap: 8px; }
+      .card, .criteria, .table-wrap { border: 1px solid #d1d5db; border-radius: 0; }
+      .table-wrap { max-height: none; overflow: visible; }
+      table { width: 100%; table-layout: fixed; }
+      th, td { font-size: 10.5px; padding: 5px; word-break: break-word; overflow-wrap: anywhere; }
+      th { position: static; }
+      tr, td, th { page-break-inside: avoid; break-inside: avoid; }
+      h1, h2, .meta, .kpi, .criteria, .card { page-break-inside: avoid; break-inside: avoid; }
+    }
   </style>
 </head>
 <body>
   <h1>{{ Titulo }}</h1>
   <div class="meta">
     <div><strong>{{ OrigemLabel }}:</strong> <span title="{{ OrigemTooltip }}">{{ OrigemExibicao }}</span></div>
+    {{ if HasDescription }}
+    <div><strong>{{ DescriptionLabel }}:</strong> {{ Description }}</div>
+    {{ end }}
     <div><strong>{{ GeradoEmLabel }}:</strong> {{ GeradoEm }}</div>
   </div>
   <div class="kpi">
