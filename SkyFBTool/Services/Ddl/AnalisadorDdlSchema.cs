@@ -79,6 +79,10 @@ public static class AnalisadorDdlSchema
             severidadesOverride);
 
         resultado.Description = opcoes.Descricao?.Trim() ?? string.Empty;
+        resultado.AnaliseVolumeHabilitada = opcoes.AnaliseVolumeHabilitada;
+        resultado.StatusAnaliseVolume = possuiEntradaBanco
+            ? (opcoes.AnaliseVolumeHabilitada ? "pending" : "disabled")
+            : "not_applicable";
 
         if (possuiEntradaBanco)
             await EnriquecerComAchadosOperacionaisAsync(resultado, opcoes, idioma, severidadesOverride);
@@ -131,7 +135,8 @@ public static class AnalisadorDdlSchema
         }
 
         resultado.Achados = resultado.Achados
-            .OrderByDescending(a => PesoSeveridade(a.Severidade))
+            .OrderByDescending(a => a.ScoreRisco)
+            .ThenByDescending(a => PesoSeveridade(a.Severidade))
             .ThenBy(a => a.Codigo, StringComparer.OrdinalIgnoreCase)
             .ThenBy(a => a.Escopo, StringComparer.OrdinalIgnoreCase)
             .ToList();
@@ -500,7 +505,7 @@ public static class AnalisadorDdlSchema
         foreach (var grupo in grupos)
         {
             string nomes = string.Join(", ", grupo.Select(i => i.Nome).OrderBy(n => n, StringComparer.OrdinalIgnoreCase));
-            string assinatura = grupo.Key;
+            string assinaturaExibicao = FormatarAssinaturaComparacaoIndice(grupo.First());
             AdicionarAchado(
                 resultado,
                 "low",
@@ -508,8 +513,8 @@ public static class AnalisadorDdlSchema
                 tabela.Nome,
                 M(
                     idioma,
-                    $"Duplicated index signature in {tabela.Nome}: {nomes}. Signature: {assinatura}.",
-                    $"Assinatura de índice duplicada em {tabela.Nome}: {nomes}. Assinatura: {assinatura}."),
+                    $"Duplicated index signature in {tabela.Nome}: {nomes}. Signature: {assinaturaExibicao}.",
+                    $"Assinatura de índice duplicada em {tabela.Nome}: {nomes}. Assinatura: {assinaturaExibicao}."),
                 M(idioma, "Keep only one index per signature after workload validation.", "Mantenha apenas um índice por assinatura após validar carga de trabalho."),
                 severidadesOverride);
         }
@@ -555,8 +560,8 @@ public static class AnalisadorDdlSchema
                     tabela.Nome,
                     M(
                         idioma,
-                        $"Index {indiceCurto.Nome} may be redundant because {indiceLongo.Nome} already covers its prefix.",
-                        $"Índice {indiceCurto.Nome} pode ser redundante porque {indiceLongo.Nome} já cobre seu prefixo."),
+                        $"Index {indiceCurto.Nome} ({FormatarAssinaturaComparacaoIndice(indiceCurto)}) may be redundant because {indiceLongo.Nome} ({FormatarAssinaturaComparacaoIndice(indiceLongo)}) already covers its prefix ({FormatarListaColunas(indiceCurto.Colunas)}).",
+                        $"Índice {indiceCurto.Nome} ({FormatarAssinaturaComparacaoIndice(indiceCurto)}) pode ser redundante porque {indiceLongo.Nome} ({FormatarAssinaturaComparacaoIndice(indiceLongo)}) já cobre seu prefixo ({FormatarListaColunas(indiceCurto.Colunas)})."),
                     M(
                         idioma,
                         "Validate query plans and keep only the index with better selectivity/coverage.",
@@ -668,6 +673,13 @@ public static class AnalisadorDdlSchema
         return string.Join(", ", colunas);
     }
 
+    private static string FormatarAssinaturaComparacaoIndice(IndiceSchema indice)
+    {
+        string ordem = indice.Descendente ? "DESC" : "ASC";
+        string unicidade = indice.Unico ? "UNIQUE" : "NON-UNIQUE";
+        return $"{unicidade}, {ordem}, ({FormatarListaColunas(indice.Colunas)})";
+    }
+
     private static void AdicionarAchado(
         ResultadoAnaliseDdl resultado,
         string severidade,
@@ -678,10 +690,13 @@ public static class AnalisadorDdlSchema
         IReadOnlyDictionary<string, string>? severidadesOverride)
     {
         string severidadeFinal = ConfiguracaoSeveridadeDdl.AplicarOverride(codigo, severidade, severidadesOverride);
+        int scoreRisco = CalcularScoreRisco(severidadeFinal, codigo);
 
         resultado.Achados.Add(new AchadoAnaliseDdl
         {
             Severidade = severidadeFinal,
+            ScoreRisco = scoreRisco,
+            Prioridade = CalcularPrioridade(scoreRisco),
             Codigo = codigo,
             Escopo = escopo,
             Descricao = descricao,
@@ -718,8 +733,47 @@ public static class AnalisadorDdlSchema
                 severidadesOverride);
         }
 
+        if (opcoes.AnaliseVolumeHabilitada)
+        {
+            try
+            {
+                var metricasVolume = await AnalisadorOperacionalFirebird.ColetarMetricasVolumeAsync(
+                    opcoes,
+                    usarCountExato: opcoes.AnaliseVolumeCountExato);
+                int adicionados = AdicionarAchadosPrioridadeVolume(resultado, metricasVolume, idioma, severidadesOverride);
+                resultado.StatusAnaliseVolume = "executed";
+                resultado.TabelasLidasAnaliseVolume = metricasVolume.Count;
+                resultado.AchadosGeradosAnaliseVolume = adicionados;
+                resultado.ErroAnaliseVolume = string.Empty;
+            }
+            catch (Exception ex)
+            {
+                resultado.StatusAnaliseVolume = "failed";
+                resultado.ErroAnaliseVolume = ex.Message;
+            }
+        }
+        else
+        {
+            resultado.StatusAnaliseVolume = "disabled";
+            resultado.ErroAnaliseVolume = string.Empty;
+        }
+
+        try
+        {
+            var dataUltimaManutencao = await AnalisadorOperacionalFirebird.ColetarDataUltimaManutencaoAsync(opcoes);
+            if (dataUltimaManutencao is not null)
+            {
+                resultado.DataUltimaManutencaoUtc = dataUltimaManutencao;
+                resultado.FonteDataUltimaManutencao = "MON$DATABASE.MON$CREATION_DATE";
+            }
+        }
+        catch
+        {
+        }
+
         resultado.Achados = resultado.Achados
-            .OrderByDescending(a => PesoSeveridade(a.Severidade))
+            .OrderByDescending(a => a.ScoreRisco)
+            .ThenByDescending(a => PesoSeveridade(a.Severidade))
             .ThenBy(a => a.Codigo, StringComparer.OrdinalIgnoreCase)
             .ThenBy(a => a.Escopo, StringComparer.OrdinalIgnoreCase)
             .ToList();
@@ -733,6 +787,120 @@ public static class AnalisadorDdlSchema
         resultado.ResumoPorTabela = MontarResumo(resultado.Achados, a => NomeTabelaDoEscopo(a.Escopo));
     }
 
+    private static int AdicionarAchadosPrioridadeVolume(
+        ResultadoAnaliseDdl resultado,
+        IReadOnlyCollection<MetricaVolumeTabelaFirebird> metricasVolume,
+        IdiomaSaida idioma,
+        IReadOnlyDictionary<string, string>? severidadesOverride)
+    {
+        if (metricasVolume.Count == 0)
+            return 0;
+
+        int totalAdicionados = 0;
+
+        var achadosPorTabela = resultado.Achados
+            .Where(a => !a.Escopo.StartsWith("OPERACIONAL.", StringComparison.OrdinalIgnoreCase))
+            .GroupBy(a => NomeTabelaDoEscopo(a.Escopo), StringComparer.OrdinalIgnoreCase)
+            .ToDictionary(g => g.Key, g => g.Count(), StringComparer.OrdinalIgnoreCase);
+
+        foreach (var metrica in metricasVolume.OrderByDescending(m => m.RegistrosEstimados).Take(20))
+        {
+            if (!achadosPorTabela.TryGetValue(metrica.Tabela, out int totalAchadosTabela))
+                continue;
+
+            if (totalAchadosTabela <= 0)
+                continue;
+
+            string? severidade = null;
+            string? codigo = null;
+
+            if (metrica.RegistrosEstimados >= 10_000_000 && totalAchadosTabela >= 3)
+            {
+                severidade = "high";
+                codigo = "OPERACIONAL_VOLUME_PRIORIDADE_ALTA";
+            }
+            else if (metrica.RegistrosEstimados >= 1_000_000 && totalAchadosTabela >= 2)
+            {
+                severidade = "medium";
+                codigo = "OPERACIONAL_VOLUME_PRIORIDADE_MEDIA";
+            }
+            else if (metrica.RegistrosEstimados >= 500_000)
+            {
+                severidade = "low";
+                codigo = "OPERACIONAL_VOLUME_PRIORIDADE_BAIXA";
+            }
+
+            if (severidade is null || codigo is null)
+                continue;
+
+            AdicionarAchado(
+                resultado,
+                severidade,
+                codigo,
+                metrica.Tabela,
+                FormatarDescricaoPrioridadeVolume(
+                    metrica.Tabela,
+                    metrica.RegistrosEstimados,
+                    totalAchadosTabela,
+                    codigo,
+                    idioma),
+                FormatarRecomendacaoPrioridadeVolume(
+                    metrica.Tabela,
+                    codigo,
+                    idioma),
+                severidadesOverride);
+            totalAdicionados++;
+        }
+
+        return totalAdicionados;
+    }
+
+    private static string FormatarDescricaoPrioridadeVolume(
+        string tabela,
+        long registrosEstimados,
+        int totalAchadosTabela,
+        string codigo,
+        IdiomaSaida idioma)
+    {
+        return codigo switch
+        {
+            "OPERACIONAL_VOLUME_PRIORIDADE_ALTA" => M(
+                idioma,
+                $"Table {tabela} has very high estimated volume ({registrosEstimados:N0} rows) and concentrated risk ({totalAchadosTabela} findings). Any regression here has high blast radius and can directly impact critical flows.",
+                $"Tabela {tabela} tem volume estimado muito alto ({registrosEstimados:N0} registros) e risco concentrado ({totalAchadosTabela} achados). Qualquer regressão aqui tem alto impacto e pode afetar diretamente fluxos críticos."),
+            "OPERACIONAL_VOLUME_PRIORIDADE_MEDIA" => M(
+                idioma,
+                $"Table {tabela} has relevant estimated volume ({registrosEstimados:N0} rows) with recurring risk ({totalAchadosTabela} findings). Incidents here tend to cause cumulative performance degradation and operational instability.",
+                $"Tabela {tabela} tem volume estimado relevante ({registrosEstimados:N0} registros) com risco recorrente ({totalAchadosTabela} achados). Problemas aqui tendem a gerar degradação cumulativa de performance e instabilidade operacional."),
+            _ => M(
+                idioma,
+                $"Table {tabela} has significant estimated volume ({registrosEstimados:N0} rows) with at least one structural finding ({totalAchadosTabela}). Isolated issues can become expensive over time due to high recurrence.",
+                $"Tabela {tabela} tem volume estimado significativo ({registrosEstimados:N0} registros) com pelo menos um achado estrutural ({totalAchadosTabela}). Problemas isolados podem se tornar caros ao longo do tempo pela alta recorrência.")
+        };
+    }
+
+    private static string FormatarRecomendacaoPrioridadeVolume(
+        string tabela,
+        string codigo,
+        IdiomaSaida idioma)
+    {
+        return codigo switch
+        {
+            "OPERACIONAL_VOLUME_PRIORIDADE_ALTA" => M(
+                idioma,
+                $"Treat {tabela} as immediate priority: review execution plans for the findings in this table, validate selective index coverage, and schedule remediation in the next release window.",
+                $"Trate {tabela} como prioridade imediata: revise planos de execução dos achados dessa tabela, valide cobertura de índices seletivos e programe correção na próxima janela de release."),
+            "OPERACIONAL_VOLUME_PRIORIDADE_MEDIA" => M(
+                idioma,
+                $"Put {tabela} in the short-term remediation queue: validate hottest queries, confirm index usefulness, and execute corrections before growth amplifies current risk.",
+                $"Coloque {tabela} na fila de correção de curto prazo: valide as consultas mais quentes, confirme utilidade dos índices e execute correções antes que o crescimento amplifique o risco atual."),
+            _ => M(
+                idioma,
+                $"Track {tabela} with planned remediation: confirm if the finding affects frequent queries and fix proactively to avoid latent cost escalation.",
+                $"Acompanhe {tabela} com correção planejada: confirme se o achado afeta consultas frequentes e corrija de forma preventiva para evitar aumento de custo latente.")
+        };
+    }
+
     private static int PesoSeveridade(string severidade)
     {
         return severidade switch
@@ -742,6 +910,40 @@ public static class AnalisadorDdlSchema
             "medium" => 2,
             _ => 1
         };
+    }
+
+    private static int CalcularScoreRisco(string severidade, string codigo)
+    {
+        int baseScore = severidade switch
+        {
+            "critical" => 90,
+            "high" => 70,
+            "medium" => 45,
+            _ => 25
+        };
+
+        int ajusteCodigo = codigo switch
+        {
+            "OPERACIONAL_VOLUME_PRIORIDADE_ALTA" => 10,
+            "OPERACIONAL_VOLUME_PRIORIDADE_MEDIA" => 8,
+            "OPERACIONAL_VOLUME_PRIORIDADE_BAIXA" => 5,
+            "FK_SEM_INDICE_COBERTURA" => 5,
+            "INDICE_REDUNDANTE_PREFIXO" => -5,
+            "INDICE_DUPLICADO" => -8,
+            "FK_DUPLICADA" => -8,
+            _ => 0
+        };
+
+        int score = baseScore + ajusteCodigo;
+        return Math.Max(0, Math.Min(100, score));
+    }
+
+    private static string CalcularPrioridade(int scoreRisco)
+    {
+        if (scoreRisco >= 85) return "P0";
+        if (scoreRisco >= 70) return "P1";
+        if (scoreRisco >= 45) return "P2";
+        return "P3";
     }
 
     private static (string ArquivoJson, string ArquivoHtml) ResolverArquivosSaida(OpcoesDdlAnalise opcoes)

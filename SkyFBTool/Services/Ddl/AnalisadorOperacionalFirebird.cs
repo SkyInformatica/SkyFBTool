@@ -159,6 +159,130 @@ public static class AnalisadorOperacionalFirebird
         return achados;
     }
 
+    public static async Task<DateTime?> ColetarDataUltimaManutencaoAsync(OpcoesDdlAnalise opcoes)
+    {
+        await using var conexao = FabricaConexaoFirebird.CriarConexao(
+            opcoes.Host,
+            opcoes.Porta,
+            opcoes.Database,
+            opcoes.Usuario,
+            opcoes.Senha,
+            opcoes.Charset);
+
+        await conexao.OpenAsync();
+        var metricas = await CarregarMetricasAsync(conexao);
+        return metricas.CreationDateUtc;
+    }
+
+    public static async Task<List<MetricaVolumeTabelaFirebird>> ColetarMetricasVolumeAsync(
+        OpcoesDdlAnalise opcoes,
+        bool usarCountExato = false,
+        int timeoutSegundos = 10)
+    {
+        await using var conexao = FabricaConexaoFirebird.CriarConexao(
+            opcoes.Host,
+            opcoes.Porta,
+            opcoes.Database,
+            opcoes.Usuario,
+            opcoes.Senha,
+            opcoes.Charset);
+
+        await conexao.OpenAsync();
+
+        var tabelas = new List<string>();
+        const string sqlTabelas = """
+                                  SELECT TRIM(r.rdb$relation_name) AS relation_name
+                                  FROM rdb$relations r
+                                  WHERE r.rdb$view_blr IS NULL
+                                    AND COALESCE(r.rdb$system_flag, 0) = 0
+                                  ORDER BY 1
+                                  """;
+
+        await using (var cmdTabelas = new FbCommand(sqlTabelas, conexao))
+        {
+            cmdTabelas.CommandTimeout = Math.Max(1, timeoutSegundos);
+            await using var readerTabelas = await cmdTabelas.ExecuteReaderAsync();
+            while (await readerTabelas.ReadAsync())
+                tabelas.Add(readerTabelas.GetString(0));
+        }
+
+        var resultado = new List<MetricaVolumeTabelaFirebird>();
+        if (tabelas.Count == 0)
+            return resultado;
+
+        if (usarCountExato)
+        {
+            foreach (string tabela in tabelas)
+            {
+                string nomeTabelaSql = EscaparIdentificadorSql(tabela);
+                string sqlCount = $"SELECT COUNT(*) FROM \"{nomeTabelaSql}\"";
+                await using var cmdCount = new FbCommand(sqlCount, conexao)
+                {
+                    CommandTimeout = Math.Max(1, timeoutSegundos)
+                };
+
+                object? valor = await cmdCount.ExecuteScalarAsync();
+                long registros = valor is null || valor == DBNull.Value ? 0L : Convert.ToInt64(valor);
+
+                resultado.Add(new MetricaVolumeTabelaFirebird
+                {
+                    Tabela = tabela,
+                    RegistrosEstimados = registros
+                });
+            }
+
+            return resultado;
+        }
+
+        const string sqlVolumeEstimadoPorIndice = """
+                                                  SELECT
+                                                      t.relation_name,
+                                                      COALESCE(
+                                                          CAST(ROUND(1 / NULLIF(MIN(
+                                                              CASE
+                                                                  WHEN i.rdb$unique_flag = 1 OR rc.rdb$constraint_type = 'PRIMARY KEY' THEN i.rdb$statistics
+                                                                  ELSE NULL
+                                                              END
+                                                          ), 0), 0) AS BIGINT),
+                                                          CAST(ROUND(1 / NULLIF(MIN(i.rdb$statistics), 0), 0) AS BIGINT),
+                                                          0
+                                                      ) AS estimated_rows
+                                                  FROM (
+                                                      SELECT TRIM(r.rdb$relation_name) AS relation_name
+                                                      FROM rdb$relations r
+                                                      WHERE r.rdb$view_blr IS NULL
+                                                        AND COALESCE(r.rdb$system_flag, 0) = 0
+                                                  ) t
+                                                  LEFT JOIN rdb$indices i
+                                                    ON TRIM(i.rdb$relation_name) = t.relation_name
+                                                   AND COALESCE(i.rdb$system_flag, 0) = 0
+                                                   AND i.rdb$expression_source IS NULL
+                                                   AND COALESCE(i.rdb$index_inactive, 0) = 0
+                                                  LEFT JOIN rdb$relation_constraints rc
+                                                    ON TRIM(rc.rdb$index_name) = TRIM(i.rdb$index_name)
+                                                  GROUP BY t.relation_name
+                                                  ORDER BY 2 DESC, 1
+                                                  """;
+
+        await using var cmd = new FbCommand(sqlVolumeEstimadoPorIndice, conexao)
+        {
+            CommandTimeout = Math.Max(1, timeoutSegundos)
+        };
+        await using var reader = await cmd.ExecuteReaderAsync();
+        while (await reader.ReadAsync())
+        {
+            string tabela = reader.GetString(0);
+            long estimado = ConverterParaLong(reader.GetValue(1));
+            resultado.Add(new MetricaVolumeTabelaFirebird
+            {
+                Tabela = tabela,
+                RegistrosEstimados = estimado
+            });
+        }
+
+        return resultado;
+    }
+
     private static async Task<MetricasOperacionaisFirebird> CarregarMetricasAsync(FbConnection conexao)
     {
         const string sqlDatabase = """
@@ -166,7 +290,8 @@ public static class AnalisadorOperacionalFirebird
                                        COALESCE(mon$oldest_transaction, 0) AS oit,
                                        COALESCE(mon$oldest_active, 0) AS oat,
                                        COALESCE(mon$oldest_snapshot, 0) AS ost,
-                                       COALESCE(mon$next_transaction, 0) AS nxt
+                                       COALESCE(mon$next_transaction, 0) AS nxt,
+                                       mon$creation_date AS creation_date
                                    FROM mon$database
                                    """;
 
@@ -188,6 +313,8 @@ public static class AnalisadorOperacionalFirebird
                 metricas.OldestActive = ConverterParaInt(reader.GetValue(1));
                 metricas.OldestSnapshot = ConverterParaInt(reader.GetValue(2));
                 metricas.NextTransaction = ConverterParaInt(reader.GetValue(3));
+                if (!reader.IsDBNull(4))
+                    metricas.CreationDateUtc = ConverterParaUtc(reader.GetValue(4));
             }
         }
 
@@ -223,6 +350,16 @@ public static class AnalisadorOperacionalFirebird
         return Convert.ToInt32(valor);
     }
 
+    private static long ConverterParaLong(object valor)
+    {
+        return Convert.ToInt64(Math.Round(Convert.ToDouble(valor), MidpointRounding.AwayFromZero));
+    }
+
+    private static string EscaparIdentificadorSql(string nome)
+    {
+        return nome.Replace("\"", "\"\"");
+    }
+
     private static DateTime ConverterParaUtc(object valor)
     {
         if (valor is DateTimeOffset dto)
@@ -247,6 +384,7 @@ public sealed class MetricasOperacionaisFirebird
     public int OldestSnapshot { get; set; }
     public int NextTransaction { get; set; }
     public DateTime? MinTimestampTransacaoAtivaUtc { get; set; }
+    public DateTime? CreationDateUtc { get; set; }
 }
 
 public sealed class AchadoOperacionalDdl
@@ -256,4 +394,10 @@ public sealed class AchadoOperacionalDdl
     public string Escopo { get; set; } = string.Empty;
     public string Descricao { get; set; } = string.Empty;
     public string Recomendacao { get; set; } = string.Empty;
+}
+
+public sealed class MetricaVolumeTabelaFirebird
+{
+    public string Tabela { get; set; } = string.Empty;
+    public long RegistrosEstimados { get; set; }
 }

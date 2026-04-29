@@ -13,6 +13,7 @@
     .pill { border: 1px solid #d1d5db; border-radius: 12px; padding: 8px 10px; background: #f9fafb; font-size: 13px; }
     .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 8px 0 16px; }
     .card { border: 1px solid #e5e7eb; border-radius: 10px; background: #fff; padding: 10px; }
+    .summary-scroll { max-height: 320px; overflow: auto; border: 1px solid #eef2f7; border-radius: 8px; }
     .toolbar { display: flex; gap: 10px; flex-wrap: wrap; margin: 8px 0 10px; align-items: center; }
     .toolbar input, .toolbar select { padding: 6px 8px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 13px; }
     .count { font-size: 13px; color: #374151; }
@@ -49,6 +50,10 @@
     <div><strong>{{ DescriptionLabel }}:</strong> {{ Description }}</div>
     {{ end }}
     <div><strong>{{ GeradoEmLabel }}:</strong> {{ GeradoEm }}</div>
+    {{ if TemUltimaManutencao }}
+    <div><strong>{{ UltimaManutencaoLabel }}:</strong> {{ UltimaManutencao }} <span title="{{ FonteUltimaManutencao }}">({{ FonteUltimaManutencao }})</span></div>
+    {{ end }}
+    <div><strong>{{ AnaliseVolumeLabel }}:</strong> {{ AnaliseVolumeResumo }}</div>
   </div>
   <div class="kpi">
     <div class="pill"><strong>{{ TotalLabel }}:</strong> {{ TotalAchados }}</div>
@@ -76,6 +81,7 @@
   <div class="grid">
     <div class="card">
       <h2>{{ ResumoCodigoLabel }}</h2>
+      <div class="summary-scroll">
       <table><thead><tr>
         <th>{{ CodigoLabel }}</th><th>{{ QtdLabel }}</th><th>{{ PctLabel }}</th>
       </tr></thead><tbody>
@@ -86,19 +92,22 @@
         <tr><td colspan="3">{{ SemAchadosLabel }}</td></tr>
         {{ end }}
       </tbody></table>
+      </div>
     </div>
     <div class="card">
       <h2>{{ ResumoTabelaLabel }}</h2>
+      <div class="summary-scroll">
       <table><thead><tr>
-        <th>{{ EscopoLabel }}</th><th>{{ QtdLabel }}</th><th>{{ PctLabel }}</th>
+        <th>{{ EscopoLabel }}</th><th>{{ PrioridadeLabel }}</th><th>{{ IndiceRiscoLabel }}</th><th>{{ QtdLabel }}</th>
       </tr></thead><tbody>
-        {{ for item in ResumoTabelaTop }}
-        <tr><td>{{ item.Chave }}</td><td>{{ item.Quantidade }}</td><td>{{ item.Percentual }}</td></tr>
+        {{ for item in ResumoTabelaRiscoTop }}
+        <tr><td>{{ item.Tabela }}</td><td>{{ item.Prioridade }}</td><td>{{ item.IndiceRisco }}</td><td>{{ item.Quantidade }}</td></tr>
         {{ end }}
-        {{ if ResumoTabelaTop.size == 0 }}
-        <tr><td colspan="3">{{ SemAchadosLabel }}</td></tr>
+        {{ if ResumoTabelaRiscoTop.size == 0 }}
+        <tr><td colspan="4">{{ SemAchadosLabel }}</td></tr>
         {{ end }}
       </tbody></table>
+      </div>
     </div>
   </div>
   {{ if PossuiAchados }}

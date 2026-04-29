@@ -59,6 +59,42 @@ public static class DdlAnalyzeCommand
                 case "description":
                     op.Descricao = CliArgumentParser.LerValorOpcao(args, ref i, chave);
                     break;
+                case "volume-analysis":
+                    string valorVolume = CliArgumentParser.LerValorOpcao(args, ref i, chave);
+                    if (valorVolume.Equals("on", StringComparison.OrdinalIgnoreCase))
+                    {
+                        op.AnaliseVolumeHabilitada = true;
+                    }
+                    else if (valorVolume.Equals("off", StringComparison.OrdinalIgnoreCase))
+                    {
+                        op.AnaliseVolumeHabilitada = false;
+                    }
+                    else
+                    {
+                        throw new ArgumentException(M(
+                            idioma,
+                            "Invalid value for --volume-analysis. Use on or off.",
+                            "Valor inválido para --volume-analysis. Use on ou off."));
+                    }
+                    break;
+                case "volume-count-exact":
+                    string valorCountExato = CliArgumentParser.LerValorOpcao(args, ref i, chave);
+                    if (valorCountExato.Equals("on", StringComparison.OrdinalIgnoreCase))
+                    {
+                        op.AnaliseVolumeCountExato = true;
+                    }
+                    else if (valorCountExato.Equals("off", StringComparison.OrdinalIgnoreCase))
+                    {
+                        op.AnaliseVolumeCountExato = false;
+                    }
+                    else
+                    {
+                        throw new ArgumentException(M(
+                            idioma,
+                            "Invalid value for --volume-count-exact. Use on or off.",
+                            "Valor inválido para --volume-count-exact. Use on ou off."));
+                    }
+                    break;
                 default:
                     throw new ArgumentException(M(
                         idioma,
@@ -131,6 +167,8 @@ public static class DdlAnalyzeCommand
             Saida = ResolverSaidaPorBanco(baseOp.Saida, banco),
             ArquivoConfiguracaoSeveridade = baseOp.ArquivoConfiguracaoSeveridade,
             Descricao = baseOp.Descricao,
+            AnaliseVolumeHabilitada = baseOp.AnaliseVolumeHabilitada,
+            AnaliseVolumeCountExato = baseOp.AnaliseVolumeCountExato,
             PrefixosTabelaIgnorados = [.. baseOp.PrefixosTabelaIgnorados]
         };
     }

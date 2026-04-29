@@ -5,6 +5,13 @@ public class ResultadoAnaliseDdl
     public string Origem { get; set; } = string.Empty;
     public string Description { get; set; } = string.Empty;
     public DateTime GeradoEmUtc { get; set; } = DateTime.UtcNow;
+    public DateTime? DataUltimaManutencaoUtc { get; set; }
+    public string FonteDataUltimaManutencao { get; set; } = string.Empty;
+    public bool AnaliseVolumeHabilitada { get; set; } = true;
+    public string StatusAnaliseVolume { get; set; } = "not_applicable";
+    public string ErroAnaliseVolume { get; set; } = string.Empty;
+    public int TabelasLidasAnaliseVolume { get; set; }
+    public int AchadosGeradosAnaliseVolume { get; set; }
     public int TotalTabelas { get; set; }
     public int TotalAchados { get; set; }
     public int TotalCriticos { get; set; }
@@ -19,6 +26,8 @@ public class ResultadoAnaliseDdl
 public class AchadoAnaliseDdl
 {
     public string Severidade { get; set; } = "low";
+    public int ScoreRisco { get; set; }
+    public string Prioridade { get; set; } = "P3";
     public string Codigo { get; set; } = string.Empty;
     public string Escopo { get; set; } = string.Empty;
     public string Descricao { get; set; } = string.Empty;

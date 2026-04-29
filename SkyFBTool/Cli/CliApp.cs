@@ -196,6 +196,8 @@ OPCOES:
   --ignore-table-prefixes L  Ignora prefixos separados por virgula
   --severity-config ARQ.JSON Sobrescreve severidade por codigo de achado
   --description TEXTO        Description text included in JSON/HTML report
+  --volume-analysis MODO     on (padrao) | off
+  --volume-count-exact MODO  on | off (padrao: off; on executa COUNT(*) por tabela)
 
 SAIDA:
   <prefixo>.json             Achados estruturados

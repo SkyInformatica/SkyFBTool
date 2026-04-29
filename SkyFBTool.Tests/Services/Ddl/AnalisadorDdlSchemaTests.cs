@@ -222,7 +222,7 @@ public class AnalisadorDdlSchemaTests
         var achado = Assert.Single(resultado.Achados.Where(a =>
             a.Codigo == "INDICE_DUPLICADO" &&
             a.Severidade == "low"));
-        Assert.Contains("Signature: N|A|DATA", achado.Descricao);
+        Assert.Contains("Signature: NON-UNIQUE, ASC, (DATA)", achado.Descricao);
     }
 
     [Fact]
@@ -269,9 +269,12 @@ public class AnalisadorDdlSchemaTests
 
         var resultado = AnalisadorDdlSchema.Analisar(snapshot);
 
-        Assert.Contains(resultado.Achados, a =>
+        var achado = Assert.Single(resultado.Achados.Where(a =>
             a.Codigo == "INDICE_REDUNDANTE_PREFIXO" &&
-            a.Severidade == "medium");
+            a.Severidade == "medium"));
+        Assert.Contains("IDX_MOV_DATA (NON-UNIQUE, ASC, (DATA))", achado.Descricao);
+        Assert.Contains("IDX_MOV_DATA_TIPO (NON-UNIQUE, ASC, (DATA, TIPO))", achado.Descricao);
+        Assert.Contains("prefix (DATA)", achado.Descricao);
     }
 
     [Fact]

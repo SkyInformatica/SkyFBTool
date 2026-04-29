@@ -14,4 +14,6 @@ public class OpcoesDdlAnalise
     public List<string> PrefixosTabelaIgnorados { get; set; } = [];
     public string? ArquivoConfiguracaoSeveridade { get; set; }
     public string? Descricao { get; set; }
+    public bool AnaliseVolumeHabilitada { get; set; } = true;
+    public bool AnaliseVolumeCountExato { get; set; }
 }

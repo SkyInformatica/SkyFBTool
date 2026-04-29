@@ -20,10 +20,7 @@ public static class RenderizadorHtmlAnaliseDdl
             .Take(10)
             .Select(MapearResumo)
             .ToList();
-        var resumoTabelaTop = resultado.ResumoPorTabela
-            .Take(10)
-            .Select(MapearResumo)
-            .ToList();
+        var resumoTabelaRiscoTop = CriarResumoRiscoPorTabela(resultado);
 
         return new ModeloRelatorio
         {
@@ -37,6 +34,12 @@ public static class RenderizadorHtmlAnaliseDdl
             HasDescription = !string.IsNullOrWhiteSpace(resultado.Description),
             GeradoEmLabel = M(idioma, "Generated at (UTC)", "Gerado em (UTC)"),
             GeradoEm = resultado.GeradoEmUtc.ToString("yyyy-MM-dd HH:mm:ss"),
+            UltimaManutencaoLabel = M(idioma, "Last maintenance (estimated, UTC)", "Última manutenção (estimada, UTC)"),
+            UltimaManutencao = resultado.DataUltimaManutencaoUtc?.ToString("yyyy-MM-dd HH:mm:ss") ?? string.Empty,
+            FonteUltimaManutencao = H(resultado.FonteDataUltimaManutencao),
+            TemUltimaManutencao = resultado.DataUltimaManutencaoUtc is not null,
+            AnaliseVolumeLabel = M(idioma, "Volume analysis", "Análise de volume"),
+            AnaliseVolumeResumo = H(FormatarResumoAnaliseVolume(resultado, idioma)),
             TotalLabel = M(idioma, "Total findings", "Total de achados"),
             CriticosLabel = M(idioma, "Critical", "Críticos"),
             AltosLabel = M(idioma, "High", "Altos"),
@@ -48,10 +51,13 @@ public static class RenderizadorHtmlAnaliseDdl
             TotalMedios = resultado.TotalMedios,
             TotalBaixos = resultado.TotalBaixos,
             ResumoCodigoLabel = M(idioma, "Summary by finding type", "Resumo por tipo de achado"),
-            ResumoTabelaLabel = M(idioma, "Top tables with findings", "Top tabelas com achados"),
+            ResumoTabelaLabel = M(idioma, "Tables prioritized for remediation", "Tabelas priorizadas para correção"),
             QtdLabel = M(idioma, "Count", "Qtde"),
             PctLabel = "%",
             CodigoLabel = M(idioma, "Code", "Código"),
+            PrioridadeLabel = M(idioma, "Priority", "Prioridade"),
+            ScoreRiscoLabel = M(idioma, "Risk score", "Score de risco"),
+            IndiceRiscoLabel = M(idioma, "Risk index", "Índice de risco"),
             EscopoLabel = M(idioma, "Scope", "Escopo"),
             DescricaoLabel = M(idioma, "Description", "Descrição"),
             RecomendacaoLabel = M(idioma, "Recommendation", "Recomendação"),
@@ -74,11 +80,13 @@ public static class RenderizadorHtmlAnaliseDdl
             Severidades = CriarSeveridades(idioma),
             CriteriosSeveridade = CriarCriteriosSeveridade(idioma),
             ResumoCodigoTop = resumoCodigoTop,
-            ResumoTabelaTop = resumoTabelaTop,
+            ResumoTabelaRiscoTop = resumoTabelaRiscoTop,
             Achados = resultado.Achados.Select(a => new AchadoModelo
             {
                 SeveridadeValor = a.Severidade,
                 SeveridadeRotulo = H(SeveridadeRotulo(a.Severidade, idioma)),
+                Prioridade = H(a.Prioridade),
+                ScoreRisco = a.ScoreRisco,
                 Codigo = H(a.Codigo),
                 Escopo = H(a.Escopo),
                 Descricao = H(a.Descricao),
@@ -168,6 +176,48 @@ public static class RenderizadorHtmlAnaliseDdl
         };
     }
 
+    private static List<ResumoTabelaRiscoModelo> CriarResumoRiscoPorTabela(ResultadoAnaliseDdl resultado)
+    {
+        return resultado.Achados
+            .GroupBy(a => NomeTabelaDoEscopo(a.Escopo), StringComparer.OrdinalIgnoreCase)
+            .Select(g =>
+            {
+                int quantidade = g.Count();
+                int maxScore = g.Max(a => a.ScoreRisco);
+                double mediaScore = g.Average(a => a.ScoreRisco);
+                int bonusQuantidade = Math.Min(10, quantidade);
+                int indiceRisco = Math.Min(100, (int)Math.Round((maxScore * 0.5) + (mediaScore * 0.4) + bonusQuantidade));
+                return new ResumoTabelaRiscoModelo
+                {
+                    Tabela = H(g.Key),
+                    Quantidade = quantidade,
+                    IndiceRisco = indiceRisco,
+                    Prioridade = H(CalcularPrioridade(indiceRisco))
+                };
+            })
+            .OrderByDescending(i => i.IndiceRisco)
+            .ThenByDescending(i => i.Quantidade)
+            .ThenBy(i => i.Tabela, StringComparer.OrdinalIgnoreCase)
+            .ToList();
+    }
+
+    private static string NomeTabelaDoEscopo(string escopo)
+    {
+        if (string.IsNullOrWhiteSpace(escopo))
+            return "?";
+
+        int idx = escopo.IndexOf('.');
+        return idx < 0 ? escopo : escopo[..idx];
+    }
+
+    private static string CalcularPrioridade(int scoreRisco)
+    {
+        if (scoreRisco >= 85) return "P0";
+        if (scoreRisco >= 70) return "P1";
+        if (scoreRisco >= 45) return "P2";
+        return "P3";
+    }
+
     private static string SeveridadeRotulo(string severidade, IdiomaSaida idioma)
     {
         if (idioma != IdiomaSaida.PortugueseBrazil)
@@ -196,6 +246,27 @@ public static class RenderizadorHtmlAnaliseDdl
     private static string M(IdiomaSaida idioma, string english, string portuguese)
     {
         return idioma == IdiomaSaida.PortugueseBrazil ? portuguese : english;
+    }
+
+    private static string FormatarStatusAnaliseVolume(ResultadoAnaliseDdl resultado, IdiomaSaida idioma)
+    {
+        return resultado.StatusAnaliseVolume switch
+        {
+            "executed" => M(idioma, $"executed ({resultado.TabelasLidasAnaliseVolume} tables, {resultado.AchadosGeradosAnaliseVolume} findings)", $"executada ({resultado.TabelasLidasAnaliseVolume} tabelas, {resultado.AchadosGeradosAnaliseVolume} achados)"),
+            "disabled" => M(idioma, "disabled", "desabilitada"),
+            "failed" => M(idioma, "failed", "falhou"),
+            "pending" => M(idioma, "pending", "pendente"),
+            _ => M(idioma, "not applicable", "não aplicável")
+        };
+    }
+
+    private static string FormatarResumoAnaliseVolume(ResultadoAnaliseDdl resultado, IdiomaSaida idioma)
+    {
+        string status = FormatarStatusAnaliseVolume(resultado, idioma);
+        if (resultado.StatusAnaliseVolume == "failed" && !string.IsNullOrWhiteSpace(resultado.ErroAnaliseVolume))
+            return $"{status}. {resultado.ErroAnaliseVolume}";
+
+        return status;
     }
 
     private static Template CriarTemplate()
@@ -228,6 +299,12 @@ public static class RenderizadorHtmlAnaliseDdl
         public bool HasDescription { get; init; }
         public string GeradoEmLabel { get; init; } = string.Empty;
         public string GeradoEm { get; init; } = string.Empty;
+        public string UltimaManutencaoLabel { get; init; } = string.Empty;
+        public string UltimaManutencao { get; init; } = string.Empty;
+        public string FonteUltimaManutencao { get; init; } = string.Empty;
+        public bool TemUltimaManutencao { get; init; }
+        public string AnaliseVolumeLabel { get; init; } = string.Empty;
+        public string AnaliseVolumeResumo { get; init; } = string.Empty;
         public string TotalLabel { get; init; } = string.Empty;
         public string CriticosLabel { get; init; } = string.Empty;
         public string AltosLabel { get; init; } = string.Empty;
@@ -243,6 +320,9 @@ public static class RenderizadorHtmlAnaliseDdl
         public string QtdLabel { get; init; } = string.Empty;
         public string PctLabel { get; init; } = "%";
         public string CodigoLabel { get; init; } = string.Empty;
+        public string PrioridadeLabel { get; init; } = string.Empty;
+        public string ScoreRiscoLabel { get; init; } = string.Empty;
+        public string IndiceRiscoLabel { get; init; } = string.Empty;
         public string EscopoLabel { get; init; } = string.Empty;
         public string DescricaoLabel { get; init; } = string.Empty;
         public string RecomendacaoLabel { get; init; } = string.Empty;
@@ -265,7 +345,7 @@ public static class RenderizadorHtmlAnaliseDdl
         public List<SeveridadeModelo> Severidades { get; init; } = [];
         public List<CriterioSeveridadeModelo> CriteriosSeveridade { get; init; } = [];
         public List<ResumoModelo> ResumoCodigoTop { get; init; } = [];
-        public List<ResumoModelo> ResumoTabelaTop { get; init; } = [];
+        public List<ResumoTabelaRiscoModelo> ResumoTabelaRiscoTop { get; init; } = [];
         public List<AchadoModelo> Achados { get; init; } = [];
     }
 
@@ -282,6 +362,14 @@ public static class RenderizadorHtmlAnaliseDdl
         public string Rotulo { get; init; } = string.Empty;
     }
 
+    private sealed class ResumoTabelaRiscoModelo
+    {
+        public string Tabela { get; init; } = string.Empty;
+        public int Quantidade { get; init; }
+        public int IndiceRisco { get; init; }
+        public string Prioridade { get; init; } = string.Empty;
+    }
+
     private sealed class CriterioSeveridadeModelo
     {
         public string Classe { get; init; } = string.Empty;
@@ -294,6 +382,8 @@ public static class RenderizadorHtmlAnaliseDdl
     {
         public string SeveridadeValor { get; init; } = string.Empty;
         public string SeveridadeRotulo { get; init; } = string.Empty;
+        public string Prioridade { get; init; } = string.Empty;
+        public int ScoreRisco { get; init; }
         public string Codigo { get; init; } = string.Empty;
         public string Escopo { get; init; } = string.Empty;
         public string Descricao { get; init; } = string.Empty;
