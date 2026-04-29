@@ -7,6 +7,8 @@ Analyzes schema structural risk and generates:
 - batch consolidated summary (`batch_analysis_summary_*.json/.html`) in batch mode
 
 When used with `--database`, it also runs operational checks from Firebird monitoring tables (`MON$`) and adds findings to the same report.
+In DB mode, it uses lightweight index-based table volume estimates to prioritize findings by impact.
+In DB mode, report metadata also includes an estimated last maintenance timestamp from `MON$DATABASE.MON$CREATION_DATE` (database creation/last restore).
 
 It also detects index redundancy by prefix (for example, `(A)` potentially redundant when `(A,B)` already exists with same direction).
 
@@ -32,11 +34,14 @@ SkyFBTool ddl-analyze --databases-batch "C:\data\*.fdb" --output DIRECTORY [opti
 - `--ignore-table-prefixes`: comma-separated ignore prefixes.
 - `--severity-config`: severity override JSON.
 - `--description`: free text included in JSON/HTML report metadata.
+- `--volume-analysis`: `on` (default) or `off` for volume-priority SQL analysis.
+- `--volume-count-exact`: `on` or `off` (default: `off`). When `on`, runs exact `COUNT(*)` per table instead of index-based estimate.
 
 ## Rules
 - Use only one input mode: file (`--input/--source`) or single DB (`--database`) or batch (`--databases-batch`).
 - `--database` does not accept wildcard; wildcard mode is `--databases-batch`.
 - Operational checks are available only in DB mode (`--database`), not in file mode (`--input/--source`).
+- Volume estimation is best-effort in DB mode; if it fails or times out, analysis continues without volume-priority findings.
 
 ## Examples
 ```powershell
@@ -44,7 +49,7 @@ SkyFBTool ddl-analyze --input "C:\ddl\source.schema.json" --output "C:\ddl\analy
 SkyFBTool ddl-analyze --database "C:\data\source.fdb" --output "C:\ddl\analysis_from_db"
 SkyFBTool ddl-analyze --databases-batch "C:\data\*.fdb" --output "C:\ddl\analysis_batch\"
 SkyFBTool ddl-analyze --input "C:\ddl\source.sql" --ignore-table-prefix LOG_ --ignore-table-prefixes TMP_,IBE$ --severity-config ".\docs\examples\ddl-severity.sample.json" --output "C:\ddl\analysis_custom"
-SkyFBTool ddl-analyze --input "C:\ddl\source.schema.json" --description "analysis performed on customer Ubirici database" --output "C:\ddl\analysis_with_context"
+SkyFBTool ddl-analyze --input "C:\ddl\source.schema.json" --description "analysis on XYZ database" --output "C:\ddl\analysis_with_context"
 ```
 
 ## Report examples

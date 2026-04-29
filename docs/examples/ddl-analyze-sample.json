@@ -1,7 +1,9 @@
 {
   "Origem": "D:\\Projetos\\SkyFBTool\\docs\\examples\\ddl-analyze-sample-input.sql",
   "Description": "",
-  "GeradoEmUtc": "2026-04-28T23:29:56.3221005Z",
+  "GeradoEmUtc": "2026-04-29T02:04:36.6469223Z",
+  "DataUltimaManutencaoUtc": null,
+  "FonteDataUltimaManutencao": "",
   "TotalTabelas": 2,
   "TotalAchados": 3,
   "TotalCriticos": 0,

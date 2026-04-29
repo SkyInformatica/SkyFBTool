@@ -84,7 +84,7 @@ SkyFBTool ddl-analyze --input "C:\ddl\source.schema.json" --ignore-table-prefix 
 SkyFBTool ddl-analyze --database "C:\data\source.fdb" --output "C:\ddl\analysis_from_db"
 SkyFBTool ddl-analyze --databases-batch "C:\data\*.fdb" --output "C:\ddl\analysis_batch\"
 SkyFBTool ddl-analyze --input "C:\ddl\source.schema.json" --severity-config ".\docs\examples\ddl-severity.sample.json"
-SkyFBTool ddl-analyze --input "C:\ddl\source.schema.json" --description "analysis performed on customer Ubirici database" --output "C:\ddl\analysis_with_context"
+SkyFBTool ddl-analyze --input "C:\ddl\source.schema.json" --description "analysis on XYZ database" --output "C:\ddl\analysis_with_context"
 ```
 
 Notes:
@@ -101,6 +101,8 @@ Notes:
 - `ddl-analyze` accepts `--ignore-table-prefix` (repeatable) and `--ignore-table-prefixes` (comma-separated list) to suppress technical-table noise.
 - `ddl-analyze` accepts `--severity-config` to override severity by finding code.
 - `ddl-analyze` accepts `--description` to include contextual text in JSON and HTML report metadata.
+- `ddl-analyze` supports `--volume-analysis on|off` (default `on`) to enable/disable volume-priority analysis.
+- `ddl-analyze` uses index-based volume estimation by default and executes exact `COUNT(*)` only when `--volume-count-exact on` is explicitly set.
 - Use `docs/examples/ddl-severity.sample.json` as the reference schema (it covers all current finding codes).
 - Reproducible `ddl-analyze` sample outputs: `docs/examples/ddl-analyze-sample*.{sql,json,html}`.
 - Accepted severity values: `critical`, `high`, `medium`, `low`.

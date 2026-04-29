@@ -1,12 +1,14 @@
 {
   "Origem": "D:\\Projetos\\SkyFBTool\\docs\\examples\\ddl-analyze-sample-rich-input.sql",
   "Description": "",
-  "GeradoEmUtc": "2026-04-28T23:30:06.9008097Z",
+  "GeradoEmUtc": "2026-04-29T02:04:36.707956Z",
+  "DataUltimaManutencaoUtc": null,
+  "FonteDataUltimaManutencao": "",
   "TotalTabelas": 4,
-  "TotalAchados": 21,
+  "TotalAchados": 16,
   "TotalCriticos": 6,
   "TotalAltos": 6,
-  "TotalMedios": 7,
+  "TotalMedios": 2,
   "TotalBaixos": 2,
   "Achados": [
     {
@@ -95,41 +97,6 @@
     },
     {
       "Severidade": "medium",
-      "Codigo": "FK_SEM_INDICE_COBERTURA",
-      "Escopo": "ITENS_PEDIDO.FK_ITEM_PEDIDO",
-      "Descricao": "FK FK_ITEM_PEDIDO n\u00E3o possui \u00EDndice local de cobertura. Tabela filha: ITENS_PEDIDO (PEDIDO_ID). Tabela pai: PEDIDOS (ID).",
-      "Recomendacao": "Crie um \u00EDndice na tabela filha ITENS_PEDIDO usando as colunas da FK (PEDIDO_ID), preservando a ordem da FK."
-    },
-    {
-      "Severidade": "medium",
-      "Codigo": "FK_SEM_INDICE_COBERTURA",
-      "Escopo": "PEDIDOS.FK_PEDIDOS_CARD",
-      "Descricao": "FK FK_PEDIDOS_CARD n\u00E3o possui \u00EDndice local de cobertura. Tabela filha: PEDIDOS (CLIENTE_ID_AUX). Tabela pai: CLIENTES (ID, NOME).",
-      "Recomendacao": "Crie um \u00EDndice na tabela filha PEDIDOS usando as colunas da FK (CLIENTE_ID_AUX), preservando a ordem da FK."
-    },
-    {
-      "Severidade": "medium",
-      "Codigo": "FK_SEM_INDICE_COBERTURA",
-      "Escopo": "PEDIDOS.FK_PEDIDOS_LOCAL_MISSING",
-      "Descricao": "FK FK_PEDIDOS_LOCAL_MISSING n\u00E3o possui \u00EDndice local de cobertura. Tabela filha: PEDIDOS (CLIENTE_INEXISTENTE). Tabela pai: CLIENTES (ID).",
-      "Recomendacao": "Crie um \u00EDndice na tabela filha PEDIDOS usando as colunas da FK (CLIENTE_INEXISTENTE), preservando a ordem da FK."
-    },
-    {
-      "Severidade": "medium",
-      "Codigo": "FK_SEM_INDICE_COBERTURA",
-      "Escopo": "PEDIDOS.FK_PEDIDOS_REF_COLUMN_MISSING",
-      "Descricao": "FK FK_PEDIDOS_REF_COLUMN_MISSING n\u00E3o possui \u00EDndice local de cobertura. Tabela filha: PEDIDOS (CLIENTE_ID_AUX). Tabela pai: CLIENTES (ID_X).",
-      "Recomendacao": "Crie um \u00EDndice na tabela filha PEDIDOS usando as colunas da FK (CLIENTE_ID_AUX), preservando a ordem da FK."
-    },
-    {
-      "Severidade": "medium",
-      "Codigo": "FK_SEM_INDICE_COBERTURA",
-      "Escopo": "PEDIDOS.FK_PEDIDOS_REF_TABLE_MISSING",
-      "Descricao": "FK FK_PEDIDOS_REF_TABLE_MISSING n\u00E3o possui \u00EDndice local de cobertura. Tabela filha: PEDIDOS (CLIENTE_ID_AUX). Tabela pai: CLIENTES_X (ID).",
-      "Recomendacao": "Crie um \u00EDndice na tabela filha PEDIDOS usando as colunas da FK (CLIENTE_ID_AUX), preservando a ordem da FK."
-    },
-    {
-      "Severidade": "medium",
       "Codigo": "INDICE_REDUNDANTE_PREFIXO",
       "Escopo": "PEDIDOS",
       "Descricao": "\u00CDndice IND_PEDIDOS_CLIENTE_A pode ser redundante porque IND_PEDIDOS_CLIENTE_VALOR j\u00E1 cobre seu prefixo.",
@@ -159,96 +126,91 @@
   ],
   "ResumoPorCodigo": [
     {
-      "Chave": "FK_SEM_INDICE_COBERTURA",
-      "Quantidade": 5,
-      "Percentual": 23.81
-    },
-    {
       "Chave": "TABELA_SEM_PK",
       "Quantidade": 3,
-      "Percentual": 14.29
+      "Percentual": 18.75
     },
     {
       "Chave": "INDICE_REDUNDANTE_PREFIXO",
       "Quantidade": 2,
-      "Percentual": 9.52
+      "Percentual": 12.5
     },
     {
       "Chave": "FK_CARDINALIDADE_INVALIDA",
       "Quantidade": 1,
-      "Percentual": 4.76
+      "Percentual": 6.25
     },
     {
       "Chave": "FK_COLUNA_LOCAL_INEXISTENTE",
       "Quantidade": 1,
-      "Percentual": 4.76
+      "Percentual": 6.25
     },
     {
       "Chave": "FK_COLUNA_REFERENCIA_INEXISTENTE",
       "Quantidade": 1,
-      "Percentual": 4.76
+      "Percentual": 6.25
     },
     {
       "Chave": "FK_DUPLICADA",
       "Quantidade": 1,
-      "Percentual": 4.76
+      "Percentual": 6.25
     },
     {
       "Chave": "FK_TABELA_REFERENCIA_INEXISTENTE",
       "Quantidade": 1,
-      "Percentual": 4.76
+      "Percentual": 6.25
     },
     {
       "Chave": "INDICE_COLUNA_INEXISTENTE",
       "Quantidade": 1,
-      "Percentual": 4.76
+      "Percentual": 6.25
     },
     {
       "Chave": "INDICE_DUPLICADO",
       "Quantidade": 1,
-      "Percentual": 4.76
+      "Percentual": 6.25
     },
     {
       "Chave": "INDICE_SEM_COLUNAS",
       "Quantidade": 1,
-      "Percentual": 4.76
+      "Percentual": 6.25
     },
     {
       "Chave": "PK_REFERENCIA_COLUNA_INEXISTENTE",
       "Quantidade": 1,
-      "Percentual": 4.76
+      "Percentual": 6.25
     },
     {
       "Chave": "TABELA_SEM_COLUNAS",
       "Quantidade": 1,
-      "Percentual": 4.76
+      "Percentual": 6.25
     },
     {
       "Chave": "TIPO_DESCONHECIDO",
       "Quantidade": 1,
-      "Percentual": 4.76
+      "Percentual": 6.25
     }
   ],
   "ResumoPorTabela": [
     {
       "Chave": "PEDIDOS",
-      "Quantidade": 15,
-      "Percentual": 71.43
+      "Quantidade": 11,
+      "Percentual": 68.75
     },
     {
       "Chave": "CLIENTES",
       "Quantidade": 2,
-      "Percentual": 9.52
-    },
-    {
-      "Chave": "ITENS_PEDIDO",
-      "Quantidade": 2,
-      "Percentual": 9.52
+      "Percentual": 12.5
     },
     {
       "Chave": "LOG_EVENTOS",
       "Quantidade": 2,
-      "Percentual": 9.52
+      "Percentual": 12.5
+    },
+    {
+      "Chave": "ITENS_PEDIDO",
+      "Quantidade": 1,
+      "Percentual": 6.25
     }
   ]
 }

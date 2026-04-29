@@ -42,6 +42,9 @@ Este documento descreve, de forma precisa, quais validações o `ddl-analyze` ex
 | `INDICE_DUPLICADO` | `low` | Índices com mesma assinatura funcional | Mesma assinatura (`U/N`, `A/D`, lista ordenada de colunas) |
 | `INDICE_REDUNDANTE_PREFIXO` | `medium` | Índice possivelmente redundante por prefixo | Índice curto é prefixo de índice maior, mesma direção, ambos não únicos |
 | `FK_DUPLICADA` | `low` | FKs com mesma assinatura funcional | Mesma assinatura (colunas locais, tabela/colunas referência, regras update/delete) |
+| `OPERACIONAL_VOLUME_PRIORIDADE_ALTA` | `high` | Tabela de alto volume com achados concentrados | Registros estimados >= 10.000.000 e achados na tabela >= 3 |
+| `OPERACIONAL_VOLUME_PRIORIDADE_MEDIA` | `medium` | Tabela de volume relevante com achados recorrentes | Registros estimados >= 1.000.000 e achados na tabela >= 2 |
+| `OPERACIONAL_VOLUME_PRIORIDADE_BAIXA` | `low` | Tabela de volume intermediário com achados | Registros estimados >= 500.000 e achados na tabela >= 1 |
 
 ## Matriz de validações operacionais (`MON$`) - apenas `--database`
 
@@ -109,3 +112,4 @@ Este documento descreve, de forma precisa, quais validações o `ddl-analyze` ex
 - No modo `--input/--source`, não há coleta de `MON$`; portanto, os códigos `OPERACIONAL_*` não aparecem.
 - Se a coleta operacional falhar no modo `--database` (permissão/acesso/erro de consulta), a análise estrutural continua e o relatório é gerado sem os achados `OPERACIONAL_*`.
 - `FK_SEM_INDICE_COBERTURA` não é emitido quando a FK já possui índice de suporte vinculado à constraint (por exemplo, `RDB$RELATION_CONSTRAINTS.RDB$INDEX_NAME` no modo por banco, ou índice equivalente no modo por snapshot SQL).
+- Achados de prioridade por volume são emitidos apenas no modo por banco e usam estimativa por índice como padrão (coleta best-effort); `COUNT(*)` exato é opcional via `--volume-count-exact on`.

@@ -9,6 +9,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- `ddl-analyze` now supports `--volume-analysis on|off` (default: `on`) to explicitly enable/disable SQL-based volume-priority analysis.
+- `ddl-analyze` now supports `--volume-count-exact on|off` (default: `off`) to optionally run exact `COUNT(*)` per table for volume analysis.
+- `ddl-analyze --database` report metadata now includes estimated last maintenance timestamp from `MON$DATABASE.MON$CREATION_DATE` (database creation/last restore).
+
+### Changed
+- `FK_SEM_INDICE_COBERTURA` findings now include richer context in report text (child table/columns and parent table/columns).
+- `INDICE_DUPLICADO` findings now include the computed index signature to make duplicate validation easier for DBAs.
+- `ddl-analyze` now emits volume-priority operational findings (`OPERACIONAL_VOLUME_PRIORIDADE_ALTA|MEDIA|BAIXA`) using lightweight index-based estimates in DB mode.
+
+### Fixed
+- False positives for `FK_SEM_INDICE_COBERTURA` were fixed by considering FK support index metadata (constraint-bound index) in both DB extraction and SQL snapshot analysis.
+
 ## [0.3.0] - 2026-04-28
 
 ### Added

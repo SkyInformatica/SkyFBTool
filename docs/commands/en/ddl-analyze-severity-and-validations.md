@@ -42,6 +42,9 @@ This document describes exactly which validations `ddl-analyze` runs and how eac
 | `INDICE_DUPLICADO` | `low` | Indexes with same functional signature | Same signature (`U/N`, `A/D`, ordered column list) |
 | `INDICE_REDUNDANTE_PREFIXO` | `medium` | Potentially redundant prefix index | Short index is prefix of larger index, same direction, both non-unique |
 | `FK_DUPLICADA` | `low` | FKs with same functional signature | Same signature (local columns, referenced table/columns, update/delete rules) |
+| `OPERACIONAL_VOLUME_PRIORIDADE_ALTA` | `high` | High-volume table with concentrated findings | Estimated rows >= 10,000,000 and findings in table >= 3 |
+| `OPERACIONAL_VOLUME_PRIORIDADE_MEDIA` | `medium` | Relevant-volume table with repeated findings | Estimated rows >= 1,000,000 and findings in table >= 2 |
+| `OPERACIONAL_VOLUME_PRIORIDADE_BAIXA` | `low` | Medium-volume table with findings | Estimated rows >= 500,000 and findings in table >= 1 |
 
 ## Operational validation matrix (`MON$`) - `--database` only
 
@@ -109,3 +112,4 @@ This document describes exactly which validations `ddl-analyze` runs and how eac
 - In `--input/--source` mode, `MON$` is not queried; therefore `OPERACIONAL_*` codes are not emitted.
 - If operational collection fails in `--database` mode (permissions/access/query failure), structural analysis still completes and the report is generated without `OPERACIONAL_*` findings.
 - `FK_SEM_INDICE_COBERTURA` is not emitted when the FK has a support index bound to the constraint (for example, `RDB$RELATION_CONSTRAINTS.RDB$INDEX_NAME` in DB mode, or matching FK/constraint index in SQL snapshot mode).
+- Volume-priority findings are emitted only in DB mode and use index-based estimated row count by default (best-effort); exact `COUNT(*)` is optional via `--volume-count-exact on`.
