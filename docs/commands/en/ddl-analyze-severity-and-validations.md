@@ -36,7 +36,7 @@ This document describes exactly which validations `ddl-analyze` runs and how eac
 | `FK_COLUNA_LOCAL_INEXISTENTE` | `critical` | FK uses missing local column | FK local column not found in table |
 | `FK_TABELA_REFERENCIA_INEXISTENTE` | `critical` | FK references missing table | Referenced table not found in table map |
 | `FK_COLUNA_REFERENCIA_INEXISTENTE` | `critical` | FK references missing target column | FK referenced column not found |
-| `FK_SEM_INDICE_COBERTURA` | `medium` | FK without local covering index | No index covers FK column prefix |
+| `FK_SEM_INDICE_COBERTURA` | `medium` | FK without local covering index | No FK support index is present and no regular index covers FK column prefix |
 | `INDICE_SEM_COLUNAS` | `high` | Index without columns | Index column list is empty |
 | `INDICE_COLUNA_INEXISTENTE` | `high` | Index references missing column | Index column not found |
 | `INDICE_DUPLICADO` | `low` | Indexes with same functional signature | Same signature (`U/N`, `A/D`, ordered column list) |
@@ -108,3 +108,4 @@ This document describes exactly which validations `ddl-analyze` runs and how eac
 
 - In `--input/--source` mode, `MON$` is not queried; therefore `OPERACIONAL_*` codes are not emitted.
 - If operational collection fails in `--database` mode (permissions/access/query failure), structural analysis still completes and the report is generated without `OPERACIONAL_*` findings.
+- `FK_SEM_INDICE_COBERTURA` is not emitted when the FK has a support index bound to the constraint (for example, `RDB$RELATION_CONSTRAINTS.RDB$INDEX_NAME` in DB mode, or matching FK/constraint index in SQL snapshot mode).

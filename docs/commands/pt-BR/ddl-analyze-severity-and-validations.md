@@ -36,7 +36,7 @@ Este documento descreve, de forma precisa, quais validações o `ddl-analyze` ex
 | `FK_COLUNA_LOCAL_INEXISTENTE` | `critical` | FK usa coluna local inexistente | Coluna local da FK não existe na tabela |
 | `FK_TABELA_REFERENCIA_INEXISTENTE` | `critical` | FK referencia tabela inexistente | Tabela de referência não encontrada no mapa de tabelas |
 | `FK_COLUNA_REFERENCIA_INEXISTENTE` | `critical` | FK referencia coluna inexistente na tabela alvo | Coluna de referência da FK não encontrada |
-| `FK_SEM_INDICE_COBERTURA` | `medium` | FK sem índice de cobertura local | Nenhum índice cobre o prefixo das colunas da FK |
+| `FK_SEM_INDICE_COBERTURA` | `medium` | FK sem índice de cobertura local | Não há índice de suporte da própria FK e nenhum índice regular cobre o prefixo das colunas da FK |
 | `INDICE_SEM_COLUNAS` | `high` | Índice sem colunas | `indice.Colunas.Count == 0` |
 | `INDICE_COLUNA_INEXISTENTE` | `high` | Índice aponta para coluna inexistente | Coluna do índice não encontrada |
 | `INDICE_DUPLICADO` | `low` | Índices com mesma assinatura funcional | Mesma assinatura (`U/N`, `A/D`, lista ordenada de colunas) |
@@ -108,3 +108,4 @@ Este documento descreve, de forma precisa, quais validações o `ddl-analyze` ex
 
 - No modo `--input/--source`, não há coleta de `MON$`; portanto, os códigos `OPERACIONAL_*` não aparecem.
 - Se a coleta operacional falhar no modo `--database` (permissão/acesso/erro de consulta), a análise estrutural continua e o relatório é gerado sem os achados `OPERACIONAL_*`.
+- `FK_SEM_INDICE_COBERTURA` não é emitido quando a FK já possui índice de suporte vinculado à constraint (por exemplo, `RDB$RELATION_CONSTRAINTS.RDB$INDEX_NAME` no modo por banco, ou índice equivalente no modo por snapshot SQL).
