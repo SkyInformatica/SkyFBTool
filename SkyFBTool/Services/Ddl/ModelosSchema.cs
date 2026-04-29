@@ -32,6 +32,7 @@ public class ChavePrimariaSchema
 public class ChaveEstrangeiraSchema
 {
     public string Nome { get; set; } = string.Empty;
+    public string IndiceSuporteNome { get; set; } = string.Empty;
     public List<string> Colunas { get; set; } = [];
     public string TabelaReferencia { get; set; } = string.Empty;
     public List<string> ColunasReferencia { get; set; } = [];

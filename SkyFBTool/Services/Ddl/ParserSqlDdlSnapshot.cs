@@ -370,6 +370,7 @@ internal static class ParserSqlDdlSnapshot
         return new ChaveEstrangeiraSchema
         {
             Nome = nome,
+            IndiceSuporteNome = nome,
             Colunas = ExtrairListaColunas(colunas),
             TabelaReferencia = tabelaReferencia,
             ColunasReferencia = ExtrairListaColunas(colunasReferencia),

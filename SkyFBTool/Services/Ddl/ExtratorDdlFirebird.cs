@@ -231,6 +231,7 @@ public static class ExtratorDdlFirebird
         const string sql = """
                            SELECT
                                TRIM(rc.rdb$constraint_name) AS constraint_name,
+                               TRIM(rc.rdb$index_name) AS support_index_name,
                                TRIM(seg.rdb$field_name) AS field_name,
                                TRIM(ref_rc.rdb$relation_name) AS ref_table,
                                TRIM(ref_seg.rdb$field_name) AS ref_field,
@@ -260,6 +261,7 @@ public static class ExtratorDdlFirebird
                 fk = new ChaveEstrangeiraSchema
                 {
                     Nome = nomeFk,
+                    IndiceSuporteNome = reader.GetString(reader.GetOrdinal("support_index_name")),
                     TabelaReferencia = reader.GetString(reader.GetOrdinal("ref_table")),
                     RegraUpdate = reader.GetString(reader.GetOrdinal("update_rule")).Trim(),
                     RegraDelete = reader.GetString(reader.GetOrdinal("delete_rule")).Trim()

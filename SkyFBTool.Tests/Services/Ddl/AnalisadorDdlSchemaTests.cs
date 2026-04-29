@@ -115,9 +115,65 @@ public class AnalisadorDdlSchemaTests
 
         var resultado = AnalisadorDdlSchema.Analisar(snapshot);
 
-        Assert.Contains(resultado.Achados, a =>
+        var achado = Assert.Single(resultado.Achados.Where(a =>
             a.Codigo == "FK_SEM_INDICE_COBERTURA" &&
-            a.Severidade == "medium");
+            a.Severidade == "medium"));
+        Assert.Contains("Child table: PEDIDOS (CLIENTE_ID)", achado.Descricao);
+        Assert.Contains("Parent table: CLIENTES (ID)", achado.Descricao);
+        Assert.Contains("Create an index on child table PEDIDOS using FK columns (CLIENTE_ID)", achado.Recomendacao);
+    }
+
+    [Fact]
+    public void Analisar_QuandoFkTemIndiceDeSuporte_NaoDeveGerarAchadoCobertura()
+    {
+        var snapshot = new SnapshotSchema
+        {
+            Tabelas =
+            [
+                new TabelaSchema
+                {
+                    Nome = "DEVOLUCAO",
+                    Colunas =
+                    [
+                        new ColunaSchema { Nome = "CODIGODEVOLUCAO", TipoSql = "INTEGER", AceitaNulo = false }
+                    ],
+                    ChavePrimaria = new ChavePrimariaSchema
+                    {
+                        Nome = "PK_DEVOLUCAO",
+                        Colunas = ["CODIGODEVOLUCAO"]
+                    }
+                },
+                new TabelaSchema
+                {
+                    Nome = "MOVIMENTO",
+                    Colunas =
+                    [
+                        new ColunaSchema { Nome = "NUMEROLANCAMENTO", TipoSql = "INTEGER", AceitaNulo = false },
+                        new ColunaSchema { Nome = "CODIGODEVOLUCAO", TipoSql = "INTEGER", AceitaNulo = true }
+                    ],
+                    ChavePrimaria = new ChavePrimariaSchema
+                    {
+                        Nome = "PK_MOVIMENTO",
+                        Colunas = ["NUMEROLANCAMENTO"]
+                    },
+                    ChavesEstrangeiras =
+                    [
+                        new ChaveEstrangeiraSchema
+                        {
+                            Nome = "FK_MOVIMENTO_CODIGODEVOLUCAO",
+                            IndiceSuporteNome = "FK_MOVIMENTO_CODIGODEVOLUCAO",
+                            Colunas = ["CODIGODEVOLUCAO"],
+                            TabelaReferencia = "DEVOLUCAO",
+                            ColunasReferencia = ["CODIGODEVOLUCAO"]
+                        }
+                    ]
+                }
+            ]
+        };
+
+        var resultado = AnalisadorDdlSchema.Analisar(snapshot);
+
+        Assert.DoesNotContain(resultado.Achados, a => a.Codigo == "FK_SEM_INDICE_COBERTURA");
     }
 
     [Fact]
@@ -163,9 +219,10 @@ public class AnalisadorDdlSchemaTests
 
         var resultado = AnalisadorDdlSchema.Analisar(snapshot);
 
-        Assert.Contains(resultado.Achados, a =>
+        var achado = Assert.Single(resultado.Achados.Where(a =>
             a.Codigo == "INDICE_DUPLICADO" &&
-            a.Severidade == "low");
+            a.Severidade == "low"));
+        Assert.Contains("Signature: N|A|DATA", achado.Descricao);
     }
 
     [Fact]

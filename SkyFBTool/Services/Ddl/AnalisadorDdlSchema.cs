@@ -422,6 +422,9 @@ public static class AnalisadorDdlSchema
         IdiomaSaida idioma,
         IReadOnlyDictionary<string, string>? severidadesOverride)
     {
+        if (!string.IsNullOrWhiteSpace(fk.IndiceSuporteNome))
+            return;
+
         bool possuiIndiceCobertura = tabela.Indices.Any(indice => CobrePrefixo(indice.Colunas, fk.Colunas));
         if (possuiIndiceCobertura)
             return;
@@ -431,8 +434,14 @@ public static class AnalisadorDdlSchema
             "medium",
             "FK_SEM_INDICE_COBERTURA",
             escopo,
-            M(idioma, $"FK {fk.Nome} has no local covering index.", $"FK {fk.Nome} não possui índice local de cobertura."),
-            M(idioma, "Create an index for FK columns to reduce lock contention and validation cost.", "Crie índice para as colunas da FK para reduzir contenção e custo de validação."),
+            M(
+                idioma,
+                $"FK {fk.Nome} has no local covering index. Child table: {tabela.Nome} ({FormatarListaColunas(fk.Colunas)}). Parent table: {fk.TabelaReferencia} ({FormatarListaColunas(fk.ColunasReferencia)}).",
+                $"FK {fk.Nome} não possui índice local de cobertura. Tabela filha: {tabela.Nome} ({FormatarListaColunas(fk.Colunas)}). Tabela pai: {fk.TabelaReferencia} ({FormatarListaColunas(fk.ColunasReferencia)})."),
+            M(
+                idioma,
+                $"Create an index on child table {tabela.Nome} using FK columns ({FormatarListaColunas(fk.Colunas)}), preserving FK column order.",
+                $"Crie um índice na tabela filha {tabela.Nome} usando as colunas da FK ({FormatarListaColunas(fk.Colunas)}), preservando a ordem da FK."),
             severidadesOverride);
     }
 
@@ -491,12 +500,16 @@ public static class AnalisadorDdlSchema
         foreach (var grupo in grupos)
         {
             string nomes = string.Join(", ", grupo.Select(i => i.Nome).OrderBy(n => n, StringComparer.OrdinalIgnoreCase));
+            string assinatura = grupo.Key;
             AdicionarAchado(
                 resultado,
                 "low",
                 "INDICE_DUPLICADO",
                 tabela.Nome,
-                M(idioma, $"Duplicated index signature in {tabela.Nome}: {nomes}.", $"Assinatura de índice duplicada em {tabela.Nome}: {nomes}."),
+                M(
+                    idioma,
+                    $"Duplicated index signature in {tabela.Nome}: {nomes}. Signature: {assinatura}.",
+                    $"Assinatura de índice duplicada em {tabela.Nome}: {nomes}. Assinatura: {assinatura}."),
                 M(idioma, "Keep only one index per signature after workload validation.", "Mantenha apenas um índice por assinatura após validar carga de trabalho."),
                 severidadesOverride);
         }
@@ -645,6 +658,14 @@ public static class AnalisadorDdlSchema
         }
 
         return true;
+    }
+
+    private static string FormatarListaColunas(IReadOnlyList<string> colunas)
+    {
+        if (colunas.Count == 0)
+            return "-";
+
+        return string.Join(", ", colunas);
     }
 
     private static void AdicionarAchado(
