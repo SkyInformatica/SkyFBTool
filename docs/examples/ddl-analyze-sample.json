@@ -1,6 +1,7 @@
 {
   "Origem": "D:\\Projetos\\SkyFBTool\\docs\\examples\\ddl-analyze-sample-input.sql",
-  "GeradoEmUtc": "2026-04-28T02:50:15.7057791Z",
+  "Description": "",
+  "GeradoEmUtc": "2026-04-28T23:29:56.3221005Z",
   "TotalTabelas": 2,
   "TotalAchados": 3,
   "TotalCriticos": 0,
@@ -26,7 +27,7 @@
       "Severidade": "low",
       "Codigo": "INDICE_DUPLICADO",
       "Escopo": "PEDIDOS",
-      "Descricao": "Assinatura de \u00EDndice duplicada em PEDIDOS: IND_PEDIDOS_CLIENTE_A, IND_PEDIDOS_CLIENTE_B.",
+      "Descricao": "Assinatura de \u00EDndice duplicada em PEDIDOS: IND_PEDIDOS_CLIENTE_A, IND_PEDIDOS_CLIENTE_B. Assinatura: N|A|CLIENTE_ID.",
       "Recomendacao": "Mantenha apenas um \u00EDndice por assinatura ap\u00F3s validar carga de trabalho."
     }
   ],

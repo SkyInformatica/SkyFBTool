@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Análise de Risco DDL</title>
   <style>
+    @page { size: A4 portrait; margin: 12mm; }
     body { font-family: Segoe UI, Arial, sans-serif; margin: 20px; color: #1f2937; }
     h1, h2 { margin: 0 0 12px 0; }
     .meta { margin-bottom: 14px; font-size: 14px; }
@@ -25,19 +26,33 @@
     .medium { color: #1d4ed8; font-weight: 700; }
     .low { color: #065f46; font-weight: 700; }
     @media (max-width: 900px) { .grid { grid-template-columns: 1fr; } body { margin: 12px; } }
+    @media print {
+      body { margin: 0; font-size: 11px; color: #000; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+      .toolbar { display: none; }
+      .count { display: none; }
+      .grid { grid-template-columns: 1fr; gap: 8px; }
+      .card, .criteria, .table-wrap { border: 1px solid #d1d5db; border-radius: 0; }
+      .table-wrap { max-height: none; overflow: visible; }
+      table { width: 100%; table-layout: fixed; }
+      th, td { font-size: 10.5px; padding: 5px; word-break: break-word; overflow-wrap: anywhere; }
+      th { position: static; }
+      tr, td, th { page-break-inside: avoid; break-inside: avoid; }
+      h1, h2, .meta, .kpi, .criteria, .card { page-break-inside: avoid; break-inside: avoid; }
+    }
   </style>
 </head>
 <body>
   <h1>Análise de Risco DDL</h1>
   <div class="meta">
     <div><strong>Origem:</strong> <span title="D:\Projetos\SkyFBTool\docs\examples\ddl-analyze-sample-rich-input.sql">ddl-analyze-sample-rich-input.sql</span></div>
-    <div><strong>Gerado em (UTC):</strong> 2026-04-28 03:19:58</div>
+    
+    <div><strong>Gerado em (UTC):</strong> 2026-04-28 23:30:06</div>
   </div>
   <div class="kpi">
-    <div class="pill"><strong>Total de achados:</strong> 19</div>
+    <div class="pill"><strong>Total de achados:</strong> 21</div>
     <div class="pill"><strong>Críticos:</strong> 6</div>
     <div class="pill"><strong>Altos:</strong> 6</div>
-    <div class="pill"><strong>Médios:</strong> 5</div>
+    <div class="pill"><strong>Médios:</strong> 7</div>
     <div class="pill"><strong>Baixos:</strong> 2</div>
   </div>
   <div class="card criteria">
@@ -81,25 +96,25 @@
         <th>Código</th><th>Qtde</th><th>%</th>
       </tr></thead><tbody>
         
-                <tr><td>FK_SEM_INDICE_COBERTURA</td><td>5</td><td>26,32</td></tr>
+                <tr><td>FK_SEM_INDICE_COBERTURA</td><td>5</td><td>23,81</td></tr>
                 
-                <tr><td>TABELA_SEM_PK</td><td>3</td><td>15,79</td></tr>
+                <tr><td>TABELA_SEM_PK</td><td>3</td><td>14,29</td></tr>
                 
-                <tr><td>FK_CARDINALIDADE_INVALIDA</td><td>1</td><td>5,26</td></tr>
+                <tr><td>INDICE_REDUNDANTE_PREFIXO</td><td>2</td><td>9,52</td></tr>
                 
-                <tr><td>FK_COLUNA_LOCAL_INEXISTENTE</td><td>1</td><td>5,26</td></tr>
+                <tr><td>FK_CARDINALIDADE_INVALIDA</td><td>1</td><td>4,76</td></tr>
                 
-                <tr><td>FK_COLUNA_REFERENCIA_INEXISTENTE</td><td>1</td><td>5,26</td></tr>
+                <tr><td>FK_COLUNA_LOCAL_INEXISTENTE</td><td>1</td><td>4,76</td></tr>
                 
-                <tr><td>FK_DUPLICADA</td><td>1</td><td>5,26</td></tr>
+                <tr><td>FK_COLUNA_REFERENCIA_INEXISTENTE</td><td>1</td><td>4,76</td></tr>
                 
-                <tr><td>FK_TABELA_REFERENCIA_INEXISTENTE</td><td>1</td><td>5,26</td></tr>
+                <tr><td>FK_DUPLICADA</td><td>1</td><td>4,76</td></tr>
                 
-                <tr><td>INDICE_COLUNA_INEXISTENTE</td><td>1</td><td>5,26</td></tr>
+                <tr><td>FK_TABELA_REFERENCIA_INEXISTENTE</td><td>1</td><td>4,76</td></tr>
                 
-                <tr><td>INDICE_DUPLICADO</td><td>1</td><td>5,26</td></tr>
+                <tr><td>INDICE_COLUNA_INEXISTENTE</td><td>1</td><td>4,76</td></tr>
                 
-                <tr><td>INDICE_SEM_COLUNAS</td><td>1</td><td>5,26</td></tr>
+                <tr><td>INDICE_DUPLICADO</td><td>1</td><td>4,76</td></tr>
                 
         
       </tbody></table>
@@ -110,13 +125,13 @@
         <th>Escopo</th><th>Qtde</th><th>%</th>
       </tr></thead><tbody>
         
-                <tr><td>PEDIDOS</td><td>13</td><td>68,42</td></tr>
+                <tr><td>PEDIDOS</td><td>15</td><td>71,43</td></tr>
                 
-                <tr><td>CLIENTES</td><td>2</td><td>10,53</td></tr>
+                <tr><td>CLIENTES</td><td>2</td><td>9,52</td></tr>
                 
-                <tr><td>ITENS_PEDIDO</td><td>2</td><td>10,53</td></tr>
+                <tr><td>ITENS_PEDIDO</td><td>2</td><td>9,52</td></tr>
                 
-                <tr><td>LOG_EVENTOS</td><td>2</td><td>10,53</td></tr>
+                <tr><td>LOG_EVENTOS</td><td>2</td><td>9,52</td></tr>
                 
         
       </tbody></table>
@@ -126,9 +141,9 @@
     <h2>Filtros</h2>
     <div class="toolbar">
       <label>Severidade <select id="f-sev"><option value="">Todos</option><option value="critical">cr&#237;tico</option><option value="high">alto</option><option value="medium">m&#233;dio</option><option value="low">baixo</option></select></label>
-      <label>Código <select id="f-code"><option value="">Todos</option><option value="FK_SEM_INDICE_COBERTURA">FK_SEM_INDICE_COBERTURA</option><option value="TABELA_SEM_PK">TABELA_SEM_PK</option><option value="FK_CARDINALIDADE_INVALIDA">FK_CARDINALIDADE_INVALIDA</option><option value="FK_COLUNA_LOCAL_INEXISTENTE">FK_COLUNA_LOCAL_INEXISTENTE</option><option value="FK_COLUNA_REFERENCIA_INEXISTENTE">FK_COLUNA_REFERENCIA_INEXISTENTE</option><option value="FK_DUPLICADA">FK_DUPLICADA</option><option value="FK_TABELA_REFERENCIA_INEXISTENTE">FK_TABELA_REFERENCIA_INEXISTENTE</option><option value="INDICE_COLUNA_INEXISTENTE">INDICE_COLUNA_INEXISTENTE</option><option value="INDICE_DUPLICADO">INDICE_DUPLICADO</option><option value="INDICE_SEM_COLUNAS">INDICE_SEM_COLUNAS</option><option value="PK_REFERENCIA_COLUNA_INEXISTENTE">PK_REFERENCIA_COLUNA_INEXISTENTE</option><option value="TABELA_SEM_COLUNAS">TABELA_SEM_COLUNAS</option><option value="TIPO_DESCONHECIDO">TIPO_DESCONHECIDO</option></select></label>
+      <label>Código <select id="f-code"><option value="">Todos</option><option value="FK_SEM_INDICE_COBERTURA">FK_SEM_INDICE_COBERTURA</option><option value="TABELA_SEM_PK">TABELA_SEM_PK</option><option value="INDICE_REDUNDANTE_PREFIXO">INDICE_REDUNDANTE_PREFIXO</option><option value="FK_CARDINALIDADE_INVALIDA">FK_CARDINALIDADE_INVALIDA</option><option value="FK_COLUNA_LOCAL_INEXISTENTE">FK_COLUNA_LOCAL_INEXISTENTE</option><option value="FK_COLUNA_REFERENCIA_INEXISTENTE">FK_COLUNA_REFERENCIA_INEXISTENTE</option><option value="FK_DUPLICADA">FK_DUPLICADA</option><option value="FK_TABELA_REFERENCIA_INEXISTENTE">FK_TABELA_REFERENCIA_INEXISTENTE</option><option value="INDICE_COLUNA_INEXISTENTE">INDICE_COLUNA_INEXISTENTE</option><option value="INDICE_DUPLICADO">INDICE_DUPLICADO</option><option value="INDICE_SEM_COLUNAS">INDICE_SEM_COLUNAS</option><option value="PK_REFERENCIA_COLUNA_INEXISTENTE">PK_REFERENCIA_COLUNA_INEXISTENTE</option><option value="TABELA_SEM_COLUNAS">TABELA_SEM_COLUNAS</option><option value="TIPO_DESCONHECIDO">TIPO_DESCONHECIDO</option></select></label>
       <label>Busca <input id="f-q" type="text" placeholder="tabela, código ou texto..." /></label>
-      <span class="count" id="f-count">Exibindo 0 de 19</span>
+      <span class="count" id="f-count">Exibindo 0 de 21</span>
     </div>
     <div class="table-wrap">
     <table id="achados">
@@ -237,44 +252,60 @@
               <td>Valide compatibilidade de vers&#227;o e confira a defini&#231;&#227;o no RDB$FIELDS.</td>
             </tr>
             
-            <tr data-sev="medium" data-code="FK_SEM_INDICE_COBERTURA" data-text="itens_pedido.fk_item_pedido fk_sem_indice_cobertura fk fk_item_pedido n&#227;o possui &#237;ndice local de cobertura. crie &#237;ndice para as colunas da fk para reduzir conten&#231;&#227;o e custo de valida&#231;&#227;o.">
+            <tr data-sev="medium" data-code="FK_SEM_INDICE_COBERTURA" data-text="itens_pedido.fk_item_pedido fk_sem_indice_cobertura fk fk_item_pedido n&#227;o possui &#237;ndice local de cobertura. tabela filha: itens_pedido (pedido_id). tabela pai: pedidos (id). crie um &#237;ndice na tabela filha itens_pedido usando as colunas da fk (pedido_id), preservando a ordem da fk.">
               <td class="medium">m&#233;dio</td>
               <td>FK_SEM_INDICE_COBERTURA</td>
               <td>ITENS_PEDIDO.FK_ITEM_PEDIDO</td>
-              <td>FK FK_ITEM_PEDIDO n&#227;o possui &#237;ndice local de cobertura.</td>
-              <td>Crie &#237;ndice para as colunas da FK para reduzir conten&#231;&#227;o e custo de valida&#231;&#227;o.</td>
+              <td>FK FK_ITEM_PEDIDO n&#227;o possui &#237;ndice local de cobertura. Tabela filha: ITENS_PEDIDO (PEDIDO_ID). Tabela pai: PEDIDOS (ID).</td>
+              <td>Crie um &#237;ndice na tabela filha ITENS_PEDIDO usando as colunas da FK (PEDIDO_ID), preservando a ordem da FK.</td>
             </tr>
             
-            <tr data-sev="medium" data-code="FK_SEM_INDICE_COBERTURA" data-text="pedidos.fk_pedidos_card fk_sem_indice_cobertura fk fk_pedidos_card n&#227;o possui &#237;ndice local de cobertura. crie &#237;ndice para as colunas da fk para reduzir conten&#231;&#227;o e custo de valida&#231;&#227;o.">
+            <tr data-sev="medium" data-code="FK_SEM_INDICE_COBERTURA" data-text="pedidos.fk_pedidos_card fk_sem_indice_cobertura fk fk_pedidos_card n&#227;o possui &#237;ndice local de cobertura. tabela filha: pedidos (cliente_id_aux). tabela pai: clientes (id, nome). crie um &#237;ndice na tabela filha pedidos usando as colunas da fk (cliente_id_aux), preservando a ordem da fk.">
               <td class="medium">m&#233;dio</td>
               <td>FK_SEM_INDICE_COBERTURA</td>
               <td>PEDIDOS.FK_PEDIDOS_CARD</td>
-              <td>FK FK_PEDIDOS_CARD n&#227;o possui &#237;ndice local de cobertura.</td>
-              <td>Crie &#237;ndice para as colunas da FK para reduzir conten&#231;&#227;o e custo de valida&#231;&#227;o.</td>
+              <td>FK FK_PEDIDOS_CARD n&#227;o possui &#237;ndice local de cobertura. Tabela filha: PEDIDOS (CLIENTE_ID_AUX). Tabela pai: CLIENTES (ID, NOME).</td>
+              <td>Crie um &#237;ndice na tabela filha PEDIDOS usando as colunas da FK (CLIENTE_ID_AUX), preservando a ordem da FK.</td>
             </tr>
             
-            <tr data-sev="medium" data-code="FK_SEM_INDICE_COBERTURA" data-text="pedidos.fk_pedidos_local_missing fk_sem_indice_cobertura fk fk_pedidos_local_missing n&#227;o possui &#237;ndice local de cobertura. crie &#237;ndice para as colunas da fk para reduzir conten&#231;&#227;o e custo de valida&#231;&#227;o.">
+            <tr data-sev="medium" data-code="FK_SEM_INDICE_COBERTURA" data-text="pedidos.fk_pedidos_local_missing fk_sem_indice_cobertura fk fk_pedidos_local_missing n&#227;o possui &#237;ndice local de cobertura. tabela filha: pedidos (cliente_inexistente). tabela pai: clientes (id). crie um &#237;ndice na tabela filha pedidos usando as colunas da fk (cliente_inexistente), preservando a ordem da fk.">
               <td class="medium">m&#233;dio</td>
               <td>FK_SEM_INDICE_COBERTURA</td>
               <td>PEDIDOS.FK_PEDIDOS_LOCAL_MISSING</td>
-              <td>FK FK_PEDIDOS_LOCAL_MISSING n&#227;o possui &#237;ndice local de cobertura.</td>
-              <td>Crie &#237;ndice para as colunas da FK para reduzir conten&#231;&#227;o e custo de valida&#231;&#227;o.</td>
+              <td>FK FK_PEDIDOS_LOCAL_MISSING n&#227;o possui &#237;ndice local de cobertura. Tabela filha: PEDIDOS (CLIENTE_INEXISTENTE). Tabela pai: CLIENTES (ID).</td>
+              <td>Crie um &#237;ndice na tabela filha PEDIDOS usando as colunas da FK (CLIENTE_INEXISTENTE), preservando a ordem da FK.</td>
             </tr>
             
-            <tr data-sev="medium" data-code="FK_SEM_INDICE_COBERTURA" data-text="pedidos.fk_pedidos_ref_column_missing fk_sem_indice_cobertura fk fk_pedidos_ref_column_missing n&#227;o possui &#237;ndice local de cobertura. crie &#237;ndice para as colunas da fk para reduzir conten&#231;&#227;o e custo de valida&#231;&#227;o.">
+            <tr data-sev="medium" data-code="FK_SEM_INDICE_COBERTURA" data-text="pedidos.fk_pedidos_ref_column_missing fk_sem_indice_cobertura fk fk_pedidos_ref_column_missing n&#227;o possui &#237;ndice local de cobertura. tabela filha: pedidos (cliente_id_aux). tabela pai: clientes (id_x). crie um &#237;ndice na tabela filha pedidos usando as colunas da fk (cliente_id_aux), preservando a ordem da fk.">
               <td class="medium">m&#233;dio</td>
               <td>FK_SEM_INDICE_COBERTURA</td>
               <td>PEDIDOS.FK_PEDIDOS_REF_COLUMN_MISSING</td>
-              <td>FK FK_PEDIDOS_REF_COLUMN_MISSING n&#227;o possui &#237;ndice local de cobertura.</td>
-              <td>Crie &#237;ndice para as colunas da FK para reduzir conten&#231;&#227;o e custo de valida&#231;&#227;o.</td>
+              <td>FK FK_PEDIDOS_REF_COLUMN_MISSING n&#227;o possui &#237;ndice local de cobertura. Tabela filha: PEDIDOS (CLIENTE_ID_AUX). Tabela pai: CLIENTES (ID_X).</td>
+              <td>Crie um &#237;ndice na tabela filha PEDIDOS usando as colunas da FK (CLIENTE_ID_AUX), preservando a ordem da FK.</td>
             </tr>
             
-            <tr data-sev="medium" data-code="FK_SEM_INDICE_COBERTURA" data-text="pedidos.fk_pedidos_ref_table_missing fk_sem_indice_cobertura fk fk_pedidos_ref_table_missing n&#227;o possui &#237;ndice local de cobertura. crie &#237;ndice para as colunas da fk para reduzir conten&#231;&#227;o e custo de valida&#231;&#227;o.">
+            <tr data-sev="medium" data-code="FK_SEM_INDICE_COBERTURA" data-text="pedidos.fk_pedidos_ref_table_missing fk_sem_indice_cobertura fk fk_pedidos_ref_table_missing n&#227;o possui &#237;ndice local de cobertura. tabela filha: pedidos (cliente_id_aux). tabela pai: clientes_x (id). crie um &#237;ndice na tabela filha pedidos usando as colunas da fk (cliente_id_aux), preservando a ordem da fk.">
               <td class="medium">m&#233;dio</td>
               <td>FK_SEM_INDICE_COBERTURA</td>
               <td>PEDIDOS.FK_PEDIDOS_REF_TABLE_MISSING</td>
-              <td>FK FK_PEDIDOS_REF_TABLE_MISSING n&#227;o possui &#237;ndice local de cobertura.</td>
-              <td>Crie &#237;ndice para as colunas da FK para reduzir conten&#231;&#227;o e custo de valida&#231;&#227;o.</td>
+              <td>FK FK_PEDIDOS_REF_TABLE_MISSING n&#227;o possui &#237;ndice local de cobertura. Tabela filha: PEDIDOS (CLIENTE_ID_AUX). Tabela pai: CLIENTES_X (ID).</td>
+              <td>Crie um &#237;ndice na tabela filha PEDIDOS usando as colunas da FK (CLIENTE_ID_AUX), preservando a ordem da FK.</td>
+            </tr>
+            
+            <tr data-sev="medium" data-code="INDICE_REDUNDANTE_PREFIXO" data-text="pedidos indice_redundante_prefixo &#237;ndice ind_pedidos_cliente_a pode ser redundante porque ind_pedidos_cliente_valor j&#225; cobre seu prefixo. valide planos de execu&#231;&#227;o e mantenha apenas o &#237;ndice com melhor seletividade/cobertura.">
+              <td class="medium">m&#233;dio</td>
+              <td>INDICE_REDUNDANTE_PREFIXO</td>
+              <td>PEDIDOS</td>
+              <td>&#205;ndice IND_PEDIDOS_CLIENTE_A pode ser redundante porque IND_PEDIDOS_CLIENTE_VALOR j&#225; cobre seu prefixo.</td>
+              <td>Valide planos de execu&#231;&#227;o e mantenha apenas o &#237;ndice com melhor seletividade/cobertura.</td>
+            </tr>
+            
+            <tr data-sev="medium" data-code="INDICE_REDUNDANTE_PREFIXO" data-text="pedidos indice_redundante_prefixo &#237;ndice ind_pedidos_cliente_b pode ser redundante porque ind_pedidos_cliente_valor j&#225; cobre seu prefixo. valide planos de execu&#231;&#227;o e mantenha apenas o &#237;ndice com melhor seletividade/cobertura.">
+              <td class="medium">m&#233;dio</td>
+              <td>INDICE_REDUNDANTE_PREFIXO</td>
+              <td>PEDIDOS</td>
+              <td>&#205;ndice IND_PEDIDOS_CLIENTE_B pode ser redundante porque IND_PEDIDOS_CLIENTE_VALOR j&#225; cobre seu prefixo.</td>
+              <td>Valide planos de execu&#231;&#227;o e mantenha apenas o &#237;ndice com melhor seletividade/cobertura.</td>
             </tr>
             
             <tr data-sev="low" data-code="FK_DUPLICADA" data-text="pedidos fk_duplicada assinatura de fk duplicada em pedidos: fk_pedidos_cliente, fk_pedidos_cliente_dup. consolide fks equivalentes e mantenha apenas uma restri&#231;&#227;o validada.">
@@ -285,11 +316,11 @@
               <td>Consolide FKs equivalentes e mantenha apenas uma restri&#231;&#227;o validada.</td>
             </tr>
             
-            <tr data-sev="low" data-code="INDICE_DUPLICADO" data-text="pedidos indice_duplicado assinatura de &#237;ndice duplicada em pedidos: ind_pedidos_cliente_a, ind_pedidos_cliente_b. mantenha apenas um &#237;ndice por assinatura ap&#243;s validar carga de trabalho.">
+            <tr data-sev="low" data-code="INDICE_DUPLICADO" data-text="pedidos indice_duplicado assinatura de &#237;ndice duplicada em pedidos: ind_pedidos_cliente_a, ind_pedidos_cliente_b. assinatura: n|a|cliente_id. mantenha apenas um &#237;ndice por assinatura ap&#243;s validar carga de trabalho.">
               <td class="low">baixo</td>
               <td>INDICE_DUPLICADO</td>
               <td>PEDIDOS</td>
-              <td>Assinatura de &#237;ndice duplicada em PEDIDOS: IND_PEDIDOS_CLIENTE_A, IND_PEDIDOS_CLIENTE_B.</td>
+              <td>Assinatura de &#237;ndice duplicada em PEDIDOS: IND_PEDIDOS_CLIENTE_A, IND_PEDIDOS_CLIENTE_B. Assinatura: N|A|CLIENTE_ID.</td>
               <td>Mantenha apenas um &#237;ndice por assinatura ap&#243;s validar carga de trabalho.</td>
             </tr>
             
@@ -303,7 +334,7 @@
         const q = document.getElementById('f-q');
         const rows = Array.from(document.querySelectorAll('#achados tbody tr'));
         const count = document.getElementById('f-count');
-        const total = 19;
+        const total = 21;
         function run(){
           const s = (sev.value || '').toLowerCase();
           const c = code.value || '';

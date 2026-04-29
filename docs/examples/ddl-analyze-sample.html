@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Análise de Risco DDL</title>
   <style>
+    @page { size: A4 portrait; margin: 12mm; }
     body { font-family: Segoe UI, Arial, sans-serif; margin: 20px; color: #1f2937; }
     h1, h2 { margin: 0 0 12px 0; }
     .meta { margin-bottom: 14px; font-size: 14px; }
@@ -25,13 +26,27 @@
     .medium { color: #1d4ed8; font-weight: 700; }
     .low { color: #065f46; font-weight: 700; }
     @media (max-width: 900px) { .grid { grid-template-columns: 1fr; } body { margin: 12px; } }
+    @media print {
+      body { margin: 0; font-size: 11px; color: #000; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+      .toolbar { display: none; }
+      .count { display: none; }
+      .grid { grid-template-columns: 1fr; gap: 8px; }
+      .card, .criteria, .table-wrap { border: 1px solid #d1d5db; border-radius: 0; }
+      .table-wrap { max-height: none; overflow: visible; }
+      table { width: 100%; table-layout: fixed; }
+      th, td { font-size: 10.5px; padding: 5px; word-break: break-word; overflow-wrap: anywhere; }
+      th { position: static; }
+      tr, td, th { page-break-inside: avoid; break-inside: avoid; }
+      h1, h2, .meta, .kpi, .criteria, .card { page-break-inside: avoid; break-inside: avoid; }
+    }
   </style>
 </head>
 <body>
   <h1>Análise de Risco DDL</h1>
   <div class="meta">
     <div><strong>Origem:</strong> <span title="D:\Projetos\SkyFBTool\docs\examples\ddl-analyze-sample-input.sql">ddl-analyze-sample-input.sql</span></div>
-    <div><strong>Gerado em (UTC):</strong> 2026-04-28 02:50:15</div>
+    
+    <div><strong>Gerado em (UTC):</strong> 2026-04-28 23:29:56</div>
   </div>
   <div class="kpi">
     <div class="pill"><strong>Total de achados:</strong> 3</div>
@@ -137,11 +152,11 @@
               <td>Revise se isso &#233; esperado. Aus&#234;ncia de PK pode mascarar duplicidades.</td>
             </tr>
             
-            <tr data-sev="low" data-code="INDICE_DUPLICADO" data-text="pedidos indice_duplicado assinatura de &#237;ndice duplicada em pedidos: ind_pedidos_cliente_a, ind_pedidos_cliente_b. mantenha apenas um &#237;ndice por assinatura ap&#243;s validar carga de trabalho.">
+            <tr data-sev="low" data-code="INDICE_DUPLICADO" data-text="pedidos indice_duplicado assinatura de &#237;ndice duplicada em pedidos: ind_pedidos_cliente_a, ind_pedidos_cliente_b. assinatura: n|a|cliente_id. mantenha apenas um &#237;ndice por assinatura ap&#243;s validar carga de trabalho.">
               <td class="low">baixo</td>
               <td>INDICE_DUPLICADO</td>
               <td>PEDIDOS</td>
-              <td>Assinatura de &#237;ndice duplicada em PEDIDOS: IND_PEDIDOS_CLIENTE_A, IND_PEDIDOS_CLIENTE_B.</td>
+              <td>Assinatura de &#237;ndice duplicada em PEDIDOS: IND_PEDIDOS_CLIENTE_A, IND_PEDIDOS_CLIENTE_B. Assinatura: N|A|CLIENTE_ID.</td>
               <td>Mantenha apenas um &#237;ndice por assinatura ap&#243;s validar carga de trabalho.</td>
             </tr>
             
