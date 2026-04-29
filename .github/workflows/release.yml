@@ -24,20 +24,39 @@ jobs:
         with:
           dotnet-version: "8.0.x"
 
+      - name: Resolve version from tag
+        shell: bash
+        run: |
+          TAG="${GITHUB_REF_NAME}"
+          VERSION="${TAG#v}"
+          if [[ ! "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+([.-][0-9A-Za-z.-]+)?$ ]]; then
+            echo "Invalid tag format: $TAG (expected vX.Y.Z or vX.Y.Z-suffix)"
+            exit 1
+          fi
+          SEMVER_CORE="${VERSION%%[-+]*}"
+          IFS='.' read -r MAJOR MINOR PATCH <<< "$SEMVER_CORE"
+          ASSEMBLY_VERSION="${MAJOR}.${MINOR}.0.0"
+          FILE_VERSION="${MAJOR}.${MINOR}.${PATCH}.0"
+          echo "TAG=$TAG" >> "$GITHUB_ENV"
+          echo "VERSION=$VERSION" >> "$GITHUB_ENV"
+          echo "ASSEMBLY_VERSION=$ASSEMBLY_VERSION" >> "$GITHUB_ENV"
+          echo "FILE_VERSION=$FILE_VERSION" >> "$GITHUB_ENV"
+          echo "Resolved version: $VERSION"
+
       - name: Restore
         run: dotnet restore SkyFBTool.sln
 
       - name: Build
-        run: dotnet build SkyFBTool.sln -c Release --no-restore
+        run: dotnet build SkyFBTool.sln -c Release --no-restore -p:Version=${{ env.VERSION }} -p:AssemblyVersion=${{ env.ASSEMBLY_VERSION }} -p:FileVersion=${{ env.FILE_VERSION }} -p:InformationalVersion=${{ env.TAG }}
 
       - name: Test
         run: dotnet test SkyFBTool.Tests/SkyFBTool.Tests.csproj -c Release --no-build
 
       - name: Publish win-x64
-        run: dotnet publish SkyFBTool/SkyFBTool.csproj -c Release -r win-x64 --self-contained true /p:PublishSingleFile=true /p:PublishTrimmed=false -o artifacts/win-x64
+        run: dotnet publish SkyFBTool/SkyFBTool.csproj -c Release -r win-x64 --self-contained true /p:PublishSingleFile=true /p:PublishTrimmed=false -p:Version=${{ env.VERSION }} -p:AssemblyVersion=${{ env.ASSEMBLY_VERSION }} -p:FileVersion=${{ env.FILE_VERSION }} -p:InformationalVersion=${{ env.TAG }} -o artifacts/win-x64
 
       - name: Publish linux-x64
-        run: dotnet publish SkyFBTool/SkyFBTool.csproj -c Release -r linux-x64 --self-contained true /p:PublishSingleFile=true /p:PublishTrimmed=false -o artifacts/linux-x64
+        run: dotnet publish SkyFBTool/SkyFBTool.csproj -c Release -r linux-x64 --self-contained true /p:PublishSingleFile=true /p:PublishTrimmed=false -p:Version=${{ env.VERSION }} -p:AssemblyVersion=${{ env.ASSEMBLY_VERSION }} -p:FileVersion=${{ env.FILE_VERSION }} -p:InformationalVersion=${{ env.TAG }} -o artifacts/linux-x64
 
       - name: Package artifacts
         run: |

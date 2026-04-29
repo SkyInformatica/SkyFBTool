@@ -5,6 +5,10 @@
         <TargetFramework>net8.0</TargetFramework>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
+        <Version Condition="'$(Version)' == ''">0.0.0-local</Version>
+        <AssemblyVersion Condition="'$(AssemblyVersion)' == ''">0.0.0.0</AssemblyVersion>
+        <FileVersion Condition="'$(FileVersion)' == ''">0.0.0.0</FileVersion>
+        <InformationalVersion Condition="'$(InformationalVersion)' == ''">$(Version)</InformationalVersion>
         <PublishSingleFile>true</PublishSingleFile>
         <PublishTrimmed>false</PublishTrimmed>
         <InvariantGlobalization>false</InvariantGlobalization>
