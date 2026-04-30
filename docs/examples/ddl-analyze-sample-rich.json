@@ -1,9 +1,14 @@
 {
   "Origem": "D:\\Projetos\\SkyFBTool\\docs\\examples\\ddl-analyze-sample-rich-input.sql",
   "Description": "",
-  "GeradoEmUtc": "2026-04-29T02:04:36.707956Z",
+  "GeradoEmUtc": "2026-04-30T01:28:21.0967698Z",
   "DataUltimaManutencaoUtc": null,
   "FonteDataUltimaManutencao": "",
+  "AnaliseVolumeHabilitada": true,
+  "StatusAnaliseVolume": "not_applicable",
+  "ErroAnaliseVolume": "",
+  "TabelasLidasAnaliseVolume": 0,
+  "AchadosGeradosAnaliseVolume": 0,
   "TotalTabelas": 4,
   "TotalAchados": 16,
   "TotalCriticos": 6,
@@ -13,6 +18,8 @@
   "Achados": [
     {
       "Severidade": "critical",
+      "ScoreRisco": 90,
+      "Prioridade": "P0",
       "Codigo": "FK_CARDINALIDADE_INVALIDA",
       "Escopo": "PEDIDOS.FK_PEDIDOS_CARD",
       "Descricao": "FK FK_PEDIDOS_CARD possui cardinalidade diferente entre colunas locais e de refer\u00EAncia.",
@@ -20,6 +27,8 @@
     },
     {
       "Severidade": "critical",
+      "ScoreRisco": 90,
+      "Prioridade": "P0",
       "Codigo": "FK_COLUNA_LOCAL_INEXISTENTE",
       "Escopo": "PEDIDOS.FK_PEDIDOS_LOCAL_MISSING",
       "Descricao": "FK FK_PEDIDOS_LOCAL_MISSING referencia coluna local inexistente CLIENTE_INEXISTENTE.",
@@ -27,6 +36,8 @@
     },
     {
       "Severidade": "critical",
+      "ScoreRisco": 90,
+      "Prioridade": "P0",
       "Codigo": "FK_COLUNA_REFERENCIA_INEXISTENTE",
       "Escopo": "PEDIDOS.FK_PEDIDOS_REF_COLUMN_MISSING",
       "Descricao": "FK FK_PEDIDOS_REF_COLUMN_MISSING aponta para coluna referenciada inexistente ID_X.",
@@ -34,6 +45,8 @@
     },
     {
       "Severidade": "critical",
+      "ScoreRisco": 90,
+      "Prioridade": "P0",
       "Codigo": "FK_TABELA_REFERENCIA_INEXISTENTE",
       "Escopo": "PEDIDOS.FK_PEDIDOS_REF_TABLE_MISSING",
       "Descricao": "FK FK_PEDIDOS_REF_TABLE_MISSING aponta para tabela inexistente CLIENTES_X.",
@@ -41,6 +54,8 @@
     },
     {
       "Severidade": "critical",
+      "ScoreRisco": 90,
+      "Prioridade": "P0",
       "Codigo": "PK_REFERENCIA_COLUNA_INEXISTENTE",
       "Escopo": "PEDIDOS",
       "Descricao": "PK PK_PEDIDOS referencia coluna inexistente ID_COLUNA_INEXISTENTE.",
@@ -48,6 +63,8 @@
     },
     {
       "Severidade": "critical",
+      "ScoreRisco": 90,
+      "Prioridade": "P0",
       "Codigo": "TABELA_SEM_COLUNAS",
       "Escopo": "LOG_EVENTOS",
       "Descricao": "Tabela LOG_EVENTOS n\u00E3o possui colunas.",
@@ -55,6 +72,8 @@
     },
     {
       "Severidade": "high",
+      "ScoreRisco": 70,
+      "Prioridade": "P1",
       "Codigo": "INDICE_COLUNA_INEXISTENTE",
       "Escopo": "PEDIDOS.IND_PEDIDOS_COLUNA_INEXISTENTE",
       "Descricao": "\u00CDndice IND_PEDIDOS_COLUNA_INEXISTENTE referencia coluna inexistente CLIENTE_ID_NAO_EXISTE.",
@@ -62,6 +81,8 @@
     },
     {
       "Severidade": "high",
+      "ScoreRisco": 70,
+      "Prioridade": "P1",
       "Codigo": "INDICE_SEM_COLUNAS",
       "Escopo": "PEDIDOS.IND_PEDIDOS_SEM_COLUNA",
       "Descricao": "\u00CDndice IND_PEDIDOS_SEM_COLUNA n\u00E3o possui colunas.",
@@ -69,6 +90,8 @@
     },
     {
       "Severidade": "high",
+      "ScoreRisco": 70,
+      "Prioridade": "P1",
       "Codigo": "TABELA_SEM_PK",
       "Escopo": "CLIENTES",
       "Descricao": "Tabela CLIENTES n\u00E3o possui chave prim\u00E1ria.",
@@ -76,6 +99,8 @@
     },
     {
       "Severidade": "high",
+      "ScoreRisco": 70,
+      "Prioridade": "P1",
       "Codigo": "TABELA_SEM_PK",
       "Escopo": "ITENS_PEDIDO",
       "Descricao": "Tabela ITENS_PEDIDO n\u00E3o possui chave prim\u00E1ria.",
@@ -83,6 +108,8 @@
     },
     {
       "Severidade": "high",
+      "ScoreRisco": 70,
+      "Prioridade": "P1",
       "Codigo": "TABELA_SEM_PK",
       "Escopo": "LOG_EVENTOS",
       "Descricao": "Tabela LOG_EVENTOS n\u00E3o possui chave prim\u00E1ria.",
@@ -90,6 +117,8 @@
     },
     {
       "Severidade": "high",
+      "ScoreRisco": 70,
+      "Prioridade": "P1",
       "Codigo": "TIPO_DESCONHECIDO",
       "Escopo": "CLIENTES.TIPO_INVALIDO",
       "Descricao": "Coluna CLIENTES.TIPO_INVALIDO possui mapeamento de tipo desconhecido: TYPE_999.",
@@ -97,20 +126,26 @@
     },
     {
       "Severidade": "medium",
+      "ScoreRisco": 40,
+      "Prioridade": "P3",
       "Codigo": "INDICE_REDUNDANTE_PREFIXO",
       "Escopo": "PEDIDOS",
-      "Descricao": "\u00CDndice IND_PEDIDOS_CLIENTE_A pode ser redundante porque IND_PEDIDOS_CLIENTE_VALOR j\u00E1 cobre seu prefixo.",
+      "Descricao": "\u00CDndice IND_PEDIDOS_CLIENTE_A (NON-UNIQUE, ASC, (CLIENTE_ID)) pode ser redundante porque IND_PEDIDOS_CLIENTE_VALOR (NON-UNIQUE, ASC, (CLIENTE_ID, VALOR)) j\u00E1 cobre seu prefixo (CLIENTE_ID).",
       "Recomendacao": "Valide planos de execu\u00E7\u00E3o e mantenha apenas o \u00EDndice com melhor seletividade/cobertura."
     },
     {
       "Severidade": "medium",
+      "ScoreRisco": 40,
+      "Prioridade": "P3",
       "Codigo": "INDICE_REDUNDANTE_PREFIXO",
       "Escopo": "PEDIDOS",
-      "Descricao": "\u00CDndice IND_PEDIDOS_CLIENTE_B pode ser redundante porque IND_PEDIDOS_CLIENTE_VALOR j\u00E1 cobre seu prefixo.",
+      "Descricao": "\u00CDndice IND_PEDIDOS_CLIENTE_B (NON-UNIQUE, ASC, (CLIENTE_ID)) pode ser redundante porque IND_PEDIDOS_CLIENTE_VALOR (NON-UNIQUE, ASC, (CLIENTE_ID, VALOR)) j\u00E1 cobre seu prefixo (CLIENTE_ID).",
       "Recomendacao": "Valide planos de execu\u00E7\u00E3o e mantenha apenas o \u00EDndice com melhor seletividade/cobertura."
     },
     {
       "Severidade": "low",
+      "ScoreRisco": 17,
+      "Prioridade": "P3",
       "Codigo": "FK_DUPLICADA",
       "Escopo": "PEDIDOS",
       "Descricao": "Assinatura de FK duplicada em PEDIDOS: FK_PEDIDOS_CLIENTE, FK_PEDIDOS_CLIENTE_DUP.",
@@ -118,9 +153,11 @@
     },
     {
       "Severidade": "low",
+      "ScoreRisco": 17,
+      "Prioridade": "P3",
       "Codigo": "INDICE_DUPLICADO",
       "Escopo": "PEDIDOS",
-      "Descricao": "Assinatura de \u00EDndice duplicada em PEDIDOS: IND_PEDIDOS_CLIENTE_A, IND_PEDIDOS_CLIENTE_B. Assinatura: N|A|CLIENTE_ID.",
+      "Descricao": "Assinatura de \u00EDndice duplicada em PEDIDOS: IND_PEDIDOS_CLIENTE_A, IND_PEDIDOS_CLIENTE_B. Assinatura: NON-UNIQUE, ASC, (CLIENTE_ID).",
       "Recomendacao": "Mantenha apenas um \u00EDndice por assinatura ap\u00F3s validar carga de trabalho."
     }
   ],

@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Análise de Risco DDL</title>
   <style>
-    @page { size: A4 portrait; margin: 12mm; }
+    @page { size: A4; margin: 12mm; }
     body { font-family: Segoe UI, Arial, sans-serif; margin: 20px; color: #1f2937; }
     h1, h2 { margin: 0 0 12px 0; }
     .meta { margin-bottom: 14px; font-size: 14px; }
@@ -13,6 +13,10 @@
     .pill { border: 1px solid #d1d5db; border-radius: 12px; padding: 8px 10px; background: #f9fafb; font-size: 13px; }
     .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 8px 0 16px; }
     .card { border: 1px solid #e5e7eb; border-radius: 10px; background: #fff; padding: 10px; }
+    .criteria-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 10px; align-items: start; }
+    .summary-scroll { height: 320px; overflow: auto; border: 1px solid #eef2f7; border-radius: 8px; }
+    .legend { margin: 0; font-size: 13px; color: #1f2937; line-height: 1.35; background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 8px; padding: 8px 10px; }
+    .legend strong { color: #111827; display: block; margin-bottom: 4px; }
     .toolbar { display: flex; gap: 10px; flex-wrap: wrap; margin: 8px 0 10px; align-items: center; }
     .toolbar input, .toolbar select { padding: 6px 8px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 13px; }
     .count { font-size: 13px; color: #374151; }
@@ -25,7 +29,7 @@
     .high { color: #92400e; font-weight: 700; }
     .medium { color: #1d4ed8; font-weight: 700; }
     .low { color: #065f46; font-weight: 700; }
-    @media (max-width: 900px) { .grid { grid-template-columns: 1fr; } body { margin: 12px; } }
+    @media (max-width: 900px) { .grid { grid-template-columns: 1fr; } .criteria-grid { grid-template-columns: 1fr; } body { margin: 12px; } }
     @media print {
       body { margin: 0; font-size: 11px; color: #000; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
       .toolbar { display: none; }
@@ -46,8 +50,9 @@
   <div class="meta">
     <div><strong>Origem:</strong> <span title="D:\Projetos\SkyFBTool\docs\examples\ddl-analyze-sample-rich-input.sql">ddl-analyze-sample-rich-input.sql</span></div>
     
-    <div><strong>Gerado em (UTC):</strong> 2026-04-29 02:04:36</div>
+    <div><strong>Gerado em (UTC):</strong> 2026-04-30 01:28:21</div>
     
+    <div><strong>Análise de volume:</strong> n&#227;o aplic&#225;vel</div>
   </div>
   <div class="kpi">
     <div class="pill"><strong>Total de achados:</strong> 16</div>
@@ -58,41 +63,51 @@
   </div>
   <div class="card criteria">
     <h2>Critérios de severidade</h2>
-    <table><thead><tr>
-      <th>Nível</th>
-      <th>Quando se aplica</th>
-      <th>Impacto esperado</th>
-    </tr></thead><tbody>
-      
-            <tr>
-              <td class="critical">cr&#237;tico</td>
-              <td>Metadado estrutural quebrado: colunas ausentes ou inv&#225;lidas em PK/FK, constraints vazias ou refer&#234;ncias imposs&#237;veis.</td>
-              <td>Alta chance de falha funcional, sintomas de corrup&#231;&#227;o ou impossibilidade de sincronismo seguro sem reparo manual.</td>
-            </tr>
-            
-            <tr>
-              <td class="high">alto</td>
-              <td>Inconsist&#234;ncia de alto risco que pode quebrar integridade ou performance em carga.</td>
-              <td>Risco relevante em produ&#231;&#227;o; corrigir antes de migra&#231;&#227;o ou importa&#231;&#227;o/exporta&#231;&#227;o intensa.</td>
-            </tr>
-            
-            <tr>
-              <td class="medium">m&#233;dio</td>
-              <td>Lacuna importante de qualidade ou performance, normalmente sem corrup&#231;&#227;o imediata.</td>
-              <td>Pode degradar vaz&#227;o e aumentar risco de lock/conten&#231;&#227;o ao longo do tempo.</td>
-            </tr>
-            
-            <tr>
-              <td class="low">baixo</td>
-              <td>Padr&#227;o consultivo ou smell de modelagem com menor risco imediato.</td>
-              <td>Recomendado para endurecimento e manutenibilidade; pode ser planejado.</td>
-            </tr>
-            
-    </tbody></table>
+    <div class="criteria-grid">
+      <table><thead><tr>
+        <th>Nível</th>
+        <th>Quando se aplica</th>
+        <th>Impacto esperado</th>
+      </tr></thead><tbody>
+        
+                <tr>
+                  <td class="critical">cr&#237;tico</td>
+                  <td>Metadado estrutural quebrado: colunas ausentes ou inv&#225;lidas em PK/FK, constraints vazias ou refer&#234;ncias imposs&#237;veis.</td>
+                  <td>Alta chance de falha funcional, sintomas de corrup&#231;&#227;o ou impossibilidade de sincronismo seguro sem reparo manual.</td>
+                </tr>
+                
+                <tr>
+                  <td class="high">alto</td>
+                  <td>Inconsist&#234;ncia de alto risco que pode quebrar integridade ou performance em carga.</td>
+                  <td>Risco relevante em produ&#231;&#227;o; corrigir antes de migra&#231;&#227;o ou importa&#231;&#227;o/exporta&#231;&#227;o intensa.</td>
+                </tr>
+                
+                <tr>
+                  <td class="medium">m&#233;dio</td>
+                  <td>Lacuna importante de qualidade ou performance, normalmente sem corrup&#231;&#227;o imediata.</td>
+                  <td>Pode degradar vaz&#227;o e aumentar risco de lock/conten&#231;&#227;o ao longo do tempo.</td>
+                </tr>
+                
+                <tr>
+                  <td class="low">baixo</td>
+                  <td>Padr&#227;o consultivo ou smell de modelagem com menor risco imediato.</td>
+                  <td>Recomendado para endurecimento e manutenibilidade; pode ser planejado.</td>
+                </tr>
+                
+      </tbody></table>
+      <div class="legend">
+        <strong>Legenda de prioridade:</strong>
+        <div>P0: ação imediata (risco crítico).</div>
+        <div>P1: alta prioridade (correção de curto prazo).</div>
+        <div>P2: prioridade planejada (programar e acompanhar).</div>
+        <div>P3: otimização/backlog (menor urgência).</div>
+      </div>
+    </div>
   </div>
   <div class="grid">
     <div class="card">
       <h2>Resumo por tipo de achado</h2>
+      <div class="summary-scroll">
       <table><thead><tr>
         <th>Código</th><th>Qtde</th><th>%</th>
       </tr></thead><tbody>
@@ -107,35 +122,30 @@
                 
                 <tr><td>FK_COLUNA_REFERENCIA_INEXISTENTE</td><td>1</td><td>6,25</td></tr>
                 
-                <tr><td>FK_DUPLICADA</td><td>1</td><td>6,25</td></tr>
-                
-                <tr><td>FK_TABELA_REFERENCIA_INEXISTENTE</td><td>1</td><td>6,25</td></tr>
-                
-                <tr><td>INDICE_COLUNA_INEXISTENTE</td><td>1</td><td>6,25</td></tr>
-                
-                <tr><td>INDICE_DUPLICADO</td><td>1</td><td>6,25</td></tr>
-                
-                <tr><td>INDICE_SEM_COLUNAS</td><td>1</td><td>6,25</td></tr>
+                <tr><td>OUTROS</td><td>8</td><td>50</td></tr>
                 
         
       </tbody></table>
+      </div>
     </div>
     <div class="card">
-      <h2>Top tabelas com achados</h2>
+      <h2>Tabelas priorizadas para correção</h2>
+      <div class="summary-scroll">
       <table><thead><tr>
-        <th>Escopo</th><th>Qtde</th><th>%</th>
+        <th>Escopo</th><th>Prioridade</th><th>Índice de risco</th><th>Qtde</th>
       </tr></thead><tbody>
         
-                <tr><td>PEDIDOS</td><td>11</td><td>68,75</td></tr>
+                <tr><td>PEDIDOS</td><td>P1</td><td>81</td><td>11</td></tr>
                 
-                <tr><td>CLIENTES</td><td>2</td><td>12,5</td></tr>
+                <tr><td>LOG_EVENTOS</td><td>P1</td><td>79</td><td>2</td></tr>
                 
-                <tr><td>LOG_EVENTOS</td><td>2</td><td>12,5</td></tr>
+                <tr><td>CLIENTES</td><td>P2</td><td>65</td><td>2</td></tr>
                 
-                <tr><td>ITENS_PEDIDO</td><td>1</td><td>6,25</td></tr>
+                <tr><td>ITENS_PEDIDO</td><td>P2</td><td>64</td><td>1</td></tr>
                 
         
       </tbody></table>
+      </div>
     </div>
   </div>
   
@@ -253,19 +263,19 @@
               <td>Valide compatibilidade de vers&#227;o e confira a defini&#231;&#227;o no RDB$FIELDS.</td>
             </tr>
             
-            <tr data-sev="medium" data-code="INDICE_REDUNDANTE_PREFIXO" data-text="pedidos indice_redundante_prefixo &#237;ndice ind_pedidos_cliente_a pode ser redundante porque ind_pedidos_cliente_valor j&#225; cobre seu prefixo. valide planos de execu&#231;&#227;o e mantenha apenas o &#237;ndice com melhor seletividade/cobertura.">
+            <tr data-sev="medium" data-code="INDICE_REDUNDANTE_PREFIXO" data-text="pedidos indice_redundante_prefixo &#237;ndice ind_pedidos_cliente_a (non-unique, asc, (cliente_id)) pode ser redundante porque ind_pedidos_cliente_valor (non-unique, asc, (cliente_id, valor)) j&#225; cobre seu prefixo (cliente_id). valide planos de execu&#231;&#227;o e mantenha apenas o &#237;ndice com melhor seletividade/cobertura.">
               <td class="medium">m&#233;dio</td>
               <td>INDICE_REDUNDANTE_PREFIXO</td>
               <td>PEDIDOS</td>
-              <td>&#205;ndice IND_PEDIDOS_CLIENTE_A pode ser redundante porque IND_PEDIDOS_CLIENTE_VALOR j&#225; cobre seu prefixo.</td>
+              <td>&#205;ndice IND_PEDIDOS_CLIENTE_A (NON-UNIQUE, ASC, (CLIENTE_ID)) pode ser redundante porque IND_PEDIDOS_CLIENTE_VALOR (NON-UNIQUE, ASC, (CLIENTE_ID, VALOR)) j&#225; cobre seu prefixo (CLIENTE_ID).</td>
               <td>Valide planos de execu&#231;&#227;o e mantenha apenas o &#237;ndice com melhor seletividade/cobertura.</td>
             </tr>
             
-            <tr data-sev="medium" data-code="INDICE_REDUNDANTE_PREFIXO" data-text="pedidos indice_redundante_prefixo &#237;ndice ind_pedidos_cliente_b pode ser redundante porque ind_pedidos_cliente_valor j&#225; cobre seu prefixo. valide planos de execu&#231;&#227;o e mantenha apenas o &#237;ndice com melhor seletividade/cobertura.">
+            <tr data-sev="medium" data-code="INDICE_REDUNDANTE_PREFIXO" data-text="pedidos indice_redundante_prefixo &#237;ndice ind_pedidos_cliente_b (non-unique, asc, (cliente_id)) pode ser redundante porque ind_pedidos_cliente_valor (non-unique, asc, (cliente_id, valor)) j&#225; cobre seu prefixo (cliente_id). valide planos de execu&#231;&#227;o e mantenha apenas o &#237;ndice com melhor seletividade/cobertura.">
               <td class="medium">m&#233;dio</td>
               <td>INDICE_REDUNDANTE_PREFIXO</td>
               <td>PEDIDOS</td>
-              <td>&#205;ndice IND_PEDIDOS_CLIENTE_B pode ser redundante porque IND_PEDIDOS_CLIENTE_VALOR j&#225; cobre seu prefixo.</td>
+              <td>&#205;ndice IND_PEDIDOS_CLIENTE_B (NON-UNIQUE, ASC, (CLIENTE_ID)) pode ser redundante porque IND_PEDIDOS_CLIENTE_VALOR (NON-UNIQUE, ASC, (CLIENTE_ID, VALOR)) j&#225; cobre seu prefixo (CLIENTE_ID).</td>
               <td>Valide planos de execu&#231;&#227;o e mantenha apenas o &#237;ndice com melhor seletividade/cobertura.</td>
             </tr>
             
@@ -277,11 +287,11 @@
               <td>Consolide FKs equivalentes e mantenha apenas uma restri&#231;&#227;o validada.</td>
             </tr>
             
-            <tr data-sev="low" data-code="INDICE_DUPLICADO" data-text="pedidos indice_duplicado assinatura de &#237;ndice duplicada em pedidos: ind_pedidos_cliente_a, ind_pedidos_cliente_b. assinatura: n|a|cliente_id. mantenha apenas um &#237;ndice por assinatura ap&#243;s validar carga de trabalho.">
+            <tr data-sev="low" data-code="INDICE_DUPLICADO" data-text="pedidos indice_duplicado assinatura de &#237;ndice duplicada em pedidos: ind_pedidos_cliente_a, ind_pedidos_cliente_b. assinatura: non-unique, asc, (cliente_id). mantenha apenas um &#237;ndice por assinatura ap&#243;s validar carga de trabalho.">
               <td class="low">baixo</td>
               <td>INDICE_DUPLICADO</td>
               <td>PEDIDOS</td>
-              <td>Assinatura de &#237;ndice duplicada em PEDIDOS: IND_PEDIDOS_CLIENTE_A, IND_PEDIDOS_CLIENTE_B. Assinatura: N|A|CLIENTE_ID.</td>
+              <td>Assinatura de &#237;ndice duplicada em PEDIDOS: IND_PEDIDOS_CLIENTE_A, IND_PEDIDOS_CLIENTE_B. Assinatura: NON-UNIQUE, ASC, (CLIENTE_ID).</td>
               <td>Mantenha apenas um &#237;ndice por assinatura ap&#243;s validar carga de trabalho.</td>
             </tr>
             
