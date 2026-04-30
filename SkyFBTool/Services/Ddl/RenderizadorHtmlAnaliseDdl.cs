@@ -16,10 +16,7 @@ public static class RenderizadorHtmlAnaliseDdl
         if (string.IsNullOrWhiteSpace(origemExibicao))
             origemExibicao = resultado.Origem;
 
-        var resumoCodigoTop = resultado.ResumoPorCodigo
-            .Take(10)
-            .Select(MapearResumo)
-            .ToList();
+        var resumoCodigoTop = CriarResumoCodigoTopComOutros(resultado.ResumoPorCodigo, idioma);
         var resumoTabelaRiscoTop = CriarResumoRiscoPorTabela(resultado);
 
         return new ModeloRelatorio
@@ -52,6 +49,11 @@ public static class RenderizadorHtmlAnaliseDdl
             TotalBaixos = resultado.TotalBaixos,
             ResumoCodigoLabel = M(idioma, "Summary by finding type", "Resumo por tipo de achado"),
             ResumoTabelaLabel = M(idioma, "Tables prioritized for remediation", "Tabelas priorizadas para correção"),
+            LegendaPrioridadeLabel = M(idioma, "Priority legend", "Legenda de prioridade"),
+            LegendaPrioridadeP0 = M(idioma, "P0: immediate action (critical risk).", "P0: ação imediata (risco crítico)."),
+            LegendaPrioridadeP1 = M(idioma, "P1: high priority (short-term remediation).", "P1: alta prioridade (correção de curto prazo)."),
+            LegendaPrioridadeP2 = M(idioma, "P2: planned priority (schedule and monitor).", "P2: prioridade planejada (programar e acompanhar)."),
+            LegendaPrioridadeP3 = M(idioma, "P3: optimization/backlog (lower urgency).", "P3: otimização/backlog (menor urgência)."),
             QtdLabel = M(idioma, "Count", "Qtde"),
             PctLabel = "%",
             CodigoLabel = M(idioma, "Code", "Código"),
@@ -174,6 +176,29 @@ public static class RenderizadorHtmlAnaliseDdl
             Quantidade = item.Quantidade,
             Percentual = item.Percentual.ToString("0.##")
         };
+    }
+
+    private static List<ResumoModelo> CriarResumoCodigoTopComOutros(IReadOnlyList<ItemResumoAnaliseDdl> resumoPorCodigo, IdiomaSaida idioma)
+    {
+        if (resumoPorCodigo.Count <= 5)
+            return resumoPorCodigo.Select(MapearResumo).ToList();
+
+        var top5 = resumoPorCodigo
+            .Take(5)
+            .Select(MapearResumo)
+            .ToList();
+
+        int qtdOutros = resumoPorCodigo.Skip(5).Sum(i => i.Quantidade);
+        decimal pctOutros = resumoPorCodigo.Skip(5).Sum(i => i.Percentual);
+
+        top5.Add(new ResumoModelo
+        {
+            Chave = H(M(idioma, "OTHERS", "OUTROS")),
+            Quantidade = qtdOutros,
+            Percentual = pctOutros.ToString("0.##")
+        });
+
+        return top5;
     }
 
     private static List<ResumoTabelaRiscoModelo> CriarResumoRiscoPorTabela(ResultadoAnaliseDdl resultado)
@@ -317,6 +342,11 @@ public static class RenderizadorHtmlAnaliseDdl
         public int TotalBaixos { get; init; }
         public string ResumoCodigoLabel { get; init; } = string.Empty;
         public string ResumoTabelaLabel { get; init; } = string.Empty;
+        public string LegendaPrioridadeLabel { get; init; } = string.Empty;
+        public string LegendaPrioridadeP0 { get; init; } = string.Empty;
+        public string LegendaPrioridadeP1 { get; init; } = string.Empty;
+        public string LegendaPrioridadeP2 { get; init; } = string.Empty;
+        public string LegendaPrioridadeP3 { get; init; } = string.Empty;
         public string QtdLabel { get; init; } = string.Empty;
         public string PctLabel { get; init; } = "%";
         public string CodigoLabel { get; init; } = string.Empty;

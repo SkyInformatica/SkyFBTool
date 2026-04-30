@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>{{ Titulo }}</title>
   <style>
-    @page { size: A4 portrait; margin: 12mm; }
+    @page { size: A4; margin: 12mm; }
     body { font-family: Segoe UI, Arial, sans-serif; margin: 20px; color: #1f2937; }
     h1, h2 { margin: 0 0 12px 0; }
     .meta { margin-bottom: 14px; font-size: 14px; }
@@ -13,7 +13,10 @@
     .pill { border: 1px solid #d1d5db; border-radius: 12px; padding: 8px 10px; background: #f9fafb; font-size: 13px; }
     .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 8px 0 16px; }
     .card { border: 1px solid #e5e7eb; border-radius: 10px; background: #fff; padding: 10px; }
-    .summary-scroll { max-height: 320px; overflow: auto; border: 1px solid #eef2f7; border-radius: 8px; }
+    .criteria-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 10px; align-items: start; }
+    .summary-scroll { height: 320px; overflow: auto; border: 1px solid #eef2f7; border-radius: 8px; }
+    .legend { margin: 0; font-size: 13px; color: #1f2937; line-height: 1.35; background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 8px; padding: 8px 10px; }
+    .legend strong { color: #111827; display: block; margin-bottom: 4px; }
     .toolbar { display: flex; gap: 10px; flex-wrap: wrap; margin: 8px 0 10px; align-items: center; }
     .toolbar input, .toolbar select { padding: 6px 8px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 13px; }
     .count { font-size: 13px; color: #374151; }
@@ -26,7 +29,7 @@
     .high { color: #92400e; font-weight: 700; }
     .medium { color: #1d4ed8; font-weight: 700; }
     .low { color: #065f46; font-weight: 700; }
-    @media (max-width: 900px) { .grid { grid-template-columns: 1fr; } body { margin: 12px; } }
+    @media (max-width: 900px) { .grid { grid-template-columns: 1fr; } .criteria-grid { grid-template-columns: 1fr; } body { margin: 12px; } }
     @media print {
       body { margin: 0; font-size: 11px; color: #000; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
       .toolbar { display: none; }
@@ -64,19 +67,28 @@
   </div>
   <div class="card criteria">
     <h2>{{ CriteriosSeveridadeLabel }}</h2>
-    <table><thead><tr>
-      <th>{{ CriterioNivelLabel }}</th>
-      <th>{{ CriterioQuandoLabel }}</th>
-      <th>{{ CriterioImpactoLabel }}</th>
-    </tr></thead><tbody>
-      {{ for c in CriteriosSeveridade }}
-      <tr>
-        <td class="{{ c.Classe }}">{{ c.Rotulo }}</td>
-        <td>{{ c.Quando }}</td>
-        <td>{{ c.Impacto }}</td>
-      </tr>
-      {{ end }}
-    </tbody></table>
+    <div class="criteria-grid">
+      <table><thead><tr>
+        <th>{{ CriterioNivelLabel }}</th>
+        <th>{{ CriterioQuandoLabel }}</th>
+        <th>{{ CriterioImpactoLabel }}</th>
+      </tr></thead><tbody>
+        {{ for c in CriteriosSeveridade }}
+        <tr>
+          <td class="{{ c.Classe }}">{{ c.Rotulo }}</td>
+          <td>{{ c.Quando }}</td>
+          <td>{{ c.Impacto }}</td>
+        </tr>
+        {{ end }}
+      </tbody></table>
+      <div class="legend">
+        <strong>{{ LegendaPrioridadeLabel }}:</strong>
+        <div>{{ LegendaPrioridadeP0 }}</div>
+        <div>{{ LegendaPrioridadeP1 }}</div>
+        <div>{{ LegendaPrioridadeP2 }}</div>
+        <div>{{ LegendaPrioridadeP3 }}</div>
+      </div>
+    </div>
   </div>
   <div class="grid">
     <div class="card">
