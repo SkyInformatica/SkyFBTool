@@ -12,6 +12,10 @@ In DB mode, report metadata also includes an estimated last maintenance timestam
 
 It also detects index redundancy by prefix (for example, `(A)` potentially redundant when `(A,B)` already exists with same direction).
 
+In the HTML report, `ddl-analyze` also provides:
+- a **Tables prioritized for remediation** section (scope/table), with `Priority` (`P0..P3`), `Risk index`, and `Count`;
+- a priority legend (`P0..P3`) placed next to severity criteria for faster DBA decision-making.
+
 ## How to use
 ```powershell
 SkyFBTool ddl-analyze --input INPUT --output PREFIX [options]

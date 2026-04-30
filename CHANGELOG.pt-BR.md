@@ -18,6 +18,8 @@ e o projeto adota [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Achados `FK_SEM_INDICE_COBERTURA` agora incluem contexto mais completo no relatório (tabela/colunas filha e tabela/colunas pai).
 - Achados `INDICE_DUPLICADO` agora incluem a assinatura de índice calculada para facilitar validação de duplicidade por DBAs.
 - `ddl-analyze` agora emite achados operacionais de prioridade por volume (`OPERACIONAL_VOLUME_PRIORIDADE_ALTA|MEDIA|BAIXA`) usando estimativa leve por índice no modo por banco.
+- Relatório HTML de `ddl-analyze` agora inclui seção de priorização para correção por tabela (`Tabelas priorizadas para correção`) com `Prioridade` (`P0..P3`), `Índice de risco` e `Qtde`.
+- Layout do relatório `ddl-analyze` agora exibe a legenda de prioridade (`P0..P3`) ao lado dos critérios de severidade e alinha os painéis de resumo com áreas de rolagem de altura fixa.
 
 ### Corrigido
 - Falsos positivos de `FK_SEM_INDICE_COBERTURA` foram corrigidos ao considerar metadados do índice de suporte da FK (índice vinculado à constraint) tanto na extração por banco quanto na análise por snapshot SQL.

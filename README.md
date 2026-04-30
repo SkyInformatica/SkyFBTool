@@ -93,6 +93,7 @@ Notes:
 - `ddl-diff` output files: `.sql`, `.json`, and `.html`.
 - `ddl-diff` report includes Top 10 critical target findings (with severity), suggested SQL block order, and a post-apply checklist.
 - `ddl-analyze` output files: `.json` and `.html`, with summary by code/table and HTML filters.
+- `ddl-analyze` HTML report includes a **Tables prioritized for remediation** section with `Priority` (`P0..P3`), `Risk index`, and `Count`, plus a priority legend next to severity criteria.
 - In `ddl-analyze --databases-batch`, an additional consolidated summary is generated: `batch_analysis_summary_*.json` and `.html`.
 - `ddl-analyze` supports two input modes: file (`--input/--source`) or direct DB connection (`--database` + connection options).
 - In `ddl-analyze --database`, the report also includes operational findings based on Firebird monitoring tables (`MON$`), such as transaction retention pressure signals.

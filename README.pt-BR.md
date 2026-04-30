@@ -93,6 +93,7 @@ Observações:
 - Arquivos de saída do `ddl-diff`: `.sql`, `.json` e `.html`.
 - O relatório do `ddl-diff` inclui Top 10 achados críticos do alvo (com severidade), ordem sugerida de blocos SQL e checklist pós-aplicação.
 - Arquivos de saída do `ddl-analyze`: `.json` e `.html`, com resumo por tipo/tabela e filtros no HTML.
+- O relatório HTML do `ddl-analyze` inclui a seção **Tabelas priorizadas para correção** com `Prioridade` (`P0..P3`), `Índice de risco` e `Qtde`, além de legenda de prioridade ao lado dos critérios de severidade.
 - No `ddl-analyze --databases-batch`, também é gerado um resumo consolidado: `batch_analysis_summary_*.json` e `.html`.
 - `ddl-analyze` suporta dois modos de entrada: arquivo (`--input/--source`) ou conexão direta no banco (`--database` + opções de conexão).
 - No `ddl-analyze --database`, o relatório também inclui achados operacionais baseados nas tabelas de monitoramento do Firebird (`MON$`), como sinais de pressão de retenção transacional.
