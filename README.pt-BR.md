@@ -153,6 +153,10 @@ Regras:
 - `--progress-every` intervalo de progresso
 - `--continue-on-error` continua importando após erros de comando
 - use apenas um modo de entrada por execução: `--input/--script` ou `--inputs-batch`
+- status no resumo do lote:
+  - `Sucesso`: arquivo concluído sem erros de comandos SQL
+  - `Sucesso com erros`: arquivo concluído com erros de comando usando `--continue-on-error`
+  - `Falha`: arquivo interrompido por erro fatal
 
 ## Testes
 

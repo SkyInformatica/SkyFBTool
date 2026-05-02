@@ -153,6 +153,10 @@ Rules:
 - `--progress-every` progress interval
 - `--continue-on-error` keep importing after command errors
 - use only one input mode per run: `--input/--script` or `--inputs-batch`
+- batch summary statuses:
+  - `Succeeded`: file completed without SQL command errors
+  - `Succeeded with errors`: file completed with command errors under `--continue-on-error`
+  - `Failed`: file aborted by fatal error
 
 ## Tests
 

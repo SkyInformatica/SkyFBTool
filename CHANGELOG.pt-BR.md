@@ -23,6 +23,7 @@ e o projeto adota [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Corrigido
 - Falsos positivos de `FK_SEM_INDICE_COBERTURA` foram corrigidos ao considerar metadados do índice de suporte da FK (índice vinculado à constraint) tanto na extração por banco quanto na análise por snapshot SQL.
+- Resumo do `import` em lote agora classifica corretamente arquivos com erros de comandos SQL em `--continue-on-error` como `Sucesso com erros`, em vez de `Sucesso`.
 
 ## [0.3.0] - 2026-04-28
 

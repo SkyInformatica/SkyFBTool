@@ -23,6 +23,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 - False positives for `FK_SEM_INDICE_COBERTURA` were fixed by considering FK support index metadata (constraint-bound index) in both DB extraction and SQL snapshot analysis.
+- Batch `import` summary now correctly classifies files with SQL command errors under `--continue-on-error` as `Succeeded with errors` instead of plain `Succeeded`.
 
 ## [0.3.0] - 2026-04-28
 
