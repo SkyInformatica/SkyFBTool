@@ -28,6 +28,10 @@ Regras:
 
 ## Log de execução
 - Um arquivo de log é sempre gerado por execução com nome único (`*_import_log_*.log`), indicando status de sucesso ou erro.
+- No modo em lote, o resumo diferencia:
+  - `Sucesso`: arquivo concluído sem erros de comandos SQL.
+  - `Sucesso com erros`: arquivo concluído, mas com um ou mais comandos SQL com falha usando `--continue-on-error`.
+  - `Falha`: execução do arquivo interrompida por erro fatal.
 
 ## Exemplos
 ```powershell

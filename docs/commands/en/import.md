@@ -28,6 +28,10 @@ Rules:
 
 ## Execution log
 - A log file is always generated per execution with a unique name (`*_import_log_*.log`), including success or error status.
+- In batch mode, summary distinguishes:
+  - `Succeeded`: file completed without SQL command errors.
+  - `Succeeded with errors`: file completed, but one or more SQL commands failed while using `--continue-on-error`.
+  - `Failed`: file execution aborted by a fatal error.
 
 ## Examples
 ```powershell
