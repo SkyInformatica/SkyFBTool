@@ -68,6 +68,14 @@ SkyFBTool import --database CAMINHO.fdb --inputs-batch "C:\exports\*.sql" [opç�
   - comandos com erro são registrados em log e a execução continua.
   - o status final pode indicar conclusão com erros.
 
+## Política de retry para falhas transitórias
+- A execução de comandos SQL aplica retry automático para falhas transitórias (até 3 tentativas).
+- Casos transitórios típicos incluem deadlock/conflito de update e instabilidade temporária de conexão/engine.
+- Erros não transitórios não entram em retry.
+- Se todas as tentativas falharem:
+  - sem `--continue-on-error`, a execução é interrompida;
+  - com `--continue-on-error`, o comando é registrado como falha e a importação continua.
+
 ## Semântica de status no lote
 No modo em lote, o resumo final diferencia:
 - `Sucesso`: arquivo concluído sem erros de comandos SQL.

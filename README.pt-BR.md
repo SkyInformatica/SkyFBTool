@@ -220,8 +220,8 @@ dotnet test SkyFBTool.Tests\SkyFBTool.Tests.csproj -p:RestoreSources=https://api
 ### Lacunas de Cobertura e Próximas Prioridades
 
 - Resiliência operacional de `MON$` em edge cases de versão/permissão do Firebird.
-- Casos complexos de ordenação de dependências no `ddl-diff` e combinações maiores de schema real.
-- Cenários de estresse de import/export com volumes muito grandes e falhas intermitentes.
+- Combinações mais profundas de dependências reais no `ddl-diff`, além da ordenação base já implementada.
+- Validação de estresse de import/export em execuções longas e datasets de produção (pressão de recurso e estabilidade prolongada).
 - Fluxos de lote com resultados mistos (falhas parciais e bases muito heterogêneas).
 
 Testes de integração:

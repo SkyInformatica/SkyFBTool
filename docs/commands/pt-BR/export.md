@@ -59,6 +59,12 @@ SkyFBTool export --database CAMINHO.fdb --table TABELA [opções]
   - Use `--continue-on-error` apenas quando exportação parcial for aceitável e as falhas por linha forem revisadas depois.
   - `--commit-every` afeta os limites transacionais do script gerado durante a importação, não a consistência de leitura da origem.
 
+## Política de retry para escrita transitória
+- A escrita de linhas/script aplica retry automático para falhas transitórias de I/O (até 3 tentativas).
+- Casos transitórios típicos incluem lock temporário de arquivo e interrupções curtas de escrita.
+- Erros de escrita não transitórios não entram em retry.
+- Se todas as tentativas falharem, o tratamento segue a semântica de `--continue-on-error`.
+
 ## Comportamento de progresso no console
 - Terminal interativo (TTY):
   - linha dinâmica de progresso é atualizada em tempo real (`processado`, `comandos`, `velocidade`, `tempo`).

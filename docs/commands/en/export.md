@@ -59,6 +59,12 @@ SkyFBTool export --database PATH.fdb --table TABLE [options]
   - Use `--continue-on-error` only when partial export is acceptable and row-level failures will be reviewed later.
   - `--commit-every` affects generated script transaction boundaries during import, not extraction consistency from source.
 
+## Transient write retry policy
+- Row/script writes use automatic retry for transient file-write failures (up to 3 attempts).
+- Typical transient cases include temporary file locks and short I/O interruptions.
+- Non-transient write errors are not retried.
+- If all retry attempts fail, row/script write error handling follows `--continue-on-error` semantics.
+
 ## Console progress behavior
 - Interactive terminal (TTY):
   - live dynamic progress line is updated in place (`processed`, `commands`, `speed`, `elapsed`).

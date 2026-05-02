@@ -33,6 +33,18 @@ SkyFBTool ddl-diff --source SOURCE --target TARGET --output PREFIX
 - Always review generated `.sql` before execution in production.
 - Use `.html` report to validate operation order and high-risk changes before applying script.
 
+## Command ordering model
+Generated SQL is ordered to reduce dependency errors in practical rollout:
+1. `ALTER TABLE ... DROP CONSTRAINT`
+2. `CREATE TABLE`
+3. `ALTER TABLE ... ADD <column>`
+4. `ALTER TABLE ... ALTER COLUMN`
+5. `ADD CONSTRAINT ... PRIMARY KEY`
+6. `CREATE INDEX`
+7. `ADD CONSTRAINT ... FOREIGN KEY`
+
+This ordering is deterministic and keeps FK creation after base tables, PKs, and indexes.
+
 ## Practical interpretation of outputs
 - `.sql`: executable adjustment candidate (not auto-applied by tool).
 - `.json`: machine-readable list of structured differences.

@@ -68,6 +68,14 @@ SkyFBTool import --database PATH.fdb --inputs-batch "C:\exports\*.sql" [options]
   - failed commands are logged and execution continues.
   - final run status can still contain errors.
 
+## Transient failure retry policy
+- SQL command execution uses automatic retry for transient failures (up to 3 attempts).
+- Typical transient cases include deadlock/update conflict and temporary connection/engine instability.
+- Non-transient errors are not retried.
+- If all retry attempts fail:
+  - without `--continue-on-error`, execution aborts;
+  - with `--continue-on-error`, the command is logged as failed and import continues.
+
 ## Batch summary semantics
 In batch mode, final summary distinguishes:
 - `Succeeded`: file completed without SQL command errors.

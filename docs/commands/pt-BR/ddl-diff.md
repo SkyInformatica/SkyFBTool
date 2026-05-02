@@ -33,6 +33,18 @@ SkyFBTool ddl-diff --source ORIGEM --target ALVO --output PREFIXO
 - Sempre revise o `.sql` gerado antes de executar em produção.
 - Use o relatório `.html` para validar ordem de operações e mudanças de maior risco antes da aplicação.
 
+## Modelo de ordenação dos comandos
+O SQL gerado é ordenado para reduzir erros de dependência na aplicação prática:
+1. `ALTER TABLE ... DROP CONSTRAINT`
+2. `CREATE TABLE`
+3. `ALTER TABLE ... ADD <coluna>`
+4. `ALTER TABLE ... ALTER COLUMN`
+5. `ADD CONSTRAINT ... PRIMARY KEY`
+6. `CREATE INDEX`
+7. `ADD CONSTRAINT ... FOREIGN KEY`
+
+Essa ordenação é determinística e mantém a criação de FKs após tabelas base, PKs e índices.
+
 ## Interpretação prática das saídas
 - `.sql`: candidato executável de ajuste (a ferramenta não aplica automaticamente).
 - `.json`: lista estruturada de diferenças para automação/integração.

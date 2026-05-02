@@ -220,8 +220,8 @@ dotnet test SkyFBTool.Tests\SkyFBTool.Tests.csproj -p:RestoreSources=https://api
 ### Coverage Gaps and Next Priorities
 
 - `MON$` operational resilience across Firebird versions/permissions edge cases.
-- `ddl-diff` complex dependency ordering and larger real-world schema combinations.
-- Import/export stress scenarios under very large datasets and intermittent failures.
+- `ddl-diff` deeper real-world dependency combinations beyond current ordering baseline.
+- Import/export long-run stress validation in production-like datasets (resource pressure, long-duration stability).
 - Batch mixed-result flows (partial failures, highly heterogeneous databases).
 
 Integration tests:
