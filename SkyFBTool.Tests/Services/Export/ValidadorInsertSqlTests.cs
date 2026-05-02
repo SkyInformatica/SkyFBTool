@@ -1,3 +1,4 @@
+using SkyFBTool.Core;
 using SkyFBTool.Services.Export;
 using Xunit;
 
@@ -10,7 +11,7 @@ public class ValidadorInsertSqlTests
     {
         const string sql = "INSERT INTO RECIBOS (ID, NOME, OBS) VALUES (1, 'ANA', 'TEXTO');";
 
-        var ok = ValidadorInsertSql.TentarContarColunasEValores(sql, out int colunas, out int valores, out string? erro);
+        var ok = ValidadorInsertSql.TentarContarColunasEValores(sql, out int colunas, out int valores, out string? erro, IdiomaSaida.PortugueseBrazil);
 
         Assert.True(ok);
         Assert.Equal(3, colunas);
@@ -23,7 +24,7 @@ public class ValidadorInsertSqlTests
     {
         const string sql = "INSERT INTO RECIBOS (ID, OBS) VALUES (1, 'A, B, C');";
 
-        var ok = ValidadorInsertSql.TentarContarColunasEValores(sql, out int colunas, out int valores, out string? erro);
+        var ok = ValidadorInsertSql.TentarContarColunasEValores(sql, out int colunas, out int valores, out string? erro, IdiomaSaida.PortugueseBrazil);
 
         Assert.True(ok);
         Assert.Equal(2, colunas);
@@ -36,7 +37,7 @@ public class ValidadorInsertSqlTests
     {
         const string sql = "INSERT INTO RECIBOS (ID, NOME, OBS) VALUES (1, 'ANA');";
 
-        var ok = ValidadorInsertSql.TentarContarColunasEValores(sql, out int colunas, out int valores, out string? erro);
+        var ok = ValidadorInsertSql.TentarContarColunasEValores(sql, out int colunas, out int valores, out string? erro, IdiomaSaida.PortugueseBrazil);
 
         Assert.False(ok);
         Assert.Equal(3, colunas);

@@ -10,22 +10,22 @@ public static class ExportadorTabelaFirebird
     private static readonly TimeSpan IntervaloCheckpoint = TimeSpan.FromSeconds(30);
     private const int MaxTentativasEscrita = 3;
 
-    public static async Task ExportarAsync(OpcoesExportacao opcoes, IDestinoArquivo destino)
+    public static async Task ExportarAsync(OpcoesExportacao opcoes, IDestinoArquivo destino, IdiomaSaida idioma = IdiomaSaida.English)
     {
         var cronometro = System.Diagnostics.Stopwatch.StartNew();
 
         if (string.IsNullOrWhiteSpace(opcoes.Database))
-            throw new ArgumentException("Banco de dados não informado (--database).");
+            throw new ArgumentException(TextoLocalizado.Obter(idioma, "Database not provided (--database).", "Banco de dados não informado (--database)."));
 
         if (string.IsNullOrWhiteSpace(opcoes.Tabela))
-            throw new ArgumentException("Tabela não informada (--table).");
+            throw new ArgumentException(TextoLocalizado.Obter(idioma, "Table not provided (--table).", "Tabela não informada (--table)."));
 
         var tabelaOrigem = opcoes.Tabela;
         var tabelaDestino = string.IsNullOrWhiteSpace(opcoes.AliasTabela)
             ? tabelaOrigem
             : opcoes.AliasTabela;
 
-        Console.WriteLine($"Iniciando exportação da tabela '{tabelaOrigem}' para '{tabelaDestino}'...");
+        Console.WriteLine(TextoLocalizado.Obter(idioma, $"Starting export of table '{tabelaOrigem}' to '{tabelaDestino}'...", $"Iniciando exportação da tabela '{tabelaOrigem}' para '{tabelaDestino}'..."));
         
         await destino.EscreverLinhaAsync($"SET SQL DIALECT 3;");
 
@@ -49,13 +49,12 @@ public static class ExportadorTabelaFirebird
 
         if (opcoes.ModoInsert == ModoInsertExportacao.Upsert && colunasPk.Count == 0)
         {
-            throw new InvalidOperationException(
-                $"Modo upsert exige chave primária. A tabela '{tabelaOrigem}' não possui PK.");
+            throw new InvalidOperationException(TextoLocalizado.Obter(idioma, $"Upsert mode requires a primary key. Table '{tabelaOrigem}' has no PK.", $"Modo upsert exige chave primária. A tabela '{tabelaOrigem}' não possui PK."));
         }
 
         if (!string.IsNullOrWhiteSpace(opcoes.ConsultaSqlCompleta))
         {
-            var sqlSelect = ConstrutorConsultaFirebird.MontarSelect(opcoes);
+            var sqlSelect = ConstrutorConsultaFirebird.MontarSelect(opcoes, idioma);
 
             await using var cmd = new FbCommand(sqlSelect, conexao)
             {
@@ -64,17 +63,17 @@ public static class ExportadorTabelaFirebird
 
             await using var leitor = await cmd.ExecuteReaderAsync();
             var colunas = MontarColunasDaConsulta(leitor);
-            var colunasMatching = ResolverColunasMatching(opcoes, tabelaOrigem, colunas, colunasPk);
+            var colunasMatching = ResolverColunasMatching(opcoes, tabelaOrigem, colunas, colunasPk, idioma);
 
-            await ExportarLinhasAsync(opcoes, destino, leitor, tabelaDestino, colunas, colunasMatching, cronometro);
+            await ExportarLinhasAsync(opcoes, destino, leitor, tabelaDestino, colunas, colunasMatching, cronometro, idioma);
             return;
         }
 
         var colunasGravaveis = await ObterColunasGravaveisOrdenadasAsync(conexao, tabelaOrigem);
         if (colunasGravaveis.Count == 0)
-            throw new InvalidOperationException("Nenhuma coluna gravável foi encontrada para exportação.");
+            throw new InvalidOperationException(TextoLocalizado.Obter(idioma, "No writable columns were found for export.", "Nenhuma coluna gravável foi encontrada para exportação."));
 
-        var sqlSelectComColunas = ConstrutorConsultaFirebird.MontarSelectComColunas(opcoes, colunasGravaveis);
+        var sqlSelectComColunas = ConstrutorConsultaFirebird.MontarSelectComColunas(opcoes, colunasGravaveis, idioma);
 
         await using var cmdComColunas = new FbCommand(sqlSelectComColunas, conexao)
         {
@@ -83,7 +82,7 @@ public static class ExportadorTabelaFirebird
 
         await using var leitorComColunas = await cmdComColunas.ExecuteReaderAsync();
         var mapeamentoColunas = MontarColunasPorNome(leitorComColunas, colunasGravaveis);
-        var colunasMatchingModoSimples = ResolverColunasMatching(opcoes, tabelaOrigem, mapeamentoColunas, colunasPk);
+        var colunasMatchingModoSimples = ResolverColunasMatching(opcoes, tabelaOrigem, mapeamentoColunas, colunasPk, idioma);
         await ExportarLinhasAsync(
             opcoes,
             destino,
@@ -91,7 +90,8 @@ public static class ExportadorTabelaFirebird
             tabelaDestino,
             mapeamentoColunas,
             colunasMatchingModoSimples,
-            cronometro);
+            cronometro,
+            idioma);
     }
 
     private static async Task ExportarLinhasAsync(
@@ -101,7 +101,8 @@ public static class ExportadorTabelaFirebird
         string tabelaDestino,
         (int Ordinal, string Nome)[] colunas,
         IReadOnlyList<string>? colunasMatching,
-        System.Diagnostics.Stopwatch cronometro)
+        System.Diagnostics.Stopwatch cronometro,
+        IdiomaSaida idioma)
     {
         long totalLinhas = 0;
         long totalErros = 0;
@@ -127,17 +128,18 @@ public static class ExportadorTabelaFirebird
                     opcoes.FormatoBlob,
                     opcoes.ForcarWin1252,
                     opcoes.SanitizarTexto,
-                    opcoes.EscaparQuebrasDeLinha);
+                    opcoes.EscaparQuebrasDeLinha,
+                    idioma);
             }
             catch (Exception ex)
             {
                 throw new InvalidOperationException(
-                    $"Falha ao gerar INSERT da tabela '{tabelaDestino}' na linha {totalLinhas}. {ex.Message}",
+                    TextoLocalizado.Obter(idioma, $"Failed to generate INSERT for table '{tabelaDestino}' at row {totalLinhas}. {ex.Message}", $"Falha ao gerar INSERT da tabela '{tabelaDestino}' na linha {totalLinhas}. {ex.Message}"),
                     ex);
             }
             try
             {
-                await EscreverLinhaComRetryAsync(destino, insert);
+                await EscreverLinhaComRetryAsync(destino, insert, idioma);
             }
             catch (Exception ex)
             {
@@ -146,13 +148,16 @@ public static class ExportadorTabelaFirebird
 
                 totalErros++;
                 File.AppendAllText("erros_exportacao.log",
-                    $"Erro ao escrever linha {totalLinhas}: {ex.Message}{Environment.NewLine}");
+                    TextoLocalizado.Obter(
+                        idioma,
+                        $"Error writing row {totalLinhas}: {ex.Message}{Environment.NewLine}",
+                        $"Erro ao escrever linha {totalLinhas}: {ex.Message}{Environment.NewLine}"));
             }
 
             if (opcoes.CommitACada > 0 &&
                 totalLinhas % opcoes.CommitACada == 0)
             {
-                await EscreverLinhaComRetryAsync(destino, "COMMIT;");
+                await EscreverLinhaComRetryAsync(destino, "COMMIT;", idioma);
             }
 
             AtualizarProgresso(
@@ -163,12 +168,13 @@ public static class ExportadorTabelaFirebird
                 cronometro,
                 cronometroVelocidade,
                 opcoes,
-                modoDinamico);
+                modoDinamico,
+                idioma);
         }
 
         if (totalLinhas > 0 && opcoes.CommitACada > 0)
         {
-            await EscreverLinhaComRetryAsync(destino, "COMMIT;");
+            await EscreverLinhaComRetryAsync(destino, "COMMIT;", idioma);
         }
 
         if (modoDinamico && opcoes.ProgressoACada > 0)
@@ -178,12 +184,12 @@ public static class ExportadorTabelaFirebird
 
         Console.WriteLine();
         Console.ForegroundColor = ConsoleColor.Green;
-        Console.WriteLine("Exportação concluída com sucesso.");
+        Console.WriteLine(TextoLocalizado.Obter(idioma, "Export completed successfully.", "Exportação concluída com sucesso."));
         Console.ResetColor();
 
-        Console.WriteLine($"Linhas exportadas: {totalLinhas:N0}");
-        Console.WriteLine($"Erros:             {totalErros:N0}");
-        Console.WriteLine($"Tempo total:       {cronometro.Elapsed:hh\\:mm\\:ss\\.fff}");
+        Console.WriteLine(TextoLocalizado.Obter(idioma, $"Exported rows: {totalLinhas:N0}", $"Linhas exportadas: {totalLinhas:N0}"));
+        Console.WriteLine(TextoLocalizado.Obter(idioma, $"Errors:           {totalErros:N0}", $"Erros:             {totalErros:N0}"));
+        Console.WriteLine(TextoLocalizado.Obter(idioma, $"Total time:       {cronometro.Elapsed:hh\\:mm\\:ss\\.fff}", $"Tempo total:       {cronometro.Elapsed:hh\\:mm\\:ss\\.fff}"));
     }
 
     private static void AtualizarProgresso(
@@ -194,7 +200,8 @@ public static class ExportadorTabelaFirebird
         System.Diagnostics.Stopwatch cronometroTotal,
         System.Diagnostics.Stopwatch cronometroVelocidade,
         OpcoesExportacao opcoes,
-        bool modoDinamico)
+        bool modoDinamico,
+        IdiomaSaida idioma)
     {
         if (opcoes.ProgressoACada <= 0)
             return;
@@ -204,7 +211,10 @@ public static class ExportadorTabelaFirebird
             double segundos = cronometroVelocidade.Elapsed.TotalSeconds;
             double lps = segundos > 0 ? linhasUltimaMedicao / segundos : 0;
 
-            string linha = $"Processado: {linhas:N0} | Comandos: {linhas:N0} | Velocidade: {lps:N0} cmd/s | Tempo: {FormatarDuracao(cronometroTotal.Elapsed)}";
+            string linha = TextoLocalizado.Obter(
+                idioma,
+                $"Processed: {linhas:N0} | Commands: {linhas:N0} | Speed: {lps:N0} cmd/s | Time: {FormatarDuracao(cronometroTotal.Elapsed)}",
+                $"Processado: {linhas:N0} | Comandos: {linhas:N0} | Velocidade: {lps:N0} cmd/s | Tempo: {FormatarDuracao(cronometroTotal.Elapsed)}");
             if (modoDinamico)
                 Console.Write($"\r{linha}");
             else
@@ -226,8 +236,10 @@ public static class ExportadorTabelaFirebird
         if (modoDinamico)
             Console.WriteLine();
 
-        Console.WriteLine(
-            $"Checkpoint: {linhas:N0} linhas | {linhas:N0} comandos | {FormatarDuracao(cronometroTotal.Elapsed)} | {cpsCheckpoint:N0} cmd/s");
+        Console.WriteLine(TextoLocalizado.Obter(
+            idioma,
+            $"Checkpoint: {linhas:N0} rows | {linhas:N0} commands | {FormatarDuracao(cronometroTotal.Elapsed)} | {cpsCheckpoint:N0} cmd/s",
+            $"Checkpoint: {linhas:N0} linhas | {linhas:N0} comandos | {FormatarDuracao(cronometroTotal.Elapsed)} | {cpsCheckpoint:N0} cmd/s"));
 
         unidadesUltimoCheckpoint = linhas;
         ultimoCheckpointEm = DateTime.UtcNow;
@@ -238,7 +250,7 @@ public static class ExportadorTabelaFirebird
         return $"{(int)tempo.TotalHours:00}:{tempo.Minutes:00}:{tempo.Seconds:00}.{tempo.Milliseconds:000}";
     }
 
-    private static async Task EscreverLinhaComRetryAsync(IDestinoArquivo destino, string linha)
+    private static async Task EscreverLinhaComRetryAsync(IDestinoArquivo destino, string linha, IdiomaSaida idioma)
     {
         Exception? ultimoErro = null;
 
@@ -261,7 +273,7 @@ public static class ExportadorTabelaFirebird
             }
         }
 
-        throw ultimoErro ?? new InvalidOperationException("Falha ao escrever linha no arquivo de destino.");
+        throw ultimoErro ?? new InvalidOperationException(TextoLocalizado.Obter(idioma, "Failed to write line to destination file.", "Falha ao escrever linha no arquivo de destino."));
     }
 
     internal static bool EhFalhaTransienteEscrita(Exception ex)
@@ -353,7 +365,8 @@ public static class ExportadorTabelaFirebird
         OpcoesExportacao opcoes,
         string tabelaOrigem,
         IReadOnlyList<(int Ordinal, string Nome)> colunasSelecionadas,
-        IReadOnlyList<string> colunasPk)
+        IReadOnlyList<string> colunasPk,
+        IdiomaSaida idioma)
     {
         if (opcoes.ModoInsert != ModoInsertExportacao.Upsert)
             return null;
@@ -369,7 +382,9 @@ public static class ExportadorTabelaFirebird
         if (colunasFaltantes.Length > 0)
         {
             throw new InvalidOperationException(
-                $"Modo upsert exige todas as colunas da PK na consulta. Tabela '{tabelaOrigem}', faltando: {string.Join(", ", colunasFaltantes)}.");
+                TextoLocalizado.Obter(idioma,
+                    $"Upsert mode requires all PK columns in the query. Table '{tabelaOrigem}', missing: {string.Join(", ", colunasFaltantes)}.",
+                    $"Modo upsert exige todas as colunas da PK na consulta. Tabela '{tabelaOrigem}', faltando: {string.Join(", ", colunasFaltantes)}."));
         }
 
         return colunasPk.ToArray();

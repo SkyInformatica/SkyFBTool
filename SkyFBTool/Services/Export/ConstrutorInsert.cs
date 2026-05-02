@@ -20,7 +20,8 @@ public static class ConstrutorInsert
         FormatoBlob formatoBlob,
         bool forcarWin1252,
         bool sanitizarTexto,
-        bool escaparQuebrasDeLinha)
+        bool escaparQuebrasDeLinha,
+        IdiomaSaida idioma = IdiomaSaida.English)
     {
         var sb = new StringBuilder();
 
@@ -129,7 +130,7 @@ public static class ConstrutorInsert
         if (modoInsert == ModoInsertExportacao.Upsert)
         {
             if (colunasMatching is null || colunasMatching.Count == 0)
-                throw new InvalidOperationException("Modo upsert exige colunas MATCHING.");
+                throw new InvalidOperationException(TextoLocalizado.Obter(idioma, "Upsert mode requires MATCHING columns.", "Modo upsert exige colunas MATCHING."));
 
             sb.Append(" MATCHING (")
               .Append(string.Join(", ", colunasMatching))
@@ -139,16 +140,20 @@ public static class ConstrutorInsert
         sb.Append(';');
         var insertSql = sb.ToString();
 
-        if (!ValidadorInsertSql.TentarContarColunasEValores(insertSql, out int totalColunas, out int totalValores, out string? erro))
+        if (!ValidadorInsertSql.TentarContarColunasEValores(insertSql, out int totalColunas, out int totalValores, out string? erro, idioma))
         {
             throw new InvalidOperationException(
-                $"Falha de consistência ao gerar INSERT para '{tabelaDestino}'. {erro}");
+                TextoLocalizado.Obter(idioma,
+                    $"Consistency failure while generating INSERT for '{tabelaDestino}'. {erro}",
+                    $"Falha de consistência ao gerar INSERT para '{tabelaDestino}'. {erro}"));
         }
 
         if (totalColunas != totalValores)
         {
             throw new InvalidOperationException(
-                $"Falha de consistência ao gerar INSERT para '{tabelaDestino}': {totalColunas} colunas e {totalValores} valores.");
+                TextoLocalizado.Obter(idioma,
+                    $"Consistency failure while generating INSERT for '{tabelaDestino}': {totalColunas} columns and {totalValores} values.",
+                    $"Falha de consistência ao gerar INSERT para '{tabelaDestino}': {totalColunas} colunas e {totalValores} valores."));
         }
 
         return insertSql;

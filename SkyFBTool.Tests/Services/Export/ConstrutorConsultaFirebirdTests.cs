@@ -6,6 +6,8 @@ namespace SkyFBTool.Tests.Services.Export;
 
 public class ConstrutorConsultaFirebirdTests
 {
+    private const IdiomaSaida IdiomaTeste = IdiomaSaida.PortugueseBrazil;
+
     [Fact]
     public void MontarSelect_ComDadosValidos_GeraSqlEsperado()
     {
@@ -15,7 +17,7 @@ public class ConstrutorConsultaFirebirdTests
             CondicaoWhere = "CODIGO = 10"
         };
 
-        var sql = ConstrutorConsultaFirebird.MontarSelect(opcoes);
+        var sql = ConstrutorConsultaFirebird.MontarSelect(opcoes, IdiomaTeste);
 
         Assert.Equal("SELECT * FROM PAGAMENTOS WHERE CODIGO = 10", sql);
     }
@@ -29,7 +31,7 @@ public class ConstrutorConsultaFirebirdTests
             CondicaoWhere = "NUMERORECIBO = 1"
         };
 
-        var sql = ConstrutorConsultaFirebird.MontarSelectComColunas(opcoes, new[] { "NUMERORECIBO", "TALAORECIBO" });
+        var sql = ConstrutorConsultaFirebird.MontarSelectComColunas(opcoes, new[] { "NUMERORECIBO", "TALAORECIBO" }, IdiomaTeste);
 
         Assert.Equal("SELECT \"NUMERORECIBO\", \"TALAORECIBO\" FROM RECIBOS WHERE NUMERORECIBO = 1", sql);
     }
@@ -39,7 +41,7 @@ public class ConstrutorConsultaFirebirdTests
     {
         var opcoes = new OpcoesExportacao { Tabela = "RECIBOS" };
 
-        var ex = Assert.Throws<ArgumentException>(() => ConstrutorConsultaFirebird.MontarSelectComColunas(opcoes, Array.Empty<string>()));
+        var ex = Assert.Throws<ArgumentException>(() => ConstrutorConsultaFirebird.MontarSelectComColunas(opcoes, Array.Empty<string>(), IdiomaTeste));
 
         Assert.Contains("Nenhuma coluna válida", ex.Message);
     }
@@ -53,7 +55,7 @@ public class ConstrutorConsultaFirebirdTests
             ConsultaSqlCompleta = "SELECT r.* FROM RECIBOS r WHERE r.NUMERORECIBO = 1;"
         };
 
-        var sql = ConstrutorConsultaFirebird.MontarSelect(opcoes);
+        var sql = ConstrutorConsultaFirebird.MontarSelect(opcoes, IdiomaTeste);
 
         Assert.Equal("SELECT r.* FROM RECIBOS r WHERE r.NUMERORECIBO = 1", sql);
     }
@@ -67,7 +69,7 @@ public class ConstrutorConsultaFirebirdTests
             ConsultaSqlCompleta = "DELETE FROM RECIBOS"
         };
 
-        var ex = Assert.Throws<ArgumentException>(() => ConstrutorConsultaFirebird.MontarSelect(opcoes));
+        var ex = Assert.Throws<ArgumentException>(() => ConstrutorConsultaFirebird.MontarSelect(opcoes, IdiomaTeste));
 
         Assert.Contains("Consulta SQL inválida", ex.Message);
     }
@@ -81,7 +83,7 @@ public class ConstrutorConsultaFirebirdTests
             CondicaoWhere = "WHERE CODIGO = 10"
         };
 
-        var sql = ConstrutorConsultaFirebird.MontarSelect(opcoes);
+        var sql = ConstrutorConsultaFirebird.MontarSelect(opcoes, IdiomaTeste);
 
         Assert.Equal("SELECT * FROM PAGAMENTOS WHERE CODIGO = 10", sql);
     }
@@ -95,7 +97,7 @@ public class ConstrutorConsultaFirebirdTests
             CondicaoWhere = "WHERE\r\nCODIGO = 10"
         };
 
-        var sql = ConstrutorConsultaFirebird.MontarSelect(opcoes);
+        var sql = ConstrutorConsultaFirebird.MontarSelect(opcoes, IdiomaTeste);
 
         Assert.Equal("SELECT * FROM PAGAMENTOS WHERE CODIGO = 10", sql);
     }
@@ -109,7 +111,7 @@ public class ConstrutorConsultaFirebirdTests
             CondicaoWhere = "WHERE"
         };
 
-        var ex = Assert.Throws<ArgumentException>(() => ConstrutorConsultaFirebird.MontarSelect(opcoes));
+        var ex = Assert.Throws<ArgumentException>(() => ConstrutorConsultaFirebird.MontarSelect(opcoes, IdiomaTeste));
 
         Assert.Contains("Condição WHERE inválida", ex.Message);
     }
@@ -122,7 +124,7 @@ public class ConstrutorConsultaFirebirdTests
     {
         var opcoes = new OpcoesExportacao { Tabela = tabela };
 
-        var ex = Assert.Throws<ArgumentException>(() => ConstrutorConsultaFirebird.MontarSelect(opcoes));
+        var ex = Assert.Throws<ArgumentException>(() => ConstrutorConsultaFirebird.MontarSelect(opcoes, IdiomaTeste));
 
         Assert.Contains("Nome de tabela inválido", ex.Message);
     }
@@ -139,7 +141,7 @@ public class ConstrutorConsultaFirebirdTests
             CondicaoWhere = where
         };
 
-        var ex = Assert.Throws<ArgumentException>(() => ConstrutorConsultaFirebird.MontarSelect(opcoes));
+        var ex = Assert.Throws<ArgumentException>(() => ConstrutorConsultaFirebird.MontarSelect(opcoes, IdiomaTeste));
 
         Assert.Contains("Condição WHERE inválida", ex.Message);
     }

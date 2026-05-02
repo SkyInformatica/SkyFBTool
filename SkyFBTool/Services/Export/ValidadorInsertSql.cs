@@ -1,4 +1,6 @@
-﻿namespace SkyFBTool.Services.Export;
+using SkyFBTool.Core;
+
+namespace SkyFBTool.Services.Export;
 
 public static class ValidadorInsertSql
 {
@@ -6,7 +8,8 @@ public static class ValidadorInsertSql
         string insertSql,
         out int totalColunas,
         out int totalValores,
-        out string? erro)
+        out string? erro,
+        IdiomaSaida idioma = IdiomaSaida.English)
     {
         totalColunas = 0;
         totalValores = 0;
@@ -14,20 +17,20 @@ public static class ValidadorInsertSql
 
         if (string.IsNullOrWhiteSpace(insertSql))
         {
-            erro = "INSERT vazio.";
+            erro = TextoLocalizado.Obter(idioma, "Empty INSERT.", "INSERT vazio.");
             return false;
         }
 
         int indiceAbreColunas = insertSql.IndexOf('(');
         if (indiceAbreColunas < 0)
         {
-            erro = "Não foi possível localizar a lista de colunas do INSERT.";
+            erro = TextoLocalizado.Obter(idioma, "Unable to locate the INSERT column list.", "Não foi possível localizar a lista de colunas do INSERT.");
             return false;
         }
 
         if (!TryFindMatchingParen(insertSql, indiceAbreColunas, out int indiceFechaColunas))
         {
-            erro = "Não foi possível localizar o fechamento da lista de colunas do INSERT.";
+            erro = TextoLocalizado.Obter(idioma, "Unable to locate the closing parenthesis of the INSERT column list.", "Não foi possível localizar o fechamento da lista de colunas do INSERT.");
             return false;
         }
 
@@ -36,20 +39,20 @@ public static class ValidadorInsertSql
 
         if (!TryIndexOfValuesKeyword(insertSql, out int indiceValues))
         {
-            erro = "Não foi possível localizar a cláusula VALUES do INSERT.";
+            erro = TextoLocalizado.Obter(idioma, "Unable to locate the VALUES clause of the INSERT.", "Não foi possível localizar a cláusula VALUES do INSERT.");
             return false;
         }
 
         int indiceAbreValores = insertSql.IndexOf('(', indiceValues);
         if (indiceAbreValores < 0)
         {
-            erro = "Não foi possível localizar a lista de valores do INSERT.";
+            erro = TextoLocalizado.Obter(idioma, "Unable to locate the INSERT value list.", "Não foi possível localizar a lista de valores do INSERT.");
             return false;
         }
 
         if (!TryFindMatchingParen(insertSql, indiceAbreValores, out int indiceFechaValores))
         {
-            erro = "Não foi possível localizar o fechamento da lista de valores do INSERT.";
+            erro = TextoLocalizado.Obter(idioma, "Unable to locate the closing parenthesis of the INSERT value list.", "Não foi possível localizar o fechamento da lista de valores do INSERT.");
             return false;
         }
 
@@ -58,7 +61,10 @@ public static class ValidadorInsertSql
 
         if (totalColunas != totalValores)
         {
-            erro = $"Quantidade de colunas ({totalColunas}) diferente da quantidade de valores ({totalValores}).";
+            erro = TextoLocalizado.Obter(
+                idioma,
+                $"Column count ({totalColunas}) differs from value count ({totalValores}).",
+                $"Quantidade de colunas ({totalColunas}) diferente da quantidade de valores ({totalValores}).");
             return false;
         }
 

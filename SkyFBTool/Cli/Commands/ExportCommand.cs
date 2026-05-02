@@ -138,7 +138,7 @@ public static class ExportCommand
 
         var encodingSaida = ResolverEncodingSaidaExportacao(op);
         await using var destino = new DestinoArquivo(op.ArquivoSaida, op.TamanhoMaximoArquivoMb, encodingSaida);
-        await ExportadorTabelaFirebird.ExportarAsync(op, destino);
+        await ExportadorTabelaFirebird.ExportarAsync(op, destino, idioma);
         ExibirResumoArquivosExportacao(destino.ObterArquivosGerados());
     }
 
