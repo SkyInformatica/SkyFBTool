@@ -1,0 +1,95 @@
+{
+  "GeradoEmUtc": "2026-05-02T14:10:00Z",
+  "TotalBases": 3,
+  "BasesComAchados": 3,
+  "BasesComCriticos": 1,
+  "TotalTabelas": 128,
+  "TotalAchados": 42,
+  "TotalCriticos": 4,
+  "TotalAltos": 12,
+  "TotalMedios": 18,
+  "TotalBaixos": 8,
+  "Bases": [
+    {
+      "NomeBase": "financeiro_matriz",
+      "CaminhoBanco": "C:\\dados\\financeiro_matriz.fdb",
+      "ArquivoJson": "financeiro_matriz_analyze.json",
+      "ArquivoHtml": "financeiro_matriz_analyze.html",
+      "TotalTabelas": 54,
+      "TotalAchados": 19,
+      "TotalCriticos": 3,
+      "TotalAltos": 6,
+      "TotalMedios": 7,
+      "TotalBaixos": 3,
+      "MaiorSeveridade": "critical",
+      "TopCodigos": [
+        "FK_SEM_INDICE_COBERTURA (5)",
+        "INDICE_REDUNDANTE_PREFIXO (4)",
+        "OPERACIONAL_GAP_OIT_OAT_ACIMA_DO_ESPERADO (2)"
+      ]
+    },
+    {
+      "NomeBase": "financeiro_filial_a",
+      "CaminhoBanco": "C:\\dados\\financeiro_filial_a.fdb",
+      "ArquivoJson": "financeiro_filial_a_analyze.json",
+      "ArquivoHtml": "financeiro_filial_a_analyze.html",
+      "TotalTabelas": 39,
+      "TotalAchados": 14,
+      "TotalCriticos": 1,
+      "TotalAltos": 4,
+      "TotalMedios": 6,
+      "TotalBaixos": 3,
+      "MaiorSeveridade": "high",
+      "TopCodigos": [
+        "FK_SEM_INDICE_COBERTURA (4)",
+        "INDICE_DUPLICADO (3)",
+        "OPERACIONAL_TRANSACAO_ATIVA_LONGA (1)"
+      ]
+    },
+    {
+      "NomeBase": "financeiro_filial_b",
+      "CaminhoBanco": "C:\\dados\\financeiro_filial_b.fdb",
+      "ArquivoJson": "financeiro_filial_b_analyze.json",
+      "ArquivoHtml": "financeiro_filial_b_analyze.html",
+      "TotalTabelas": 35,
+      "TotalAchados": 9,
+      "TotalCriticos": 0,
+      "TotalAltos": 2,
+      "TotalMedios": 5,
+      "TotalBaixos": 2,
+      "MaiorSeveridade": "medium",
+      "TopCodigos": [
+        "INDICE_REDUNDANTE_PREFIXO (3)",
+        "FK_SEM_INDICE_COBERTURA (2)",
+        "OPERACIONAL_GAP_OAT_OST_ACIMA_DO_ESPERADO (1)"
+      ]
+    }
+  ],
+  "ResumoPorCodigo": [
+    {
+      "Chave": "FK_SEM_INDICE_COBERTURA",
+      "Quantidade": 11,
+      "Percentual": 26.19
+    },
+    {
+      "Chave": "INDICE_REDUNDANTE_PREFIXO",
+      "Quantidade": 8,
+      "Percentual": 19.05
+    },
+    {
+      "Chave": "INDICE_DUPLICADO",
+      "Quantidade": 6,
+      "Percentual": 14.29
+    },
+    {
+      "Chave": "OPERACIONAL_GAP_OIT_OAT_ACIMA_DO_ESPERADO",
+      "Quantidade": 3,
+      "Percentual": 7.14
+    },
+    {
+      "Chave": "OPERACIONAL_TRANSACAO_ATIVA_LONGA",
+      "Quantidade": 2,
+      "Percentual": 4.76
+    }
+  ]
+}

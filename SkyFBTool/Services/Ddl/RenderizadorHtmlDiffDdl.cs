@@ -27,6 +27,22 @@ public static class RenderizadorHtmlDiffDdl
             AvisosLabel = M(idioma, "Warnings", "Avisos"),
             ItemLabel = M(idioma, "Item", "Item"),
             NenhumLabel = M(idioma, "None", "Nenhum"),
+            FiltrosLabel = M(idioma, "Filters", "Filtros"),
+            SecaoLabel = M(idioma, "Section", "Seção"),
+            BuscaLabel = M(idioma, "Search", "Busca"),
+            BuscaPlaceholder = M(idioma, "Type to search...", "Digite para buscar..."),
+            TodosLabel = M(idioma, "All", "Todos"),
+            MostrandoLabel = M(idioma, "Showing", "Mostrando"),
+            DeLabel = M(idioma, "of", "de"),
+            ResumoLabel = M(idioma, "Summary", "Resumo"),
+            QuantidadeLabel = M(idioma, "Count", "Quantidade"),
+            AcoesLabel = M(idioma, "Actions", "Ações"),
+            CopiarLinhaLabel = M(idioma, "Copy line", "Copiar linha"),
+            CopiarTodosLabel = M(idioma, "Copy all commands", "Copiar todos os comandos"),
+            BaixarSqlLabel = M(idioma, "Download SQL", "Baixar SQL"),
+            NomeArquivoSql = "ddl-diff-commands.sql",
+            CopiaSucessoLabel = M(idioma, "Copied.", "Copiado."),
+            CopiaFalhaLabel = M(idioma, "Copy failed.", "Falha ao copiar."),
             TotalComandos = resultado.ComandosSql.Count,
             TotalCriados = resultado.ItensCriados.Count,
             TotalAlterados = resultado.ItensAlterados.Count,
@@ -87,6 +103,22 @@ public static class RenderizadorHtmlDiffDdl
         public string AvisosLabel { get; init; } = string.Empty;
         public string ItemLabel { get; init; } = string.Empty;
         public string NenhumLabel { get; init; } = string.Empty;
+        public string FiltrosLabel { get; init; } = string.Empty;
+        public string SecaoLabel { get; init; } = string.Empty;
+        public string BuscaLabel { get; init; } = string.Empty;
+        public string BuscaPlaceholder { get; init; } = string.Empty;
+        public string TodosLabel { get; init; } = string.Empty;
+        public string MostrandoLabel { get; init; } = string.Empty;
+        public string DeLabel { get; init; } = string.Empty;
+        public string ResumoLabel { get; init; } = string.Empty;
+        public string QuantidadeLabel { get; init; } = string.Empty;
+        public string AcoesLabel { get; init; } = string.Empty;
+        public string CopiarLinhaLabel { get; init; } = string.Empty;
+        public string CopiarTodosLabel { get; init; } = string.Empty;
+        public string BaixarSqlLabel { get; init; } = string.Empty;
+        public string NomeArquivoSql { get; init; } = "ddl-diff-commands.sql";
+        public string CopiaSucessoLabel { get; init; } = string.Empty;
+        public string CopiaFalhaLabel { get; init; } = string.Empty;
         public int TotalComandos { get; init; }
         public int TotalCriados { get; init; }
         public int TotalAlterados { get; init; }

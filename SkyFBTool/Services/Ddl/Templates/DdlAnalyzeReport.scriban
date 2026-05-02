@@ -15,8 +15,20 @@
     .card { border: 1px solid #e5e7eb; border-radius: 10px; background: #fff; padding: 10px; }
     .criteria-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 10px; align-items: start; }
     .summary-scroll { height: 320px; overflow: auto; border: 1px solid #eef2f7; border-radius: 8px; }
-    .legend { margin: 0; font-size: 13px; color: #1f2937; line-height: 1.35; background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 8px; padding: 8px 10px; }
-    .legend strong { color: #111827; display: block; margin-bottom: 4px; }
+    .legend { margin: 0; font-size: 13px; color: #1f2937; line-height: 1.35; background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 8px; padding: 10px; }
+    .legend strong { color: #111827; display: block; margin-bottom: 8px; }
+    .legend-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+    .legend-item { display: grid; grid-template-columns: 34px 1fr; gap: 8px; align-items: start; border: 1px solid #e5e7eb; background: #fff; border-radius: 8px; padding: 6px 8px; }
+    .legend-badge { display: inline-flex; align-items: center; justify-content: center; min-height: 22px; border-radius: 999px; font-size: 12px; font-weight: 700; border: 1px solid; }
+    .legend-badge.p0 { color: #7f1d1d; background: #fee2e2; border-color: #fca5a5; }
+    .legend-badge.p1 { color: #9a3412; background: #ffedd5; border-color: #fdba74; }
+    .legend-badge.p2 { color: #1e3a8a; background: #dbeafe; border-color: #93c5fd; }
+    .legend-badge.p3 { color: #065f46; background: #d1fae5; border-color: #86efac; }
+    .priority-pill { display: inline-flex; align-items: center; justify-content: center; min-width: 34px; min-height: 22px; padding: 0 8px; border-radius: 999px; font-size: 12px; font-weight: 700; border: 1px solid; }
+    .priority-pill.p0 { color: #7f1d1d; background: #fee2e2; border-color: #fca5a5; }
+    .priority-pill.p1 { color: #9a3412; background: #ffedd5; border-color: #fdba74; }
+    .priority-pill.p2 { color: #1e3a8a; background: #dbeafe; border-color: #93c5fd; }
+    .priority-pill.p3 { color: #065f46; background: #d1fae5; border-color: #86efac; }
     .toolbar { display: flex; gap: 10px; flex-wrap: wrap; margin: 8px 0 10px; align-items: center; }
     .toolbar input, .toolbar select { padding: 6px 8px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 13px; }
     .count { font-size: 13px; color: #374151; }
@@ -29,6 +41,11 @@
     .high { color: #92400e; font-weight: 700; }
     .medium { color: #1d4ed8; font-weight: 700; }
     .low { color: #065f46; font-weight: 700; }
+    .severity-pill { display: inline-flex; align-items: center; justify-content: center; min-height: 22px; padding: 0 10px; border-radius: 999px; font-size: 12px; font-weight: 700; border: 1px solid; }
+    .severity-pill.critical { color: #7f1d1d; background: #fee2e2; border-color: #fca5a5; }
+    .severity-pill.high { color: #9a3412; background: #ffedd5; border-color: #fdba74; }
+    .severity-pill.medium { color: #1e3a8a; background: #dbeafe; border-color: #93c5fd; }
+    .severity-pill.low { color: #065f46; background: #d1fae5; border-color: #86efac; }
     @media (max-width: 900px) { .grid { grid-template-columns: 1fr; } .criteria-grid { grid-template-columns: 1fr; } body { margin: 12px; } }
     @media print {
       body { margin: 0; font-size: 11px; color: #000; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
@@ -75,7 +92,7 @@
       </tr></thead><tbody>
         {{ for c in CriteriosSeveridade }}
         <tr>
-          <td class="{{ c.Classe }}">{{ c.Rotulo }}</td>
+          <td><span class="severity-pill {{ c.Classe }}">{{ c.Rotulo }}</span></td>
           <td>{{ c.Quando }}</td>
           <td>{{ c.Impacto }}</td>
         </tr>
@@ -83,10 +100,12 @@
       </tbody></table>
       <div class="legend">
         <strong>{{ LegendaPrioridadeLabel }}:</strong>
-        <div>{{ LegendaPrioridadeP0 }}</div>
-        <div>{{ LegendaPrioridadeP1 }}</div>
-        <div>{{ LegendaPrioridadeP2 }}</div>
-        <div>{{ LegendaPrioridadeP3 }}</div>
+        <ul class="legend-list">
+          <li class="legend-item"><span class="legend-badge p0">P0</span><span>{{ LegendaPrioridadeP0 }}</span></li>
+          <li class="legend-item"><span class="legend-badge p1">P1</span><span>{{ LegendaPrioridadeP1 }}</span></li>
+          <li class="legend-item"><span class="legend-badge p2">P2</span><span>{{ LegendaPrioridadeP2 }}</span></li>
+          <li class="legend-item"><span class="legend-badge p3">P3</span><span>{{ LegendaPrioridadeP3 }}</span></li>
+        </ul>
       </div>
     </div>
   </div>
@@ -113,7 +132,24 @@
         <th>{{ EscopoLabel }}</th><th>{{ PrioridadeLabel }}</th><th>{{ IndiceRiscoLabel }}</th><th>{{ QtdLabel }}</th>
       </tr></thead><tbody>
         {{ for item in ResumoTabelaRiscoTop }}
-        <tr><td>{{ item.Tabela }}</td><td>{{ item.Prioridade }}</td><td>{{ item.IndiceRisco }}</td><td>{{ item.Quantidade }}</td></tr>
+        <tr>
+          <td>{{ item.Tabela }}</td>
+          <td>
+            {{ if item.Prioridade == "P0" }}
+            <span class="priority-pill p0">{{ item.Prioridade }}</span>
+            {{ else if item.Prioridade == "P1" }}
+            <span class="priority-pill p1">{{ item.Prioridade }}</span>
+            {{ else if item.Prioridade == "P2" }}
+            <span class="priority-pill p2">{{ item.Prioridade }}</span>
+            {{ else if item.Prioridade == "P3" }}
+            <span class="priority-pill p3">{{ item.Prioridade }}</span>
+            {{ else }}
+            {{ item.Prioridade }}
+            {{ end }}
+          </td>
+          <td>{{ item.IndiceRisco }}</td>
+          <td>{{ item.Quantidade }}</td>
+        </tr>
         {{ end }}
         {{ if ResumoTabelaRiscoTop.size == 0 }}
         <tr><td colspan="4">{{ SemAchadosLabel }}</td></tr>
@@ -142,7 +178,7 @@
     <tbody>
       {{ for a in Achados }}
       <tr data-sev="{{ a.SeveridadeValor }}" data-code="{{ a.Codigo }}" data-text="{{ a.TextoFiltro }}">
-        <td class="{{ a.SeveridadeValor }}">{{ a.SeveridadeRotulo }}</td>
+        <td><span class="severity-pill {{ a.SeveridadeValor }}">{{ a.SeveridadeRotulo }}</span></td>
         <td>{{ a.Codigo }}</td>
         <td>{{ a.Escopo }}</td>
         <td>{{ a.Descricao }}</td>

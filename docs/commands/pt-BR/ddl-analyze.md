@@ -63,12 +63,14 @@ SkyFBTool ddl-analyze --input "C:\ddl\origem.schema.json" --description "analise
 ## Exemplos de relatório
 - [Exemplo simples de relatório em HTML](../../examples/ddl-analyze-sample.html)
 - [Exemplo rico de relatório em HTML](../../examples/ddl-analyze-sample-rich.html)
+- [Exemplo de relatório resumo em lote (HTML)](../../examples/ddl-analyze-batch-summary-sample.html)
 
 ## Arquivos de exemplo reproduzíveis
 - Entrada simples: `docs/examples/ddl-analyze-sample-input.sql`
 - Saída simples: `docs/examples/ddl-analyze-sample.html` e `docs/examples/ddl-analyze-sample.json`
 - Entrada rica: `docs/examples/ddl-analyze-sample-rich-input.sql`
 - Saída rica: `docs/examples/ddl-analyze-sample-rich.html` e `docs/examples/ddl-analyze-sample-rich.json`
+- Saída de resumo em lote: `docs/examples/ddl-analyze-batch-summary-sample.html` e `docs/examples/ddl-analyze-batch-summary-sample.json`
 
 ## Critérios de classificação e validações
 - [Matriz de severidade e validações do `ddl-analyze`](./ddl-analyze-severity-and-validations.md)

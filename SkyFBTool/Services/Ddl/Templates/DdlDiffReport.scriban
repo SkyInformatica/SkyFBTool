@@ -5,20 +5,46 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>{{ Titulo }}</title>
   <style>
+    @page { size: A4; margin: 12mm; }
     body { font-family: Segoe UI, Arial, sans-serif; margin: 20px; color: #1f2937; }
     h1, h2 { margin: 0 0 12px 0; }
     .meta { margin-bottom: 14px; font-size: 14px; }
     .kpi { display: flex; gap: 10px; flex-wrap: wrap; margin: 10px 0 18px; }
     .pill { border: 1px solid #d1d5db; border-radius: 12px; padding: 8px 10px; background: #f9fafb; font-size: 13px; }
-    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 8px 0 16px; }
+    .summary-grid { display: grid; grid-template-columns: 3fr 1fr; gap: 12px; margin: 8px 0 16px; }
+    .content-grid { display: grid; grid-template-columns: 1fr; gap: 12px; margin: 8px 0 16px; }
     .card { border: 1px solid #e5e7eb; border-radius: 10px; background: #fff; padding: 10px; }
-    .table-wrap { max-height: 58vh; overflow: auto; border: 1px solid #e5e7eb; border-radius: 8px; margin-top: 8px; }
+    .section { margin-top: 14px; }
+    .toolbar { display: flex; gap: 10px; flex-wrap: wrap; margin: 8px 0 10px; align-items: center; }
+    .toolbar input, .toolbar select { padding: 6px 8px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 13px; }
+    .btn { padding: 6px 10px; border: 1px solid #d1d5db; border-radius: 8px; background: #fff; font-size: 12px; cursor: pointer; color: #111827; }
+    .btn:hover { background: #f9fafb; }
+    .btn:active { background: #f3f4f6; }
+    .cmd-actions { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; margin-bottom: 8px; }
+    .line-actions { width: 1%; white-space: nowrap; }
+    .sql-line { white-space: pre-wrap; word-break: break-word; overflow-wrap: anywhere; }
+    .count { font-size: 13px; color: #374151; }
+    .summary-scroll { max-height: 320px; overflow: auto; border: 1px solid #eef2f7; border-radius: 8px; }
+    .warnings-scroll { max-height: 320px; overflow: auto; border: 1px solid #eef2f7; border-radius: 8px; }
+    .table-wrap { max-height: 70vh; overflow: auto; border: 1px solid #e5e7eb; border-radius: 8px; margin-top: 8px; }
     table { width: 100%; border-collapse: collapse; }
     th, td { border-bottom: 1px solid #eef2f7; padding: 8px; text-align: left; vertical-align: top; font-size: 13px; }
     th { position: sticky; top: 0; background: #f3f4f6; z-index: 1; }
-    .section { margin-top: 14px; }
     .muted { color: #6b7280; }
-    @media (max-width: 900px) { .grid { grid-template-columns: 1fr; } body { margin: 12px; } }
+    @media (max-width: 900px) { .summary-grid, .content-grid { grid-template-columns: 1fr; } body { margin: 12px; } }
+    @media print {
+      body { margin: 0; font-size: 11px; color: #000; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+      .toolbar { display: none; }
+      .count { display: none; }
+      .summary-grid, .content-grid { grid-template-columns: 1fr; gap: 8px; }
+      .card, .summary-scroll, .table-wrap { border: 1px solid #d1d5db; border-radius: 0; }
+      .summary-scroll, .warnings-scroll, .table-wrap { max-height: none; height: auto; overflow: visible; }
+      table { width: 100%; table-layout: fixed; }
+      th, td { font-size: 10.5px; padding: 5px; word-break: break-word; overflow-wrap: anywhere; }
+      th { position: static; }
+      tr, td, th { page-break-inside: avoid; break-inside: avoid; }
+      h1, h2, .meta, .kpi, .card { page-break-inside: avoid; break-inside: avoid; }
+    }
   </style>
 </head>
 <body>
@@ -33,33 +59,74 @@
     <div class="pill"><strong>{{ CriadosLabel }}:</strong> {{ TotalCriados }}</div>
     <div class="pill"><strong>{{ AlteradosLabel }}:</strong> {{ TotalAlterados }}</div>
     <div class="pill"><strong>{{ SomenteAlvoLabel }}:</strong> {{ TotalSomenteAlvo }}</div>
-    <div class="pill"><strong>{{ AvisosLabel }}:</strong> {{ TotalAvisos }}</div>
   </div>
 
-  <div class="grid">
+  <div class="summary-grid">
     <div class="card">
+      <h2>{{ ResumoLabel }}</h2>
+      <div class="summary-scroll">
+        <table>
+          <thead><tr><th>{{ ItemLabel }}</th><th>{{ QuantidadeLabel }}</th></tr></thead>
+          <tbody>
+            <tr><td>{{ ComandosLabel }}</td><td>{{ TotalComandos }}</td></tr>
+            <tr><td>{{ CriadosLabel }}</td><td>{{ TotalCriados }}</td></tr>
+            <tr><td>{{ AlteradosLabel }}</td><td>{{ TotalAlterados }}</td></tr>
+            <tr><td>{{ SomenteAlvoLabel }}</td><td>{{ TotalSomenteAlvo }}</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div class="card">
+      <h2>{{ AvisosLabel }}</h2>
+      <div class="warnings-scroll">
+        {{ if Avisos.size == 0 }}
+        <div class="muted" style="padding:8px;">{{ NenhumLabel }}</div>
+        {{ else }}
+        <table><thead><tr><th>#</th><th>{{ ItemLabel }}</th></tr></thead><tbody>
+          {{ for item in Avisos }}
+          <tr data-text="{{ item }}"><td>{{ for.index + 1 }}</td><td>{{ item }}</td></tr>
+          {{ end }}
+        </tbody></table>
+        {{ end }}
+      </div>
+    </div>
+  </div>
+
+  <h2>{{ FiltrosLabel }}</h2>
+  <div class="toolbar">
+    <label>{{ SecaoLabel }}
+      <select id="f-section">
+        <option value="">{{ TodosLabel }}</option>
+        <option value="comandos">{{ ComandosLabel }}</option>
+        <option value="criados">{{ CriadosLabel }}</option>
+        <option value="alterados">{{ AlteradosLabel }}</option>
+        <option value="somente-alvo">{{ SomenteAlvoLabel }}</option>
+      </select>
+    </label>
+    <label>{{ BuscaLabel }} <input id="f-q" type="text" placeholder="{{ BuscaPlaceholder }}" /></label>
+    <span class="count" id="f-count">{{ MostrandoLabel }} 0 {{ DeLabel }} 0</span>
+  </div>
+
+  <div class="content-grid">
+    <div class="card section-box" data-section="comandos">
       <h2>{{ ComandosLabel }}</h2>
       {{ if Comandos.size == 0 }}
       <div class="muted">{{ NenhumLabel }}</div>
       {{ else }}
-      <div class="table-wrap">
-        <table><thead><tr><th>#</th><th>{{ ItemLabel }}</th></tr></thead><tbody>
-          {{ for item in Comandos }}
-          <tr><td>{{ for.index + 1 }}</td><td>{{ item }}</td></tr>
-          {{ end }}
-        </tbody></table>
+      <div class="cmd-actions">
+        <button type="button" class="btn" id="copy-all-cmds">{{ CopiarTodosLabel }}</button>
+        <button type="button" class="btn" id="download-all-cmds">{{ BaixarSqlLabel }}</button>
       </div>
-      {{ end }}
-    </div>
-    <div class="card">
-      <h2>{{ AvisosLabel }}</h2>
-      {{ if Avisos.size == 0 }}
-      <div class="muted">{{ NenhumLabel }}</div>
-      {{ else }}
       <div class="table-wrap">
-        <table><thead><tr><th>#</th><th>{{ ItemLabel }}</th></tr></thead><tbody>
-          {{ for item in Avisos }}
-          <tr><td>{{ for.index + 1 }}</td><td>{{ item }}</td></tr>
+        <table><thead><tr><th>#</th><th>{{ ItemLabel }}</th><th>{{ AcoesLabel }}</th></tr></thead><tbody>
+          {{ for item in Comandos }}
+          <tr data-text="{{ item }}">
+            <td>{{ for.index + 1 }}</td>
+            <td class="sql-line">{{ item }}</td>
+            <td class="line-actions">
+              <button type="button" class="btn copy-line" data-cmd="{{ item }}">{{ CopiarLinhaLabel }}</button>
+            </td>
+          </tr>
           {{ end }}
         </tbody></table>
       </div>
@@ -67,7 +134,7 @@
     </div>
   </div>
 
-  <div class="section">
+  <div class="section section-box" data-section="criados">
     <h2>{{ CriadosLabel }}</h2>
     {{ if Criados.size == 0 }}
     <div class="muted">{{ NenhumLabel }}</div>
@@ -75,14 +142,14 @@
     <div class="table-wrap">
       <table><thead><tr><th>#</th><th>{{ ItemLabel }}</th></tr></thead><tbody>
         {{ for item in Criados }}
-        <tr><td>{{ for.index + 1 }}</td><td>{{ item }}</td></tr>
+        <tr data-text="{{ item }}"><td>{{ for.index + 1 }}</td><td>{{ item }}</td></tr>
         {{ end }}
       </tbody></table>
     </div>
     {{ end }}
   </div>
 
-  <div class="section">
+  <div class="section section-box" data-section="alterados">
     <h2>{{ AlteradosLabel }}</h2>
     {{ if Alterados.size == 0 }}
     <div class="muted">{{ NenhumLabel }}</div>
@@ -90,14 +157,14 @@
     <div class="table-wrap">
       <table><thead><tr><th>#</th><th>{{ ItemLabel }}</th></tr></thead><tbody>
         {{ for item in Alterados }}
-        <tr><td>{{ for.index + 1 }}</td><td>{{ item }}</td></tr>
+        <tr data-text="{{ item }}"><td>{{ for.index + 1 }}</td><td>{{ item }}</td></tr>
         {{ end }}
       </tbody></table>
     </div>
     {{ end }}
   </div>
 
-  <div class="section">
+  <div class="section section-box" data-section="somente-alvo">
     <h2>{{ SomenteAlvoLabel }}</h2>
     {{ if SomenteAlvo.size == 0 }}
     <div class="muted">{{ NenhumLabel }}</div>
@@ -105,11 +172,123 @@
     <div class="table-wrap">
       <table><thead><tr><th>#</th><th>{{ ItemLabel }}</th></tr></thead><tbody>
         {{ for item in SomenteAlvo }}
-        <tr><td>{{ for.index + 1 }}</td><td>{{ item }}</td></tr>
+        <tr data-text="{{ item }}"><td>{{ for.index + 1 }}</td><td>{{ item }}</td></tr>
         {{ end }}
       </tbody></table>
     </div>
     {{ end }}
   </div>
+  <script>
+    (function(){
+      const section = document.getElementById('f-section');
+      const q = document.getElementById('f-q');
+      const boxes = Array.from(document.querySelectorAll('.section-box'));
+      const count = document.getElementById('f-count');
+      function run(){
+        const selected = section.value || '';
+        const term = (q.value || '').toLowerCase();
+        let totalVisible = 0;
+        let totalRows = 0;
+        boxes.forEach(box => {
+          const matchSection = !selected || box.dataset.section === selected;
+          const rows = Array.from(box.querySelectorAll('tbody tr'));
+          let visibleRows = 0;
+          rows.forEach(row => {
+            totalRows++;
+            const text = (row.dataset.text || '').toLowerCase();
+            const okTerm = !term || text.includes(term);
+            const ok = matchSection && okTerm;
+            row.style.display = ok ? '' : 'none';
+            if (ok) {
+              visibleRows++;
+              totalVisible++;
+            }
+          });
+          const hasRows = rows.length > 0;
+          const showBox = matchSection && (!term || visibleRows > 0 || !hasRows);
+          box.style.display = showBox ? '' : 'none';
+        });
+        count.textContent = '{{ MostrandoLabel }} ' + totalVisible + ' {{ DeLabel }} ' + totalRows;
+      }
+      section.addEventListener('change', run);
+      q.addEventListener('input', run);
+      run();
+
+      const copyAllButton = document.getElementById('copy-all-cmds');
+      const downloadAllButton = document.getElementById('download-all-cmds');
+      const lineButtons = Array.from(document.querySelectorAll('.copy-line'));
+      const commandRows = Array.from(document.querySelectorAll('.section-box[data-section="comandos"] tbody tr'));
+
+      async function copyText(text){
+        try{
+          if(navigator.clipboard && navigator.clipboard.writeText){
+            await navigator.clipboard.writeText(text);
+            return true;
+          }
+        }catch(_){}
+        try{
+          const area = document.createElement('textarea');
+          area.value = text;
+          document.body.appendChild(area);
+          area.select();
+          const ok = document.execCommand('copy');
+          document.body.removeChild(area);
+          return !!ok;
+        }catch(_){
+          return false;
+        }
+      }
+
+      lineButtons.forEach(btn => {
+        btn.addEventListener('click', async () => {
+          const cmd = btn.getAttribute('data-cmd') || '';
+          const ok = await copyText(cmd);
+          if(ok){
+            const original = btn.textContent;
+            btn.textContent = '{{ CopiaSucessoLabel }}';
+            setTimeout(() => btn.textContent = original, 900);
+          }else{
+            alert('{{ CopiaFalhaLabel }}');
+          }
+        });
+      });
+
+      if(copyAllButton){
+        copyAllButton.addEventListener('click', async () => {
+          const commands = commandRows
+            .map(r => (r.querySelector('.sql-line')?.textContent || '').trim())
+            .filter(v => v.length > 0);
+          const content = commands.join('\n') + (commands.length ? '\n' : '');
+          const ok = await copyText(content);
+          if(ok){
+            const original = copyAllButton.textContent;
+            copyAllButton.textContent = '{{ CopiaSucessoLabel }}';
+            setTimeout(() => copyAllButton.textContent = original, 900);
+          }else{
+            alert('{{ CopiaFalhaLabel }}');
+          }
+        });
+      }
+
+      if(downloadAllButton){
+        downloadAllButton.addEventListener('click', () => {
+          const commands = commandRows
+            .map(r => (r.querySelector('.sql-line')?.textContent || '').trim())
+            .filter(v => v.length > 0);
+          const content = commands.join('\n') + (commands.length ? '\n' : '');
+          const blob = new Blob([content], { type: 'text/sql;charset=utf-8' });
+          const url = URL.createObjectURL(blob);
+          const link = document.createElement('a');
+          link.href = url;
+          link.download = '{{ NomeArquivoSql }}';
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+          URL.revokeObjectURL(url);
+        });
+      }
+
+    })();
+  </script>
 </body>
 </html>

@@ -110,10 +110,11 @@ public static class GeradorResumoAnaliseDdlLote
         sb.AppendLine("table { width: 100%; border-collapse: collapse; }");
         sb.AppendLine("th, td { border-bottom: 1px solid #eef2f7; padding: 8px; text-align: left; vertical-align: top; font-size: 13px; }");
         sb.AppendLine("th { position: sticky; top: 0; background: #f3f4f6; z-index: 1; }");
-        sb.AppendLine(".critical { color: #991b1b; font-weight: 700; }");
-        sb.AppendLine(".high { color: #92400e; font-weight: 700; }");
-        sb.AppendLine(".medium { color: #1d4ed8; font-weight: 700; }");
-        sb.AppendLine(".low { color: #065f46; font-weight: 700; }");
+        sb.AppendLine(".severity-pill { display: inline-flex; align-items: center; justify-content: center; min-height: 22px; padding: 0 10px; border-radius: 999px; font-size: 12px; font-weight: 700; border: 1px solid; }");
+        sb.AppendLine(".severity-pill.critical { color: #7f1d1d; background: #fee2e2; border-color: #fca5a5; }");
+        sb.AppendLine(".severity-pill.high { color: #9a3412; background: #ffedd5; border-color: #fdba74; }");
+        sb.AppendLine(".severity-pill.medium { color: #1e3a8a; background: #dbeafe; border-color: #93c5fd; }");
+        sb.AppendLine(".severity-pill.low { color: #065f46; background: #d1fae5; border-color: #86efac; }");
         sb.AppendLine("@media (max-width: 900px) { body { margin: 12px; } }");
         sb.AppendLine("</style>");
         sb.AppendLine("</head><body>");
@@ -153,7 +154,7 @@ public static class GeradorResumoAnaliseDdlLote
             sb.AppendLine($"<td>{item.TotalMedios}</td>");
             sb.AppendLine($"<td>{item.TotalBaixos}</td>");
             sb.AppendLine($"<td>{item.TotalAchados}</td>");
-            sb.AppendLine($"<td class='{Html(item.MaiorSeveridade)}'>{Html(SeveridadeRotulo(item.MaiorSeveridade, idioma))}</td>");
+            sb.AppendLine($"<td><span class='severity-pill {Html(item.MaiorSeveridade)}'>{Html(SeveridadeRotulo(item.MaiorSeveridade, idioma))}</span></td>");
             sb.AppendLine($"<td>{Html(item.TopCodigos.Count == 0 ? "-" : string.Join(", ", item.TopCodigos))}</td>");
             sb.AppendLine("</tr>");
         }
