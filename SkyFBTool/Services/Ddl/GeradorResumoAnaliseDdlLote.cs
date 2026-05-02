@@ -1,4 +1,4 @@
-﻿using System.Net;
+using System.Net;
 using System.Text;
 using System.Text.Json;
 using SkyFBTool.Core;
@@ -98,7 +98,7 @@ public static class GeradorResumoAnaliseDdlLote
         sb.AppendLine("<!DOCTYPE html>");
         sb.AppendLine("<html><head><meta charset=\"utf-8\" />");
         sb.AppendLine("<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\" />");
-        sb.AppendLine($"<title>{Html(M(idioma, "Batch DDL Analysis Summary", "Resumo da Análise DDL em Lote"))}</title>");
+        sb.AppendLine($"<title>{Html(TextoLocalizado.Obter(idioma, "Batch DDL Analysis Summary", "Resumo da Análise DDL em Lote"))}</title>");
         sb.AppendLine("<style>");
         sb.AppendLine("body { font-family: Segoe UI, Arial, sans-serif; margin: 20px; color: #1f2937; }");
         sb.AppendLine("h1, h2 { margin: 0 0 12px 0; }");
@@ -118,31 +118,31 @@ public static class GeradorResumoAnaliseDdlLote
         sb.AppendLine("@media (max-width: 900px) { body { margin: 12px; } }");
         sb.AppendLine("</style>");
         sb.AppendLine("</head><body>");
-        sb.AppendLine($"<h1>{Html(M(idioma, "Batch DDL Analysis Summary", "Resumo da Análise DDL em Lote"))}</h1>");
+        sb.AppendLine($"<h1>{Html(TextoLocalizado.Obter(idioma, "Batch DDL Analysis Summary", "Resumo da Análise DDL em Lote"))}</h1>");
         sb.AppendLine("<div class=\"meta\">");
-        sb.AppendLine($"<div><strong>{Html(M(idioma, "Generated at (UTC)", "Gerado em (UTC)"))}:</strong> {resumo.GeradoEmUtc:yyyy-MM-dd HH:mm:ss}</div>");
+        sb.AppendLine($"<div><strong>{Html(TextoLocalizado.Obter(idioma, "Generated at (UTC)", "Gerado em (UTC)"))}:</strong> {resumo.GeradoEmUtc:yyyy-MM-dd HH:mm:ss}</div>");
         sb.AppendLine("</div>");
 
         sb.AppendLine("<div class=\"kpi\">");
-        sb.AppendLine($"<div class=\"pill\"><strong>{Html(M(idioma, "Databases", "Bases"))}:</strong> {resumo.TotalBases}</div>");
-        sb.AppendLine($"<div class=\"pill\"><strong>{Html(M(idioma, "Databases with findings", "Bases com achados"))}:</strong> {resumo.BasesComAchados}</div>");
-        sb.AppendLine($"<div class=\"pill\"><strong>{Html(M(idioma, "Databases with critical findings", "Bases com achados críticos"))}:</strong> {resumo.BasesComCriticos}</div>");
-        sb.AppendLine($"<div class=\"pill\"><strong>{Html(M(idioma, "Total findings", "Total de achados"))}:</strong> {resumo.TotalAchados}</div>");
+        sb.AppendLine($"<div class=\"pill\"><strong>{Html(TextoLocalizado.Obter(idioma, "Databases", "Bases"))}:</strong> {resumo.TotalBases}</div>");
+        sb.AppendLine($"<div class=\"pill\"><strong>{Html(TextoLocalizado.Obter(idioma, "Databases with findings", "Bases com achados"))}:</strong> {resumo.BasesComAchados}</div>");
+        sb.AppendLine($"<div class=\"pill\"><strong>{Html(TextoLocalizado.Obter(idioma, "Databases with critical findings", "Bases com achados críticos"))}:</strong> {resumo.BasesComCriticos}</div>");
+        sb.AppendLine($"<div class=\"pill\"><strong>{Html(TextoLocalizado.Obter(idioma, "Total findings", "Total de achados"))}:</strong> {resumo.TotalAchados}</div>");
         sb.AppendLine("</div>");
 
         sb.AppendLine("<div class=\"card\">");
-        sb.AppendLine($"<h2>{Html(M(idioma, "Summary per database", "Resumo por base"))}</h2>");
+        sb.AppendLine($"<h2>{Html(TextoLocalizado.Obter(idioma, "Summary per database", "Resumo por base"))}</h2>");
         sb.AppendLine("<div class=\"table-wrap\">");
         sb.AppendLine("<table><thead><tr>");
-        sb.AppendLine($"<th>{Html(M(idioma, "Database", "Banco"))}</th>");
+        sb.AppendLine($"<th>{Html(TextoLocalizado.Obter(idioma, "Database", "Banco"))}</th>");
         sb.AppendLine(
             $"<th>{Html(SeveridadeRotulo("critical", idioma))}</th>" +
             $"<th>{Html(SeveridadeRotulo("high", idioma))}</th>" +
             $"<th>{Html(SeveridadeRotulo("medium", idioma))}</th>" +
             $"<th>{Html(SeveridadeRotulo("low", idioma))}</th>" +
-            $"<th>{Html(M(idioma, "Total", "Total"))}</th>");
-        sb.AppendLine($"<th>{Html(M(idioma, "Highest severity", "Maior severidade"))}</th>");
-        sb.AppendLine($"<th>{Html(M(idioma, "Top codes", "Top códigos"))}</th>");
+            $"<th>{Html(TextoLocalizado.Obter(idioma, "Total", "Total"))}</th>");
+        sb.AppendLine($"<th>{Html(TextoLocalizado.Obter(idioma, "Highest severity", "Maior severidade"))}</th>");
+        sb.AppendLine($"<th>{Html(TextoLocalizado.Obter(idioma, "Top codes", "Top códigos"))}</th>");
         sb.AppendLine("</tr></thead><tbody>");
 
         foreach (var item in resumo.Bases)
@@ -162,14 +162,14 @@ public static class GeradorResumoAnaliseDdlLote
         sb.AppendLine("</tbody></table></div></div>");
 
         sb.AppendLine("<div class=\"card\">");
-        sb.AppendLine($"<h2>{Html(M(idioma, "Top findings by code (all databases)", "Top achados por código (todas as bases)"))}</h2>");
+        sb.AppendLine($"<h2>{Html(TextoLocalizado.Obter(idioma, "Top findings by code (all databases)", "Top achados por código (todas as bases)"))}</h2>");
         sb.AppendLine("<div class=\"table-wrap\">");
         sb.AppendLine("<table><thead><tr>");
-        sb.AppendLine($"<th>{Html(M(idioma, "Code", "Código"))}</th><th>{Html(M(idioma, "Count", "Quantidade"))}</th><th>%</th>");
+        sb.AppendLine($"<th>{Html(TextoLocalizado.Obter(idioma, "Code", "Código"))}</th><th>{Html(TextoLocalizado.Obter(idioma, "Count", "Quantidade"))}</th><th>%</th>");
         sb.AppendLine("</tr></thead><tbody>");
         if (resumo.ResumoPorCodigo.Count == 0)
         {
-            sb.AppendLine($"<tr><td colspan='3'>{Html(M(idioma, "No findings.", "Sem achados."))}</td></tr>");
+            sb.AppendLine($"<tr><td colspan='3'>{Html(TextoLocalizado.Obter(idioma, "No findings.", "Sem achados."))}</td></tr>");
         }
         else
         {
@@ -250,11 +250,6 @@ public static class GeradorResumoAnaliseDdlLote
     private static string Html(string texto)
     {
         return WebUtility.HtmlEncode(texto);
-    }
-
-    private static string M(IdiomaSaida idioma, string english, string portuguese)
-    {
-        return idioma == IdiomaSaida.PortugueseBrazil ? portuguese : english;
     }
 
     private static readonly JsonSerializerOptions JsonOptions = new()

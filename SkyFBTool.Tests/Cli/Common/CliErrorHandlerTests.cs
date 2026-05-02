@@ -1,4 +1,5 @@
 using SkyFBTool.Cli.Common;
+using SkyFBTool.Core;
 using SkyFBTool.Services.Ddl;
 using SkyFBTool.Services.Import;
 using Xunit;

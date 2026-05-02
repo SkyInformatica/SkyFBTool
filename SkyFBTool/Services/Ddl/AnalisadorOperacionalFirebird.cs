@@ -62,12 +62,10 @@ public static class AnalisadorOperacionalFirebird
                 "critical",
                 "OPERACIONAL_GAP_OIT_OAT_ELEVADO",
                 "OPERACIONAL.TRANSACTIONS",
-                M(
-                    idioma,
+                TextoLocalizado.Obter(idioma,
                     $"High OAT-OIT gap detected ({diferencaOitOat:N0}).",
                     $"Gap OAT-OIT alto detectado ({diferencaOitOat:N0})."),
-                M(
-                    idioma,
+                TextoLocalizado.Obter(idioma,
                     "Investigate long-running transactions and retention pressure before maintenance windows.",
                     "Investigue transações longas e pressão de retenção antes de janelas de manutenção.")));
         }
@@ -77,12 +75,10 @@ public static class AnalisadorOperacionalFirebird
                 "high",
                 "OPERACIONAL_GAP_OIT_OAT_ACIMA_DO_ESPERADO",
                 "OPERACIONAL.TRANSACTIONS",
-                M(
-                    idioma,
+                TextoLocalizado.Obter(idioma,
                     $"OAT-OIT gap above expected threshold ({diferencaOitOat:N0}).",
                     $"Gap OAT-OIT acima do limite esperado ({diferencaOitOat:N0})."),
-                M(
-                    idioma,
+                TextoLocalizado.Obter(idioma,
                     "Review transaction lifecycle and housekeeping cadence (sweep/backup-restore strategy).",
                     "Revise o ciclo de vida de transações e a cadência de housekeeping (estratégia de sweep/backup-restore).")));
         }
@@ -92,12 +88,10 @@ public static class AnalisadorOperacionalFirebird
                 "medium",
                 "OPERACIONAL_GAP_OIT_OAT_MODERADO",
                 "OPERACIONAL.TRANSACTIONS",
-                M(
-                    idioma,
+                TextoLocalizado.Obter(idioma,
                     $"Moderate OAT-OIT gap detected ({diferencaOitOat:N0}).",
                     $"Gap OAT-OIT moderado detectado ({diferencaOitOat:N0})."),
-                M(
-                    idioma,
+                TextoLocalizado.Obter(idioma,
                     "Monitor transaction backlog growth and validate if cleanup cadence is sufficient.",
                     "Monitore crescimento do backlog transacional e valide se a cadência de limpeza está suficiente.")));
         }
@@ -109,12 +103,10 @@ public static class AnalisadorOperacionalFirebird
                 "high",
                 "OPERACIONAL_GAP_OAT_OST_ELEVADO",
                 "OPERACIONAL.SNAPSHOTS",
-                M(
-                    idioma,
+                TextoLocalizado.Obter(idioma,
                     $"High OST-OAT gap detected ({diferencaOatOst:N0}).",
                     $"Gap OST-OAT alto detectado ({diferencaOatOst:N0})."),
-                M(
-                    idioma,
+                TextoLocalizado.Obter(idioma,
                     "Inspect long snapshot transactions and reporting workloads that hold old versions.",
                     "Inspecione transações snapshot longas e cargas de relatório que mantêm versões antigas.")));
         }
@@ -124,12 +116,10 @@ public static class AnalisadorOperacionalFirebird
                 "medium",
                 "OPERACIONAL_GAP_OAT_OST_ACIMA_DO_ESPERADO",
                 "OPERACIONAL.SNAPSHOTS",
-                M(
-                    idioma,
+                TextoLocalizado.Obter(idioma,
                     $"OST-OAT gap above expected threshold ({diferencaOatOst:N0}).",
                     $"Gap OST-OAT acima do limite esperado ({diferencaOatOst:N0})."),
-                M(
-                    idioma,
+                TextoLocalizado.Obter(idioma,
                     "Review snapshot retention behavior and verify long-running read transactions.",
                     "Revise o comportamento de retenção snapshot e verifique transações de leitura longas.")));
         }
@@ -144,12 +134,10 @@ public static class AnalisadorOperacionalFirebird
                     "critical",
                     "OPERACIONAL_TRANSACAO_ATIVA_LONGA_CRITICA",
                     "OPERACIONAL.TRANSACTIONS",
-                    M(
-                        idioma,
+                    TextoLocalizado.Obter(idioma,
                         $"Critical long active transaction detected ({idadeMinutos:N0} minutes).",
                         $"Transação ativa longa crítica detectada ({idadeMinutos:N0} minutos)."),
-                    M(
-                        idioma,
+                    TextoLocalizado.Obter(idioma,
                         "Prioritize transaction owner investigation and release retained versions.",
                         "Priorize investigação do dono da transação e liberação de versões retidas.")));
             }
@@ -159,12 +147,10 @@ public static class AnalisadorOperacionalFirebird
                     "high",
                     "OPERACIONAL_TRANSACAO_ATIVA_LONGA",
                     "OPERACIONAL.TRANSACTIONS",
-                    M(
-                        idioma,
+                    TextoLocalizado.Obter(idioma,
                         $"Long active transaction detected ({idadeMinutos:N0} minutes).",
                         $"Transação ativa longa detectada ({idadeMinutos:N0} minutos)."),
-                    M(
-                        idioma,
+                    TextoLocalizado.Obter(idioma,
                         "Review transaction scope in application and enforce shorter transactional boundaries.",
                         "Revise o escopo transacional na aplicação e force fronteiras transacionais mais curtas.")));
             }
@@ -174,12 +160,10 @@ public static class AnalisadorOperacionalFirebird
                     "medium",
                     "OPERACIONAL_TRANSACAO_ATIVA_ACIMA_DO_ESPERADO",
                     "OPERACIONAL.TRANSACTIONS",
-                    M(
-                        idioma,
+                    TextoLocalizado.Obter(idioma,
                         $"Active transaction duration above expected threshold ({idadeMinutos:N0} minutes).",
                         $"Duração de transação ativa acima do esperado ({idadeMinutos:N0} minutos)."),
-                    M(
-                        idioma,
+                    TextoLocalizado.Obter(idioma,
                         "Track transaction duration trend and tune long-running routines.",
                         "Acompanhe tendência de duração de transações e ajuste rotinas longas.")));
             }
@@ -400,11 +384,7 @@ public static class AnalisadorOperacionalFirebird
         return Convert.ToDateTime(valor).ToUniversalTime();
     }
 
-    private static string M(IdiomaSaida idioma, string english, string portuguese)
-    {
-        return idioma == IdiomaSaida.PortugueseBrazil ? portuguese : english;
     }
-}
 
 public sealed class MetricasOperacionaisFirebird
 {

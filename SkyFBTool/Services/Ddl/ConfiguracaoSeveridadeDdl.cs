@@ -1,14 +1,21 @@
 using System.Text.Json;
+using SkyFBTool.Core;
 
 namespace SkyFBTool.Services.Ddl;
 
 public static class ConfiguracaoSeveridadeDdl
 {
-    public static async Task<Dictionary<string, string>> CarregarAsync(string caminhoArquivo)
+    public static async Task<Dictionary<string, string>> CarregarAsync(
+        string caminhoArquivo,
+        IdiomaSaida idioma = IdiomaSaida.English)
     {
         string caminho = Path.GetFullPath(caminhoArquivo.Trim().Trim('"'));
         if (!File.Exists(caminho))
-            throw new FileNotFoundException($"Arquivo de configuracao de severidade nao encontrado: {caminho}");
+        {
+            throw new FileNotFoundException(TextoLocalizado.Obter(idioma,
+                $"Severity configuration file not found: {caminho}",
+                $"Arquivo de configuração de severidade não encontrado: {caminho}"));
+        }
 
         string json = await File.ReadAllTextAsync(caminho);
         var documento = JsonSerializer.Deserialize<DocumentoConfiguracao>(json, JsonOptions)
@@ -22,20 +29,24 @@ public static class ConfiguracaoSeveridadeDdl
             string severidade = NormalizarSeveridade(item.Severity ?? string.Empty);
 
             if (string.IsNullOrWhiteSpace(codigoExterno))
-                throw new ArgumentException("Invalid severity configuration: empty 'code' field.");
+            {
+                throw new ArgumentException(TextoLocalizado.Obter(idioma,
+                    "Invalid severity configuration: empty 'code' field.",
+                    "Configuração de severidade inválida: campo 'code' vazio."));
+            }
 
             if (string.IsNullOrWhiteSpace(codigo))
             {
-                throw new ArgumentException(
-                    $"Invalid severity configuration for code '{codigoExterno}'. " +
-                    "Use a valid English alias from docs/examples/ddl-severity.sample.json.");
+                throw new ArgumentException(TextoLocalizado.Obter(idioma,
+                    $"Invalid severity configuration for code '{codigoExterno}'. Use a valid English alias from docs/examples/ddl-severity.sample.json.",
+                    $"Configuração de severidade inválida para o código '{codigoExterno}'. Use um alias válido em inglês do arquivo docs/examples/ddl-severity.sample.json."));
             }
 
             if (string.IsNullOrWhiteSpace(severidade))
             {
-                throw new ArgumentException(
-                    $"Invalid severity configuration for code '{codigo}'. " +
-                    "Use: critical, high, medium, or low.");
+                throw new ArgumentException(TextoLocalizado.Obter(idioma,
+                    $"Invalid severity configuration for code '{codigo}'. Use: critical, high, medium, or low.",
+                    $"Configuração de severidade inválida para o código '{codigo}'. Use: critical, high, medium ou low."));
             }
 
             resultado[codigo] = severidade;
@@ -125,4 +136,5 @@ public static class ConfiguracaoSeveridadeDdl
         ["OPERATIONAL_LONG_ACTIVE_TRANSACTION_HIGH"] = "OPERACIONAL_TRANSACAO_ATIVA_LONGA",
         ["OPERATIONAL_LONG_ACTIVE_TRANSACTION_MEDIUM"] = "OPERACIONAL_TRANSACAO_ATIVA_ACIMA_DO_ESPERADO"
     };
-}
+
+    }

@@ -1,3 +1,4 @@
+using SkyFBTool.Core;
 using System.Text.RegularExpressions;
 using FirebirdSql.Data.FirebirdClient;
 using SkyFBTool.Services.Ddl;
@@ -12,7 +13,7 @@ public static class CliErrorHandler
         IdiomaSaida idioma = IdiomaSaidaDetector.Detectar();
 
         Console.ForegroundColor = ConsoleColor.Red;
-        Console.Error.WriteLine(M(idioma, "Execution failed.", "Execução falhou."));
+        Console.Error.WriteLine(TextoLocalizado.Obter(idioma, "Execution failed.", "Execução falhou."));
         Console.ResetColor();
 
         if (ex is not FalhaExtracaoDdlException && TentarExibirErroOdsIncompativel(ex, idioma))
@@ -24,39 +25,37 @@ public static class CliErrorHandler
                 ExibirFalhaExtracaoDdl(falhaExtracao, idioma);
                 break;
             case FalhaImportacaoSqlException falhaImportacao:
-                Console.Error.WriteLine(M(
-                    idioma,
+                Console.Error.WriteLine(TextoLocalizado.Obter(idioma,
                     "Import failed while executing a SQL command.",
                     "A importação falhou ao executar um comando SQL."));
-                Console.Error.WriteLine($"{M(idioma, "File", "Arquivo")}: {falhaImportacao.Arquivo}");
-                Console.Error.WriteLine($"{M(idioma, "Command start line", "Linha inicial do comando")}: {falhaImportacao.LinhaInicioComando}");
-                Console.Error.WriteLine($"{M(idioma, "Command preview", "Prévia do comando")}: {GerarPreviaComando(falhaImportacao.ComandoSql)}");
+                Console.Error.WriteLine($"{TextoLocalizado.Obter(idioma, "File", "Arquivo")}: {falhaImportacao.Arquivo}");
+                Console.Error.WriteLine($"{TextoLocalizado.Obter(idioma, "Command start line", "Linha inicial do comando")}: {falhaImportacao.LinhaInicioComando}");
+                Console.Error.WriteLine($"{TextoLocalizado.Obter(idioma, "Command preview", "Prévia do comando")}: {GerarPreviaComando(falhaImportacao.ComandoSql)}");
                 if (falhaImportacao.InnerException is FbException fbInternoImport)
-                    Console.Error.WriteLine($"{M(idioma, "Firebird error:", "Erro do Firebird:")} {fbInternoImport.Message}");
+                    Console.Error.WriteLine($"{TextoLocalizado.Obter(idioma, "Firebird error:", "Erro do Firebird:")} {fbInternoImport.Message}");
                 else if (falhaImportacao.InnerException is not null)
-                    Console.Error.WriteLine($"{M(idioma, "Error:", "Erro:")} {falhaImportacao.InnerException.Message}");
+                    Console.Error.WriteLine($"{TextoLocalizado.Obter(idioma, "Error:", "Erro:")} {falhaImportacao.InnerException.Message}");
                 break;
             case ArgumentException arg:
-                Console.Error.WriteLine($"{M(idioma, "Invalid arguments:", "Argumentos inválidos:")} {arg.Message}");
+                Console.Error.WriteLine($"{TextoLocalizado.Obter(idioma, "Invalid arguments:", "Argumentos inválidos:")} {arg.Message}");
                 break;
             case FileNotFoundException fnf:
-                Console.Error.WriteLine($"{M(idioma, "File not found:", "Arquivo não encontrado:")} {fnf.Message}");
+                Console.Error.WriteLine($"{TextoLocalizado.Obter(idioma, "File not found:", "Arquivo não encontrado:")} {fnf.Message}");
                 break;
             case DirectoryNotFoundException dnf:
-                Console.Error.WriteLine($"{M(idioma, "Directory not found:", "Diretório não encontrado:")} {dnf.Message}");
+                Console.Error.WriteLine($"{TextoLocalizado.Obter(idioma, "Directory not found:", "Diretório não encontrado:")} {dnf.Message}");
                 break;
             case UnauthorizedAccessException ua:
-                Console.Error.WriteLine($"{M(idioma, "Access denied:", "Acesso negado:")} {ua.Message}");
+                Console.Error.WriteLine($"{TextoLocalizado.Obter(idioma, "Access denied:", "Acesso negado:")} {ua.Message}");
                 break;
             case FbException fb:
-                Console.Error.WriteLine($"{M(idioma, "Firebird error:", "Erro do Firebird:")} {fb.Message}");
-                Console.Error.WriteLine(M(
-                    idioma,
+                Console.Error.WriteLine($"{TextoLocalizado.Obter(idioma, "Firebird error:", "Erro do Firebird:")} {fb.Message}");
+                Console.Error.WriteLine(TextoLocalizado.Obter(idioma,
                     "Verify connection parameters, Firebird version compatibility, and permissions.",
                     "Verifique parâmetros de conexão, compatibilidade de versão do Firebird e permissões."));
                 break;
             default:
-                Console.Error.WriteLine($"{M(idioma, "Error:", "Erro:")} {ex.Message}");
+                Console.Error.WriteLine($"{TextoLocalizado.Obter(idioma, "Error:", "Erro:")} {ex.Message}");
                 break;
         }
     }
@@ -66,12 +65,11 @@ public static class CliErrorHandler
         string mensagemCompleta = ObterMensagemCompleta(falhaExtracao);
         string categoria = ClassificarFalhaExtracaoDdl(mensagemCompleta);
 
-        Console.Error.WriteLine(M(
-            idioma,
+        Console.Error.WriteLine(TextoLocalizado.Obter(idioma,
             "DDL extraction failed.",
             "A extração de DDL falhou."));
-        Console.Error.WriteLine($"{M(idioma, "Database", "Banco")}: {falhaExtracao.Database}");
-        Console.Error.WriteLine($"{M(idioma, "Failure category", "Categoria da falha")}: {categoria}");
+        Console.Error.WriteLine($"{TextoLocalizado.Obter(idioma, "Database", "Banco")}: {falhaExtracao.Database}");
+        Console.Error.WriteLine($"{TextoLocalizado.Obter(idioma, "Failure category", "Categoria da falha")}: {categoria}");
 
         if (categoria == "incompatible_ods")
         {
@@ -80,9 +78,9 @@ public static class CliErrorHandler
         }
 
         if (falhaExtracao.InnerException is FbException fbInterno)
-            Console.Error.WriteLine($"{M(idioma, "Firebird error:", "Erro do Firebird:")} {fbInterno.Message}");
+            Console.Error.WriteLine($"{TextoLocalizado.Obter(idioma, "Firebird error:", "Erro do Firebird:")} {fbInterno.Message}");
         else if (falhaExtracao.InnerException is not null)
-            Console.Error.WriteLine($"{M(idioma, "Error:", "Erro:")} {falhaExtracao.InnerException.Message}");
+            Console.Error.WriteLine($"{TextoLocalizado.Obter(idioma, "Error:", "Erro:")} {falhaExtracao.InnerException.Message}");
     }
 
     private static bool TentarExibirErroOdsIncompativel(Exception ex, IdiomaSaida idioma)
@@ -101,20 +99,18 @@ public static class CliErrorHandler
         string encontrado = ExtrairGrupo(mensagem, @"found\s+(?<v>\d+(\.\d+)?)", "v");
         string suportado = ExtrairGrupo(mensagem, @"support\s+(?<v>\d+(\.\d+)?)", "v");
 
-        Console.Error.WriteLine(M(
-            idioma,
+        Console.Error.WriteLine(TextoLocalizado.Obter(idioma,
             "Incompatible database file format (ODS).",
             "Formato de arquivo de banco incompatível (ODS)."));
 
         if (!string.IsNullOrWhiteSpace(arquivo))
-            Console.Error.WriteLine($"{M(idioma, "Database file", "Arquivo de banco")}: {arquivo}");
+            Console.Error.WriteLine($"{TextoLocalizado.Obter(idioma, "Database file", "Arquivo de banco")}: {arquivo}");
         if (!string.IsNullOrWhiteSpace(encontrado))
-            Console.Error.WriteLine($"{M(idioma, "Found ODS", "ODS encontrado")}: {encontrado}");
+            Console.Error.WriteLine($"{TextoLocalizado.Obter(idioma, "Found ODS", "ODS encontrado")}: {encontrado}");
         if (!string.IsNullOrWhiteSpace(suportado))
-            Console.Error.WriteLine($"{M(idioma, "Supported ODS", "ODS suportado")}: {suportado}");
+            Console.Error.WriteLine($"{TextoLocalizado.Obter(idioma, "Supported ODS", "ODS suportado")}: {suportado}");
 
-        Console.Error.WriteLine(M(
-            idioma,
+        Console.Error.WriteLine(TextoLocalizado.Obter(idioma,
             "Use a Firebird client/server compatible with this database version, or migrate the database to a supported version.",
             "Use um cliente/servidor Firebird compatível com essa versão de banco, ou migre o banco para uma versão suportada."));
     }
@@ -175,11 +171,6 @@ public static class CliErrorHandler
             padrao,
             RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
         return match.Success ? match.Groups[grupo].Value.Trim() : string.Empty;
-    }
-
-    private static string M(IdiomaSaida idioma, string english, string portuguese)
-    {
-        return idioma == IdiomaSaida.PortugueseBrazil ? portuguese : english;
     }
 
     private static string GerarPreviaComando(string comandoSql)

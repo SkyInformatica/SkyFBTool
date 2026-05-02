@@ -1,4 +1,5 @@
-﻿using Scriban;
+using SkyFBTool.Core;
+using Scriban;
 
 namespace SkyFBTool.Services.Ddl;
 
@@ -13,36 +14,36 @@ public static class RenderizadorHtmlDiffDdl
         var modelo = new ModeloRelatorio
         {
             Lang = idioma == IdiomaSaida.PortugueseBrazil ? "pt-BR" : "en",
-            Titulo = M(idioma, "DDL Diff Report", "Relatório DDL Diff"),
-            OrigemLabel = M(idioma, "Source", "Origem"),
-            AlvoLabel = M(idioma, "Target", "Alvo"),
+            Titulo = TextoLocalizado.Obter(idioma, "DDL Diff Report", "Relatório DDL Diff"),
+            OrigemLabel = TextoLocalizado.Obter(idioma, "Source", "Origem"),
+            AlvoLabel = TextoLocalizado.Obter(idioma, "Target", "Alvo"),
             OrigemArquivo = H(Path.GetFileName(origemJson)),
             AlvoArquivo = H(Path.GetFileName(alvoJson)),
-            GeradoEmLabel = M(idioma, "Generated at (UTC)", "Gerado em (UTC)"),
+            GeradoEmLabel = TextoLocalizado.Obter(idioma, "Generated at (UTC)", "Gerado em (UTC)"),
             GeradoEm = DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss"),
-            ComandosLabel = M(idioma, "Generated SQL commands", "Comandos SQL gerados"),
-            CriadosLabel = M(idioma, "Created items", "Itens criados"),
-            AlteradosLabel = M(idioma, "Changed items", "Itens alterados"),
-            SomenteAlvoLabel = M(idioma, "Items only in target", "Itens somente no alvo"),
-            AvisosLabel = M(idioma, "Warnings", "Avisos"),
-            ItemLabel = M(idioma, "Item", "Item"),
-            NenhumLabel = M(idioma, "None", "Nenhum"),
-            FiltrosLabel = M(idioma, "Filters", "Filtros"),
-            SecaoLabel = M(idioma, "Section", "Seção"),
-            BuscaLabel = M(idioma, "Search", "Busca"),
-            BuscaPlaceholder = M(idioma, "Type to search...", "Digite para buscar..."),
-            TodosLabel = M(idioma, "All", "Todos"),
-            MostrandoLabel = M(idioma, "Showing", "Mostrando"),
-            DeLabel = M(idioma, "of", "de"),
-            ResumoLabel = M(idioma, "Summary", "Resumo"),
-            QuantidadeLabel = M(idioma, "Count", "Quantidade"),
-            AcoesLabel = M(idioma, "Actions", "Ações"),
-            CopiarLinhaLabel = M(idioma, "Copy line", "Copiar linha"),
-            CopiarTodosLabel = M(idioma, "Copy all commands", "Copiar todos os comandos"),
-            BaixarSqlLabel = M(idioma, "Download SQL", "Baixar SQL"),
+            ComandosLabel = TextoLocalizado.Obter(idioma, "Generated SQL commands", "Comandos SQL gerados"),
+            CriadosLabel = TextoLocalizado.Obter(idioma, "Created items", "Itens criados"),
+            AlteradosLabel = TextoLocalizado.Obter(idioma, "Changed items", "Itens alterados"),
+            SomenteAlvoLabel = TextoLocalizado.Obter(idioma, "Items only in target", "Itens somente no alvo"),
+            AvisosLabel = TextoLocalizado.Obter(idioma, "Warnings", "Avisos"),
+            ItemLabel = TextoLocalizado.Obter(idioma, "Item", "Item"),
+            NenhumLabel = TextoLocalizado.Obter(idioma, "None", "Nenhum"),
+            FiltrosLabel = TextoLocalizado.Obter(idioma, "Filters", "Filtros"),
+            SecaoLabel = TextoLocalizado.Obter(idioma, "Section", "Seção"),
+            BuscaLabel = TextoLocalizado.Obter(idioma, "Search", "Busca"),
+            BuscaPlaceholder = TextoLocalizado.Obter(idioma, "Type to search...", "Digite para buscar..."),
+            TodosLabel = TextoLocalizado.Obter(idioma, "All", "Todos"),
+            MostrandoLabel = TextoLocalizado.Obter(idioma, "Showing", "Mostrando"),
+            DeLabel = TextoLocalizado.Obter(idioma, "of", "de"),
+            ResumoLabel = TextoLocalizado.Obter(idioma, "Summary", "Resumo"),
+            QuantidadeLabel = TextoLocalizado.Obter(idioma, "Count", "Quantidade"),
+            AcoesLabel = TextoLocalizado.Obter(idioma, "Actions", "Ações"),
+            CopiarLinhaLabel = TextoLocalizado.Obter(idioma, "Copy line", "Copiar linha"),
+            CopiarTodosLabel = TextoLocalizado.Obter(idioma, "Copy all commands", "Copiar todos os comandos"),
+            BaixarSqlLabel = TextoLocalizado.Obter(idioma, "Download SQL", "Baixar SQL"),
             NomeArquivoSql = "ddl-diff-commands.sql",
-            CopiaSucessoLabel = M(idioma, "Copied.", "Copiado."),
-            CopiaFalhaLabel = M(idioma, "Copy failed.", "Falha ao copiar."),
+            CopiaSucessoLabel = TextoLocalizado.Obter(idioma, "Copied.", "Copiado."),
+            CopiaFalhaLabel = TextoLocalizado.Obter(idioma, "Copy failed.", "Falha ao copiar."),
             TotalComandos = resultado.ComandosSql.Count,
             TotalCriados = resultado.ItensCriados.Count,
             TotalAlterados = resultado.ItensAlterados.Count,
@@ -61,11 +62,6 @@ public static class RenderizadorHtmlDiffDdl
     private static string H(string valor)
     {
         return System.Net.WebUtility.HtmlEncode(valor ?? string.Empty);
-    }
-
-    private static string M(IdiomaSaida idioma, string english, string portuguese)
-    {
-        return idioma == IdiomaSaida.PortugueseBrazil ? portuguese : english;
     }
 
     private static Template CriarTemplate()

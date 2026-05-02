@@ -1,4 +1,5 @@
 using SkyFBTool.Services.Ddl;
+using SkyFBTool.Core;
 using Xunit;
 
 namespace SkyFBTool.Tests.Services.Ddl;

@@ -50,7 +50,7 @@ public static class ImportCommand
                     opBase.ContinuarEmCasoDeErro = true;
                     break;
                 default:
-                    throw new ArgumentException(CliText.Texto(
+                    throw new ArgumentException(TextoLocalizado.Obter(
                         idioma,
                         $"Unknown option: --{chave}",
                         $"Opção desconhecida: --{chave}"));
@@ -59,7 +59,7 @@ public static class ImportCommand
 
         if (!string.IsNullOrWhiteSpace(opBase.ArquivoEntrada) && !string.IsNullOrWhiteSpace(padraoArquivosLote))
         {
-            throw new ArgumentException(CliText.Texto(
+            throw new ArgumentException(TextoLocalizado.Obter(
                 idioma,
                 "Use only one input mode: --input/--script or --inputs-batch.",
                 "Use apenas um modo de entrada: --input/--script ou --inputs-batch."));
@@ -78,7 +78,7 @@ public static class ImportCommand
     private static async Task ExecutarLoteAsync(OpcoesImportacao opBase, string padraoArquivos, IdiomaSaida idioma)
     {
         var arquivos = ResolverArquivosBatch(padraoArquivos, idioma);
-        Console.WriteLine(CliText.Texto(
+        Console.WriteLine(TextoLocalizado.Obter(
             idioma,
             $"Input batch resolved to {arquivos.Count} file(s).",
             $"Lote de entrada resolveu para {arquivos.Count} arquivo(s)."));
@@ -104,7 +104,7 @@ public static class ImportCommand
             try
             {
                 Console.WriteLine();
-                Console.WriteLine($"{CliText.Texto(idioma, "Batch file", "Arquivo do lote")}: {arquivo}");
+                Console.WriteLine($"{TextoLocalizado.Obter(idioma, "Batch file", "Arquivo do lote")}: {arquivo}");
                 var resultado = await ImportadorSql.ImportarAsync(op);
                 if (resultado.HouveErros)
                     sucessoComErros++;
@@ -119,7 +119,7 @@ public static class ImportCommand
 
                 Console.WriteLine();
                 Console.ForegroundColor = ConsoleColor.Yellow;
-                Console.WriteLine(CliText.Texto(
+                Console.WriteLine(TextoLocalizado.Obter(
                     idioma,
                     $"Failed to import file: {arquivo}",
                     $"Falha ao importar arquivo: {arquivo}"));
@@ -129,11 +129,11 @@ public static class ImportCommand
         }
 
         Console.WriteLine();
-        Console.WriteLine(CliText.Texto(idioma, "Batch import finished.", "Importação em lote concluída."));
-        Console.WriteLine($"{CliText.Texto(idioma, "Succeeded", "Sucesso")}: {sucesso}");
-        Console.WriteLine($"{CliText.Texto(idioma, "Succeeded with errors", "Sucesso com erros")}: {sucessoComErros}");
-        Console.WriteLine($"{CliText.Texto(idioma, "Failed", "Falha")}: {falha}");
-        Console.WriteLine($"{CliText.Texto(idioma, "Total files", "Total de arquivos")}: {arquivos.Count}");
+        Console.WriteLine(TextoLocalizado.Obter(idioma, "Batch import finished.", "Importação em lote concluída."));
+        Console.WriteLine($"{TextoLocalizado.Obter(idioma, "Succeeded", "Sucesso")}: {sucesso}");
+        Console.WriteLine($"{TextoLocalizado.Obter(idioma, "Succeeded with errors", "Sucesso com erros")}: {sucessoComErros}");
+        Console.WriteLine($"{TextoLocalizado.Obter(idioma, "Failed", "Falha")}: {falha}");
+        Console.WriteLine($"{TextoLocalizado.Obter(idioma, "Total files", "Total de arquivos")}: {arquivos.Count}");
     }
 
     private static List<string> ResolverArquivosBatch(string padraoBatch, IdiomaSaida idioma)

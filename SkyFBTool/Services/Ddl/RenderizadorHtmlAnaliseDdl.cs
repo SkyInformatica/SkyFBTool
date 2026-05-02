@@ -1,4 +1,5 @@
-﻿using Scriban;
+using SkyFBTool.Core;
+using Scriban;
 
 namespace SkyFBTool.Services.Ddl;
 
@@ -22,62 +23,62 @@ public static class RenderizadorHtmlAnaliseDdl
         return new ModeloRelatorio
         {
             Lang = idioma == IdiomaSaida.PortugueseBrazil ? "pt-BR" : "en",
-            Titulo = M(idioma, "DDL Risk Analysis", "Análise de Risco DDL"),
-            OrigemLabel = M(idioma, "Source", "Origem"),
+            Titulo = TextoLocalizado.Obter(idioma, "DDL Risk Analysis", "Análise de Risco DDL"),
+            OrigemLabel = TextoLocalizado.Obter(idioma, "Source", "Origem"),
             OrigemExibicao = H(origemExibicao),
             OrigemTooltip = H(resultado.Origem),
-            DescriptionLabel = M(idioma, "Description", "Descrição"),
+            DescriptionLabel = TextoLocalizado.Obter(idioma, "Description", "Descrição"),
             Description = H(resultado.Description),
             HasDescription = !string.IsNullOrWhiteSpace(resultado.Description),
-            GeradoEmLabel = M(idioma, "Generated at (UTC)", "Gerado em (UTC)"),
+            GeradoEmLabel = TextoLocalizado.Obter(idioma, "Generated at (UTC)", "Gerado em (UTC)"),
             GeradoEm = resultado.GeradoEmUtc.ToString("yyyy-MM-dd HH:mm:ss"),
-            UltimaManutencaoLabel = M(idioma, "Last maintenance (estimated, UTC)", "Última manutenção (estimada, UTC)"),
+            UltimaManutencaoLabel = TextoLocalizado.Obter(idioma, "Last maintenance (estimated, UTC)", "Última manutenção (estimada, UTC)"),
             UltimaManutencao = resultado.DataUltimaManutencaoUtc?.ToString("yyyy-MM-dd HH:mm:ss") ?? string.Empty,
             FonteUltimaManutencao = H(resultado.FonteDataUltimaManutencao),
             TemUltimaManutencao = resultado.DataUltimaManutencaoUtc is not null,
-            AnaliseOperacionalLabel = M(idioma, "Operational analysis (MON$)", "Análise operacional (MON$)"),
+            AnaliseOperacionalLabel = TextoLocalizado.Obter(idioma, "Operational analysis (MON$)", "Análise operacional (MON$)"),
             AnaliseOperacionalResumo = H(FormatarResumoAnaliseOperacional(resultado, idioma)),
-            AnaliseVolumeLabel = M(idioma, "Volume analysis", "Análise de volume"),
+            AnaliseVolumeLabel = TextoLocalizado.Obter(idioma, "Volume analysis", "Análise de volume"),
             AnaliseVolumeResumo = H(FormatarResumoAnaliseVolume(resultado, idioma)),
-            TotalLabel = M(idioma, "Total findings", "Total de achados"),
-            CriticosLabel = M(idioma, "Critical", "Críticos"),
-            AltosLabel = M(idioma, "High", "Altos"),
-            MediosLabel = M(idioma, "Medium", "Médios"),
-            BaixosLabel = M(idioma, "Low", "Baixos"),
+            TotalLabel = TextoLocalizado.Obter(idioma, "Total findings", "Total de achados"),
+            CriticosLabel = TextoLocalizado.Obter(idioma, "Critical", "Críticos"),
+            AltosLabel = TextoLocalizado.Obter(idioma, "High", "Altos"),
+            MediosLabel = TextoLocalizado.Obter(idioma, "Medium", "Médios"),
+            BaixosLabel = TextoLocalizado.Obter(idioma, "Low", "Baixos"),
             TotalAchados = resultado.TotalAchados,
             TotalCriticos = resultado.TotalCriticos,
             TotalAltos = resultado.TotalAltos,
             TotalMedios = resultado.TotalMedios,
             TotalBaixos = resultado.TotalBaixos,
-            ResumoCodigoLabel = M(idioma, "Summary by finding type", "Resumo por tipo de achado"),
-            ResumoTabelaLabel = M(idioma, "Tables prioritized for remediation", "Tabelas priorizadas para correção"),
-            LegendaPrioridadeLabel = M(idioma, "Priority legend", "Legenda de prioridade"),
-            LegendaPrioridadeP0 = M(idioma, "P0: immediate action (critical risk).", "P0: ação imediata (risco crítico)."),
-            LegendaPrioridadeP1 = M(idioma, "P1: high priority (short-term remediation).", "P1: alta prioridade (correção de curto prazo)."),
-            LegendaPrioridadeP2 = M(idioma, "P2: planned priority (schedule and monitor).", "P2: prioridade planejada (programar e acompanhar)."),
-            LegendaPrioridadeP3 = M(idioma, "P3: optimization/backlog (lower urgency).", "P3: otimização/backlog (menor urgência)."),
-            QtdLabel = M(idioma, "Count", "Qtde"),
+            ResumoCodigoLabel = TextoLocalizado.Obter(idioma, "Summary by finding type", "Resumo por tipo de achado"),
+            ResumoTabelaLabel = TextoLocalizado.Obter(idioma, "Tables prioritized for remediation", "Tabelas priorizadas para correção"),
+            LegendaPrioridadeLabel = TextoLocalizado.Obter(idioma, "Priority legend", "Legenda de prioridade"),
+            LegendaPrioridadeP0 = TextoLocalizado.Obter(idioma, "P0: immediate action (critical risk).", "P0: ação imediata (risco crítico)."),
+            LegendaPrioridadeP1 = TextoLocalizado.Obter(idioma, "P1: high priority (short-term remediation).", "P1: alta prioridade (correção de curto prazo)."),
+            LegendaPrioridadeP2 = TextoLocalizado.Obter(idioma, "P2: planned priority (schedule and monitor).", "P2: prioridade planejada (programar e acompanhar)."),
+            LegendaPrioridadeP3 = TextoLocalizado.Obter(idioma, "P3: optimization/backlog (lower urgency).", "P3: otimização/backlog (menor urgência)."),
+            QtdLabel = TextoLocalizado.Obter(idioma, "Count", "Qtde"),
             PctLabel = "%",
-            CodigoLabel = M(idioma, "Code", "Código"),
-            PrioridadeLabel = M(idioma, "Priority", "Prioridade"),
-            IndiceRiscoLabel = M(idioma, "Risk index", "Índice de risco"),
-            EscopoLabel = M(idioma, "Scope", "Escopo"),
-            DescricaoLabel = M(idioma, "Description", "Descrição"),
-            RecomendacaoLabel = M(idioma, "Recommendation", "Recomendação"),
-            SemAchadosLabel = M(idioma, "No findings.", "Sem achados."),
-            FiltrosLabel = M(idioma, "Filters", "Filtros"),
-            SeveridadeLabel = M(idioma, "Severity", "Severidade"),
-            CriteriosSeveridadeLabel = M(idioma, "Severity criteria", "Critérios de severidade"),
-            CriterioNivelLabel = M(idioma, "Level", "Nível"),
-            CriterioQuandoLabel = M(idioma, "When it applies", "Quando se aplica"),
-            CriterioImpactoLabel = M(idioma, "Expected impact", "Impacto esperado"),
-            TodosLabel = M(idioma, "All", "Todos"),
-            BuscaLabel = M(idioma, "Search", "Busca"),
-            BuscaPlaceholder = M(idioma, "table, code or text...", "tabela, código ou texto..."),
-            MostrandoLabel = M(idioma, "Showing", "Exibindo"),
-            DeLabel = M(idioma, "of", "de"),
-            MostrandoJs = Js(M(idioma, "Showing", "Exibindo")),
-            DeJs = Js(M(idioma, "of", "de")),
+            CodigoLabel = TextoLocalizado.Obter(idioma, "Code", "Código"),
+            PrioridadeLabel = TextoLocalizado.Obter(idioma, "Priority", "Prioridade"),
+            IndiceRiscoLabel = TextoLocalizado.Obter(idioma, "Risk index", "Índice de risco"),
+            EscopoLabel = TextoLocalizado.Obter(idioma, "Scope", "Escopo"),
+            DescricaoLabel = TextoLocalizado.Obter(idioma, "Description", "Descrição"),
+            RecomendacaoLabel = TextoLocalizado.Obter(idioma, "Recommendation", "Recomendação"),
+            SemAchadosLabel = TextoLocalizado.Obter(idioma, "No findings.", "Sem achados."),
+            FiltrosLabel = TextoLocalizado.Obter(idioma, "Filters", "Filtros"),
+            SeveridadeLabel = TextoLocalizado.Obter(idioma, "Severity", "Severidade"),
+            CriteriosSeveridadeLabel = TextoLocalizado.Obter(idioma, "Severity criteria", "Critérios de severidade"),
+            CriterioNivelLabel = TextoLocalizado.Obter(idioma, "Level", "Nível"),
+            CriterioQuandoLabel = TextoLocalizado.Obter(idioma, "When it applies", "Quando se aplica"),
+            CriterioImpactoLabel = TextoLocalizado.Obter(idioma, "Expected impact", "Impacto esperado"),
+            TodosLabel = TextoLocalizado.Obter(idioma, "All", "Todos"),
+            BuscaLabel = TextoLocalizado.Obter(idioma, "Search", "Busca"),
+            BuscaPlaceholder = TextoLocalizado.Obter(idioma, "table, code or text...", "tabela, código ou texto..."),
+            MostrandoLabel = TextoLocalizado.Obter(idioma, "Showing", "Exibindo"),
+            DeLabel = TextoLocalizado.Obter(idioma, "of", "de"),
+            MostrandoJs = Js(TextoLocalizado.Obter(idioma, "Showing", "Exibindo")),
+            DeJs = Js(TextoLocalizado.Obter(idioma, "of", "de")),
             PossuiAchados = resultado.Achados.Count > 0,
             CodigosFiltro = resultado.ResumoPorCodigo.Select(r => H(r.Chave)).ToList(),
             Severidades = CriarSeveridades(idioma),
@@ -116,12 +117,10 @@ public static class RenderizadorHtmlAnaliseDdl
             {
                 Classe = "critical",
                 Rotulo = H(SeveridadeRotulo("critical", idioma)),
-                Quando = H(M(
-                    idioma,
+                Quando = H(TextoLocalizado.Obter(idioma,
                     "Broken structural metadata: missing or invalid columns in PK/FK, empty constraints, or impossible references.",
                     "Metadado estrutural quebrado: colunas ausentes ou inválidas em PK/FK, constraints vazias ou referências impossíveis.")),
-                Impacto = H(M(
-                    idioma,
+                Impacto = H(TextoLocalizado.Obter(idioma,
                     "High chance of functional failure, corruption symptoms, or impossible safe sync without manual repair.",
                     "Alta chance de falha funcional, sintomas de corrupção ou impossibilidade de sincronismo seguro sem reparo manual."))
             },
@@ -129,12 +128,10 @@ public static class RenderizadorHtmlAnaliseDdl
             {
                 Classe = "high",
                 Rotulo = H(SeveridadeRotulo("high", idioma)),
-                Quando = H(M(
-                    idioma,
+                Quando = H(TextoLocalizado.Obter(idioma,
                     "High-risk inconsistency that can break integrity or performance under load.",
                     "Inconsistência de alto risco que pode quebrar integridade ou performance em carga.")),
-                Impacto = H(M(
-                    idioma,
+                Impacto = H(TextoLocalizado.Obter(idioma,
                     "Relevant production risk; fix before migration or intensive import/export.",
                     "Risco relevante em produção; corrigir antes de migração ou importação/exportação intensa."))
             },
@@ -142,12 +139,10 @@ public static class RenderizadorHtmlAnaliseDdl
             {
                 Classe = "medium",
                 Rotulo = H(SeveridadeRotulo("medium", idioma)),
-                Quando = H(M(
-                    idioma,
+                Quando = H(TextoLocalizado.Obter(idioma,
                     "Important quality or performance gap, usually without immediate corruption.",
                     "Lacuna importante de qualidade ou performance, normalmente sem corrupção imediata.")),
-                Impacto = H(M(
-                    idioma,
+                Impacto = H(TextoLocalizado.Obter(idioma,
                     "Can degrade throughput and increase lock/contention risk over time.",
                     "Pode degradar vazão e aumentar risco de lock/contenção ao longo do tempo."))
             },
@@ -155,12 +150,10 @@ public static class RenderizadorHtmlAnaliseDdl
             {
                 Classe = "low",
                 Rotulo = H(SeveridadeRotulo("low", idioma)),
-                Quando = H(M(
-                    idioma,
+                Quando = H(TextoLocalizado.Obter(idioma,
                     "Advisory pattern or modeling smell with lower immediate risk.",
                     "Padrão consultivo ou smell de modelagem com menor risco imediato.")),
-                Impacto = H(M(
-                    idioma,
+                Impacto = H(TextoLocalizado.Obter(idioma,
                     "Recommended for hardening and maintainability; can be planned.",
                     "Recomendado para endurecimento e manutenibilidade; pode ser planejado."))
             }
@@ -192,7 +185,7 @@ public static class RenderizadorHtmlAnaliseDdl
 
         top5.Add(new ResumoModelo
         {
-            Chave = H(M(idioma, "OTHERS", "OUTROS")),
+            Chave = H(TextoLocalizado.Obter(idioma, "OTHERS", "OUTROS")),
             Quantidade = qtdOutros,
             Percentual = pctOutros.ToString("0.##")
         });
@@ -267,19 +260,14 @@ public static class RenderizadorHtmlAnaliseDdl
         return valor.Replace("\\", "\\\\").Replace("'", "\\'");
     }
 
-    private static string M(IdiomaSaida idioma, string english, string portuguese)
-    {
-        return idioma == IdiomaSaida.PortugueseBrazil ? portuguese : english;
-    }
-
     private static string FormatarStatusAnaliseOperacional(ResultadoAnaliseDdl resultado, IdiomaSaida idioma)
     {
         return resultado.StatusAnaliseOperacional switch
         {
-            "executed" => M(idioma, $"executed ({resultado.AchadosGeradosAnaliseOperacional} findings)", $"executada ({resultado.AchadosGeradosAnaliseOperacional} achados)"),
-            "failed" => M(idioma, "failed", "falhou"),
-            "pending" => M(idioma, "pending", "pendente"),
-            _ => M(idioma, "not applicable", "não aplicável")
+            "executed" => TextoLocalizado.Obter(idioma, $"executed ({resultado.AchadosGeradosAnaliseOperacional} findings)", $"executada ({resultado.AchadosGeradosAnaliseOperacional} achados)"),
+            "failed" => TextoLocalizado.Obter(idioma, "failed", "falhou"),
+            "pending" => TextoLocalizado.Obter(idioma, "pending", "pendente"),
+            _ => TextoLocalizado.Obter(idioma, "not applicable", "não aplicável")
         };
     }
 
@@ -296,11 +284,11 @@ public static class RenderizadorHtmlAnaliseDdl
     {
         return resultado.StatusAnaliseVolume switch
         {
-            "executed" => M(idioma, $"executed ({resultado.TabelasLidasAnaliseVolume} tables, {resultado.AchadosGeradosAnaliseVolume} findings)", $"executada ({resultado.TabelasLidasAnaliseVolume} tabelas, {resultado.AchadosGeradosAnaliseVolume} achados)"),
-            "disabled" => M(idioma, "disabled", "desabilitada"),
-            "failed" => M(idioma, "failed", "falhou"),
-            "pending" => M(idioma, "pending", "pendente"),
-            _ => M(idioma, "not applicable", "não aplicável")
+            "executed" => TextoLocalizado.Obter(idioma, $"executed ({resultado.TabelasLidasAnaliseVolume} tables, {resultado.AchadosGeradosAnaliseVolume} findings)", $"executada ({resultado.TabelasLidasAnaliseVolume} tabelas, {resultado.AchadosGeradosAnaliseVolume} achados)"),
+            "disabled" => TextoLocalizado.Obter(idioma, "disabled", "desabilitada"),
+            "failed" => TextoLocalizado.Obter(idioma, "failed", "falhou"),
+            "pending" => TextoLocalizado.Obter(idioma, "pending", "pendente"),
+            _ => TextoLocalizado.Obter(idioma, "not applicable", "não aplicável")
         };
     }
 

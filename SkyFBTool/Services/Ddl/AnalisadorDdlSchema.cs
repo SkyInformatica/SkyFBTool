@@ -15,8 +15,7 @@ public static class AnalisadorDdlSchema
 
         if (!possuiEntradaArquivo && !possuiEntradaBanco && !possuiEntradaLote)
         {
-            throw new ArgumentException(M(
-                idioma,
+            throw new ArgumentException(TextoLocalizado.Obter(idioma,
                 "Provide one input source: --input/--source, --database, or --databases-batch.",
                 "Informe uma origem de entrada: --input/--source, --database ou --databases-batch."));
         }
@@ -24,24 +23,21 @@ public static class AnalisadorDdlSchema
         int totalOrigens = (possuiEntradaArquivo ? 1 : 0) + (possuiEntradaBanco ? 1 : 0) + (possuiEntradaLote ? 1 : 0);
         if (totalOrigens > 1)
         {
-            throw new ArgumentException(M(
-                idioma,
+            throw new ArgumentException(TextoLocalizado.Obter(idioma,
                 "Do not combine --input/--source, --database, and --databases-batch. Choose only one source.",
                 "Não combine --input/--source, --database e --databases-batch. Escolha apenas uma origem."));
         }
 
         if (possuiEntradaBanco && ContemWildcard(opcoes.Database))
         {
-            throw new ArgumentException(M(
-                idioma,
+            throw new ArgumentException(TextoLocalizado.Obter(idioma,
                 "Wildcard in --database is not allowed. Use --databases-batch for batch mode.",
                 "Wildcard em --database não é permitido. Use --databases-batch para modo em lote."));
         }
 
         if (possuiEntradaLote)
         {
-            throw new ArgumentException(M(
-                idioma,
+            throw new ArgumentException(TextoLocalizado.Obter(idioma,
                 "Batch mode must be handled by CLI command layer (--databases-batch).",
                 "O modo em lote deve ser tratado pela camada de comando CLI (--databases-batch)."));
         }
@@ -69,7 +65,7 @@ public static class AnalisadorDdlSchema
 
         Dictionary<string, string>? severidadesOverride = null;
         if (!string.IsNullOrWhiteSpace(opcoes.ArquivoConfiguracaoSeveridade))
-            severidadesOverride = await ConfiguracaoSeveridadeDdl.CarregarAsync(opcoes.ArquivoConfiguracaoSeveridade);
+            severidadesOverride = await ConfiguracaoSeveridadeDdl.CarregarAsync(opcoes.ArquivoConfiguracaoSeveridade, idioma);
 
         var resultado = Analisar(
             snapshot,
@@ -193,8 +189,8 @@ public static class AnalisadorDdlSchema
             "critical",
             "TABELA_SEM_COLUNAS",
             tabela.Nome,
-            M(idioma, $"Table {tabela.Nome} has no columns.", $"Tabela {tabela.Nome} não possui colunas."),
-            M(idioma, "Re-extract metadata and validate this table directly in system catalogs.", "Reextraia o metadado e valide esta tabela diretamente nos catálogos do Firebird."),
+            TextoLocalizado.Obter(idioma, $"Table {tabela.Nome} has no columns.", $"Tabela {tabela.Nome} não possui colunas."),
+            TextoLocalizado.Obter(idioma, "Re-extract metadata and validate this table directly in system catalogs.", "Reextraia o metadado e valide esta tabela diretamente nos catálogos do Firebird."),
             severidadesOverride);
     }
 
@@ -216,8 +212,8 @@ public static class AnalisadorDdlSchema
                 "critical",
                 "COLUNA_DUPLICADA",
                 $"{tabela.Nome}.{coluna}",
-                M(idioma, $"Duplicated column in table {tabela.Nome}: {coluna}.", $"Coluna duplicada na tabela {tabela.Nome}: {coluna}."),
-                M(idioma, "Inspect metadata consistency and rebuild affected objects if needed.", "Inspecione consistência de metadados e recrie objetos afetados se necessário."),
+                TextoLocalizado.Obter(idioma, $"Duplicated column in table {tabela.Nome}: {coluna}.", $"Coluna duplicada na tabela {tabela.Nome}: {coluna}."),
+                TextoLocalizado.Obter(idioma, "Inspect metadata consistency and rebuild affected objects if needed.", "Inspecione consistência de metadados e recrie objetos afetados se necessário."),
                 severidadesOverride);
         }
     }
@@ -238,11 +234,10 @@ public static class AnalisadorDdlSchema
                 "high",
                 "TIPO_DESCONHECIDO",
                 $"{tabela.Nome}.{coluna.Nome}",
-                M(
-                    idioma,
+                TextoLocalizado.Obter(idioma,
                     $"Column {tabela.Nome}.{coluna.Nome} has unknown type mapping: {coluna.TipoSql}.",
                     $"Coluna {tabela.Nome}.{coluna.Nome} possui mapeamento de tipo desconhecido: {coluna.TipoSql}."),
-                M(idioma, "Validate database version compatibility and inspect field definition in RDB$FIELDS.", "Valide compatibilidade de versão e confira a definição no RDB$FIELDS."),
+                TextoLocalizado.Obter(idioma, "Validate database version compatibility and inspect field definition in RDB$FIELDS.", "Valide compatibilidade de versão e confira a definição no RDB$FIELDS."),
                 severidadesOverride);
         }
     }
@@ -260,8 +255,8 @@ public static class AnalisadorDdlSchema
                 "high",
                 "TABELA_SEM_PK",
                 tabela.Nome,
-                M(idioma, $"Table {tabela.Nome} has no primary key.", $"Tabela {tabela.Nome} não possui chave primária."),
-                M(idioma, "Review if this is expected. Missing PK may hide duplicate rows over time.", "Revise se isso é esperado. Ausência de PK pode mascarar duplicidades."),
+                TextoLocalizado.Obter(idioma, $"Table {tabela.Nome} has no primary key.", $"Tabela {tabela.Nome} não possui chave primária."),
+                TextoLocalizado.Obter(idioma, "Review if this is expected. Missing PK may hide duplicate rows over time.", "Revise se isso é esperado. Ausência de PK pode mascarar duplicidades."),
                 severidadesOverride);
             return;
         }
@@ -273,8 +268,8 @@ public static class AnalisadorDdlSchema
                 "critical",
                 "PK_SEM_COLUNAS",
                 tabela.Nome,
-                M(idioma, $"Primary key {tabela.ChavePrimaria.Nome} in {tabela.Nome} has no columns.", $"Chave primária {tabela.ChavePrimaria.Nome} em {tabela.Nome} não possui colunas."),
-                M(idioma, "Rebuild this PK from validated column metadata.", "Recrie esta PK a partir de metadados validados."),
+                TextoLocalizado.Obter(idioma, $"Primary key {tabela.ChavePrimaria.Nome} in {tabela.Nome} has no columns.", $"Chave primária {tabela.ChavePrimaria.Nome} em {tabela.Nome} não possui colunas."),
+                TextoLocalizado.Obter(idioma, "Rebuild this PK from validated column metadata.", "Recrie esta PK a partir de metadados validados."),
                 severidadesOverride);
             return;
         }
@@ -290,8 +285,8 @@ public static class AnalisadorDdlSchema
                 "critical",
                 "PK_REFERENCIA_COLUNA_INEXISTENTE",
                 tabela.Nome,
-                M(idioma, $"PK {tabela.ChavePrimaria.Nome} references missing column {colunaPk}.", $"PK {tabela.ChavePrimaria.Nome} referencia coluna inexistente {colunaPk}."),
-                M(idioma, "Recreate PK and validate relation fields catalog.", "Recrie a PK e valide o catálogo de campos da relação."),
+                TextoLocalizado.Obter(idioma, $"PK {tabela.ChavePrimaria.Nome} references missing column {colunaPk}.", $"PK {tabela.ChavePrimaria.Nome} referencia coluna inexistente {colunaPk}."),
+                TextoLocalizado.Obter(idioma, "Recreate PK and validate relation fields catalog.", "Recrie a PK e valide o catálogo de campos da relação."),
                 severidadesOverride);
         }
     }
@@ -337,8 +332,8 @@ public static class AnalisadorDdlSchema
                 "critical",
                 "FK_SEM_COLUNAS",
                 escopo,
-                M(idioma, $"FK {fk.Nome} has empty local/reference columns.", $"FK {fk.Nome} possui colunas locais/referência vazias."),
-                M(idioma, "Recreate FK with explicit and ordered column list.", "Recrie a FK com lista de colunas explícita e ordenada."),
+                TextoLocalizado.Obter(idioma, $"FK {fk.Nome} has empty local/reference columns.", $"FK {fk.Nome} possui colunas locais/referência vazias."),
+                TextoLocalizado.Obter(idioma, "Recreate FK with explicit and ordered column list.", "Recrie a FK com lista de colunas explícita e ordenada."),
                 severidadesOverride);
             return false;
         }
@@ -350,8 +345,8 @@ public static class AnalisadorDdlSchema
                 "critical",
                 "FK_CARDINALIDADE_INVALIDA",
                 escopo,
-                M(idioma, $"FK {fk.Nome} has different local/reference column counts.", $"FK {fk.Nome} possui cardinalidade diferente entre colunas locais e de referência."),
-                M(idioma, "Recreate FK preserving matching column cardinality.", "Recrie a FK preservando cardinalidade equivalente."),
+                TextoLocalizado.Obter(idioma, $"FK {fk.Nome} has different local/reference column counts.", $"FK {fk.Nome} possui cardinalidade diferente entre colunas locais e de referência."),
+                TextoLocalizado.Obter(idioma, "Recreate FK preserving matching column cardinality.", "Recrie a FK preservando cardinalidade equivalente."),
                 severidadesOverride);
         }
 
@@ -376,8 +371,8 @@ public static class AnalisadorDdlSchema
                 "critical",
                 "FK_COLUNA_LOCAL_INEXISTENTE",
                 escopo,
-                M(idioma, $"FK {fk.Nome} references missing local column {colunaFk}.", $"FK {fk.Nome} referencia coluna local inexistente {colunaFk}."),
-                M(idioma, "Validate relation fields and rebuild FK.", "Valide os campos da relação e recrie a FK."),
+                TextoLocalizado.Obter(idioma, $"FK {fk.Nome} references missing local column {colunaFk}.", $"FK {fk.Nome} referencia coluna local inexistente {colunaFk}."),
+                TextoLocalizado.Obter(idioma, "Validate relation fields and rebuild FK.", "Valide os campos da relação e recrie a FK."),
                 severidadesOverride);
         }
     }
@@ -397,8 +392,8 @@ public static class AnalisadorDdlSchema
                 "critical",
                 "FK_TABELA_REFERENCIA_INEXISTENTE",
                 escopo,
-                M(idioma, $"FK {fk.Nome} points to missing table {fk.TabelaReferencia}.", $"FK {fk.Nome} aponta para tabela inexistente {fk.TabelaReferencia}."),
-                M(idioma, "Validate dependency order and metadata integrity for referenced table.", "Valide ordem de dependência e integridade de metadados da tabela referenciada."),
+                TextoLocalizado.Obter(idioma, $"FK {fk.Nome} points to missing table {fk.TabelaReferencia}.", $"FK {fk.Nome} aponta para tabela inexistente {fk.TabelaReferencia}."),
+                TextoLocalizado.Obter(idioma, "Validate dependency order and metadata integrity for referenced table.", "Valide ordem de dependência e integridade de metadados da tabela referenciada."),
                 severidadesOverride);
             return;
         }
@@ -414,8 +409,8 @@ public static class AnalisadorDdlSchema
                 "critical",
                 "FK_COLUNA_REFERENCIA_INEXISTENTE",
                 escopo,
-                M(idioma, $"FK {fk.Nome} points to missing referenced column {colunaRef}.", $"FK {fk.Nome} aponta para coluna referenciada inexistente {colunaRef}."),
-                M(idioma, "Recreate FK after validating referenced key definition.", "Recrie a FK após validar a definição da chave referenciada."),
+                TextoLocalizado.Obter(idioma, $"FK {fk.Nome} points to missing referenced column {colunaRef}.", $"FK {fk.Nome} aponta para coluna referenciada inexistente {colunaRef}."),
+                TextoLocalizado.Obter(idioma, "Recreate FK after validating referenced key definition.", "Recrie a FK após validar a definição da chave referenciada."),
                 severidadesOverride);
         }
     }
@@ -440,12 +435,10 @@ public static class AnalisadorDdlSchema
             "medium",
             "FK_SEM_INDICE_COBERTURA",
             escopo,
-            M(
-                idioma,
+            TextoLocalizado.Obter(idioma,
                 $"FK {fk.Nome} has no local covering index. Child table: {tabela.Nome} ({FormatarListaColunas(fk.Colunas)}). Parent table: {fk.TabelaReferencia} ({FormatarListaColunas(fk.ColunasReferencia)}).",
                 $"FK {fk.Nome} não possui índice local de cobertura. Tabela filha: {tabela.Nome} ({FormatarListaColunas(fk.Colunas)}). Tabela pai: {fk.TabelaReferencia} ({FormatarListaColunas(fk.ColunasReferencia)})."),
-            M(
-                idioma,
+            TextoLocalizado.Obter(idioma,
                 $"Create an index on child table {tabela.Nome} using FK columns ({FormatarListaColunas(fk.Colunas)}), preserving FK column order.",
                 $"Crie um índice na tabela filha {tabela.Nome} usando as colunas da FK ({FormatarListaColunas(fk.Colunas)}), preservando a ordem da FK."),
             severidadesOverride);
@@ -470,8 +463,8 @@ public static class AnalisadorDdlSchema
                     "high",
                     "INDICE_SEM_COLUNAS",
                     escopo,
-                    M(idioma, $"Index {indice.Nome} has no columns.", $"Índice {indice.Nome} não possui colunas."),
-                    M(idioma, "Recreate index with explicit column list.", "Recrie o índice com lista explícita de colunas."),
+                    TextoLocalizado.Obter(idioma, $"Index {indice.Nome} has no columns.", $"Índice {indice.Nome} não possui colunas."),
+                    TextoLocalizado.Obter(idioma, "Recreate index with explicit column list.", "Recrie o índice com lista explícita de colunas."),
                     severidadesOverride);
                 continue;
             }
@@ -486,8 +479,8 @@ public static class AnalisadorDdlSchema
                     "high",
                     "INDICE_COLUNA_INEXISTENTE",
                     escopo,
-                    M(idioma, $"Index {indice.Nome} references missing column {colunaIndice}.", $"Índice {indice.Nome} referencia coluna inexistente {colunaIndice}."),
-                    M(idioma, "Recreate index and validate relation fields catalog.", "Recrie o índice e valide o catálogo de campos da relação."),
+                    TextoLocalizado.Obter(idioma, $"Index {indice.Nome} references missing column {colunaIndice}.", $"Índice {indice.Nome} referencia coluna inexistente {colunaIndice}."),
+                    TextoLocalizado.Obter(idioma, "Recreate index and validate relation fields catalog.", "Recrie o índice e valide o catálogo de campos da relação."),
                     severidadesOverride);
             }
         }
@@ -512,11 +505,10 @@ public static class AnalisadorDdlSchema
                 "low",
                 "INDICE_DUPLICADO",
                 tabela.Nome,
-                M(
-                    idioma,
+                TextoLocalizado.Obter(idioma,
                     $"Duplicated index signature in {tabela.Nome}: {nomes}. Signature: {assinaturaExibicao}.",
                     $"Assinatura de índice duplicada em {tabela.Nome}: {nomes}. Assinatura: {assinaturaExibicao}."),
-                M(idioma, "Keep only one index per signature after workload validation.", "Mantenha apenas um índice por assinatura após validar carga de trabalho."),
+                TextoLocalizado.Obter(idioma, "Keep only one index per signature after workload validation.", "Mantenha apenas um índice por assinatura após validar carga de trabalho."),
                 severidadesOverride);
         }
     }
@@ -559,12 +551,10 @@ public static class AnalisadorDdlSchema
                     "medium",
                     "INDICE_REDUNDANTE_PREFIXO",
                     tabela.Nome,
-                    M(
-                        idioma,
+                    TextoLocalizado.Obter(idioma,
                         $"Index {indiceCurto.Nome} ({FormatarAssinaturaComparacaoIndice(indiceCurto)}) may be redundant because {indiceLongo.Nome} ({FormatarAssinaturaComparacaoIndice(indiceLongo)}) already covers its prefix ({FormatarListaColunas(indiceCurto.Colunas)}).",
                         $"Índice {indiceCurto.Nome} ({FormatarAssinaturaComparacaoIndice(indiceCurto)}) pode ser redundante porque {indiceLongo.Nome} ({FormatarAssinaturaComparacaoIndice(indiceLongo)}) já cobre seu prefixo ({FormatarListaColunas(indiceCurto.Colunas)})."),
-                    M(
-                        idioma,
+                    TextoLocalizado.Obter(idioma,
                         "Validate query plans and keep only the index with better selectivity/coverage.",
                         "Valide planos de execução e mantenha apenas o índice com melhor seletividade/cobertura."),
                     severidadesOverride);
@@ -592,8 +582,8 @@ public static class AnalisadorDdlSchema
                 "low",
                 "FK_DUPLICADA",
                 tabela.Nome,
-                M(idioma, $"Duplicated FK signature in {tabela.Nome}: {nomes}.", $"Assinatura de FK duplicada em {tabela.Nome}: {nomes}."),
-                M(idioma, "Consolidate equivalent foreign keys and keep only one validated constraint.", "Consolide FKs equivalentes e mantenha apenas uma restrição validada."),
+                TextoLocalizado.Obter(idioma, $"Duplicated FK signature in {tabela.Nome}: {nomes}.", $"Assinatura de FK duplicada em {tabela.Nome}: {nomes}."),
+                TextoLocalizado.Obter(idioma, "Consolidate equivalent foreign keys and keep only one validated constraint.", "Consolide FKs equivalentes e mantenha apenas uma restrição validada."),
                 severidadesOverride);
         }
     }
@@ -876,16 +866,13 @@ public static class AnalisadorDdlSchema
     {
         return codigo switch
         {
-            "OPERACIONAL_VOLUME_PRIORIDADE_ALTA" => M(
-                idioma,
+            "OPERACIONAL_VOLUME_PRIORIDADE_ALTA" => TextoLocalizado.Obter(idioma,
                 $"Table {tabela} has very high estimated volume ({registrosEstimados:N0} rows) and concentrated risk ({totalAchadosTabela} findings). Any regression here has high blast radius and can directly impact critical flows.",
                 $"Tabela {tabela} tem volume estimado muito alto ({registrosEstimados:N0} registros) e risco concentrado ({totalAchadosTabela} achados). Qualquer regressão aqui tem alto impacto e pode afetar diretamente fluxos críticos."),
-            "OPERACIONAL_VOLUME_PRIORIDADE_MEDIA" => M(
-                idioma,
+            "OPERACIONAL_VOLUME_PRIORIDADE_MEDIA" => TextoLocalizado.Obter(idioma,
                 $"Table {tabela} has relevant estimated volume ({registrosEstimados:N0} rows) with recurring risk ({totalAchadosTabela} findings). Incidents here tend to cause cumulative performance degradation and operational instability.",
                 $"Tabela {tabela} tem volume estimado relevante ({registrosEstimados:N0} registros) com risco recorrente ({totalAchadosTabela} achados). Problemas aqui tendem a gerar degradação cumulativa de performance e instabilidade operacional."),
-            _ => M(
-                idioma,
+            _ => TextoLocalizado.Obter(idioma,
                 $"Table {tabela} has significant estimated volume ({registrosEstimados:N0} rows) with at least one structural finding ({totalAchadosTabela}). Isolated issues can become expensive over time due to high recurrence.",
                 $"Tabela {tabela} tem volume estimado significativo ({registrosEstimados:N0} registros) com pelo menos um achado estrutural ({totalAchadosTabela}). Problemas isolados podem se tornar caros ao longo do tempo pela alta recorrência.")
         };
@@ -898,16 +885,13 @@ public static class AnalisadorDdlSchema
     {
         return codigo switch
         {
-            "OPERACIONAL_VOLUME_PRIORIDADE_ALTA" => M(
-                idioma,
+            "OPERACIONAL_VOLUME_PRIORIDADE_ALTA" => TextoLocalizado.Obter(idioma,
                 $"Treat {tabela} as immediate priority: review execution plans for the findings in this table, validate selective index coverage, and schedule remediation in the next release window.",
                 $"Trate {tabela} como prioridade imediata: revise planos de execução dos achados dessa tabela, valide cobertura de índices seletivos e programe correção na próxima janela de release."),
-            "OPERACIONAL_VOLUME_PRIORIDADE_MEDIA" => M(
-                idioma,
+            "OPERACIONAL_VOLUME_PRIORIDADE_MEDIA" => TextoLocalizado.Obter(idioma,
                 $"Put {tabela} in the short-term remediation queue: validate hottest queries, confirm index usefulness, and execute corrections before growth amplifies current risk.",
                 $"Coloque {tabela} na fila de correção de curto prazo: valide as consultas mais quentes, confirme utilidade dos índices e execute correções antes que o crescimento amplifique o risco atual."),
-            _ => M(
-                idioma,
+            _ => TextoLocalizado.Obter(idioma,
                 $"Track {tabela} with planned remediation: confirm if the finding affects frequent queries and fix proactively to avoid latent cost escalation.",
                 $"Acompanhe {tabela} com correção planejada: confirme se o achado afeta consultas frequentes e corrija de forma preventiva para evitar aumento de custo latente.")
         };
@@ -981,11 +965,6 @@ public static class AnalisadorDdlSchema
             Path.GetFileNameWithoutExtension(saida));
 
         return ($"{semExtensao}.json", $"{semExtensao}.html");
-    }
-
-    private static string M(IdiomaSaida idioma, string english, string portuguese)
-    {
-        return idioma == IdiomaSaida.PortugueseBrazil ? portuguese : english;
     }
 
     private static bool ContemWildcard(string valor)

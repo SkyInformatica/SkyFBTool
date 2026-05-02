@@ -71,7 +71,7 @@ public static class DdlAnalyzeCommand
                     }
                     else
                     {
-                        throw new ArgumentException(CliText.Texto(
+                        throw new ArgumentException(TextoLocalizado.Obter(
                             idioma,
                             "Invalid value for --volume-analysis. Use on or off.",
                             "Valor inválido para --volume-analysis. Use on ou off."));
@@ -89,21 +89,21 @@ public static class DdlAnalyzeCommand
                     }
                     else
                     {
-                        throw new ArgumentException(CliText.Texto(
+                        throw new ArgumentException(TextoLocalizado.Obter(
                             idioma,
                             "Invalid value for --volume-count-exact. Use on or off.",
                             "Valor inválido para --volume-count-exact. Use on ou off."));
                     }
                     break;
                 default:
-                    throw new ArgumentException(CliText.Texto(
+                    throw new ArgumentException(TextoLocalizado.Obter(
                         idioma,
                         $"Unknown option: --{chave}",
                         $"Opção desconhecida: --{chave}"));
             }
         }
 
-        Console.WriteLine(CliText.Texto(idioma, "Starting DDL analysis...", "Iniciando análise de DDL..."));
+        Console.WriteLine(TextoLocalizado.Obter(idioma, "Starting DDL analysis...", "Iniciando análise de DDL..."));
         ValidarModoEntrada(op, idioma);
         var bancos = ResolverBancosParaAnalise(op.DatabasesBatch, idioma);
 
@@ -112,13 +112,13 @@ public static class DdlAnalyzeCommand
             var (arquivoJson, arquivoHtml) = await AnalisadorDdlSchema.AnalisarAsync(op);
 
             Console.WriteLine();
-            Console.WriteLine(CliText.Texto(idioma, "Analysis finished.", "Análise concluída."));
-            Console.WriteLine($"{CliText.Texto(idioma, "Analysis JSON", "Análise JSON")}: {arquivoJson}");
-            Console.WriteLine($"{CliText.Texto(idioma, "Report", "Relatório")}     : {arquivoHtml}");
+            Console.WriteLine(TextoLocalizado.Obter(idioma, "Analysis finished.", "Análise concluída."));
+            Console.WriteLine($"{TextoLocalizado.Obter(idioma, "Analysis JSON", "Análise JSON")}: {arquivoJson}");
+            Console.WriteLine($"{TextoLocalizado.Obter(idioma, "Report", "Relatório")}     : {arquivoHtml}");
             return;
         }
 
-        Console.WriteLine(CliText.Texto(
+        Console.WriteLine(TextoLocalizado.Obter(
             idioma,
             $"Database wildcard resolved to {bancos.Count} file(s).",
             $"Wildcard de banco resolveu para {bancos.Count} arquivo(s)."));
@@ -138,18 +138,18 @@ public static class DdlAnalyzeCommand
             });
 
             Console.WriteLine();
-            Console.WriteLine($"{CliText.Texto(idioma, "Database", "Banco")}     : {banco}");
-            Console.WriteLine($"{CliText.Texto(idioma, "Analysis JSON", "Análise JSON")}: {arquivoJson}");
-            Console.WriteLine($"{CliText.Texto(idioma, "Report", "Relatório")}     : {arquivoHtml}");
+            Console.WriteLine($"{TextoLocalizado.Obter(idioma, "Database", "Banco")}     : {banco}");
+            Console.WriteLine($"{TextoLocalizado.Obter(idioma, "Analysis JSON", "Análise JSON")}: {arquivoJson}");
+            Console.WriteLine($"{TextoLocalizado.Obter(idioma, "Report", "Relatório")}     : {arquivoHtml}");
         }
 
         var (arquivoResumoJson, arquivoResumoHtml) =
             await GeradorResumoAnaliseDdlLote.GerarAsync(entradasResumo, op.Saida, idioma);
 
         Console.WriteLine();
-        Console.WriteLine(CliText.Texto(idioma, "Batch analysis finished.", "Análise em lote concluída."));
-        Console.WriteLine($"{CliText.Texto(idioma, "Batch summary JSON", "Resumo do lote JSON")}: {arquivoResumoJson}");
-        Console.WriteLine($"{CliText.Texto(idioma, "Batch summary report", "Relatório resumo do lote")}: {arquivoResumoHtml}");
+        Console.WriteLine(TextoLocalizado.Obter(idioma, "Batch analysis finished.", "Análise em lote concluída."));
+        Console.WriteLine($"{TextoLocalizado.Obter(idioma, "Batch summary JSON", "Resumo do lote JSON")}: {arquivoResumoJson}");
+        Console.WriteLine($"{TextoLocalizado.Obter(idioma, "Batch summary report", "Relatório resumo do lote")}: {arquivoResumoHtml}");
     }
 
     private static OpcoesDdlAnalise ClonarParaBanco(OpcoesDdlAnalise baseOp, string banco)
@@ -180,7 +180,7 @@ public static class DdlAnalyzeCommand
 
         if (!CliBatchPatternResolver.ContemWildcard(databasesBatch))
         {
-            throw new ArgumentException(CliText.Texto(
+            throw new ArgumentException(TextoLocalizado.Obter(
                 idioma,
                 "Invalid value for --databases-batch. Use a wildcard pattern (for example: C:\\data\\*.fdb).",
                 "Valor inválido para --databases-batch. Use um padrão wildcard (exemplo: C:\\dados\\*.fdb)."));
@@ -204,7 +204,7 @@ public static class DdlAnalyzeCommand
         int total = (temArquivo ? 1 : 0) + (temBanco ? 1 : 0) + (temLote ? 1 : 0);
         if (total == 0)
         {
-            throw new ArgumentException(CliText.Texto(
+            throw new ArgumentException(TextoLocalizado.Obter(
                 idioma,
                 "Provide one input source: --input/--source, --database, or --databases-batch.",
                 "Informe uma origem de entrada: --input/--source, --database ou --databases-batch."));
@@ -212,7 +212,7 @@ public static class DdlAnalyzeCommand
 
         if (total > 1)
         {
-            throw new ArgumentException(CliText.Texto(
+            throw new ArgumentException(TextoLocalizado.Obter(
                 idioma,
                 "Do not combine --input/--source, --database, and --databases-batch. Choose only one source.",
                 "Não combine --input/--source, --database e --databases-batch. Escolha apenas uma origem."));
@@ -220,7 +220,7 @@ public static class DdlAnalyzeCommand
 
         if (temBanco && CliBatchPatternResolver.ContemWildcard(op.Database))
         {
-            throw new ArgumentException(CliText.Texto(
+            throw new ArgumentException(TextoLocalizado.Obter(
                 idioma,
                 "Wildcard in --database is not allowed. Use --databases-batch for batch mode.",
                 "Wildcard em --database não é permitido. Use --databases-batch para modo em lote."));

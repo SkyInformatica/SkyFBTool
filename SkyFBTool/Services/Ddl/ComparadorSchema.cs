@@ -10,9 +10,9 @@ public static class ComparadorSchema
         IdiomaSaida idioma = IdiomaSaidaDetector.Detectar();
 
         if (string.IsNullOrWhiteSpace(opcoes.Origem))
-            throw new ArgumentException(M(idioma, "Source file not provided (--source).", "Arquivo de origem nao informado (--source)."));
+            throw new ArgumentException(TextoLocalizado.Obter(idioma, "Source file not provided (--source).", "Arquivo de origem não informado (--source)."));
         if (string.IsNullOrWhiteSpace(opcoes.Alvo))
-            throw new ArgumentException(M(idioma, "Target file not provided (--target).", "Arquivo de alvo nao informado (--target)."));
+            throw new ArgumentException(TextoLocalizado.Obter(idioma, "Target file not provided (--target).", "Arquivo de alvo não informado (--target)."));
 
         var (origem, origemArquivo) = await CarregadorSnapshotSchema.CarregarSnapshotComOrigemAsync(opcoes.Origem);
         var (alvo, alvoArquivo) = await CarregadorSnapshotSchema.CarregarSnapshotComOrigemAsync(opcoes.Alvo);
@@ -45,8 +45,7 @@ public static class ComparadorSchema
             var tabelaOrigem = tabelasOrigem[nomeTabela];
             if (!tabelasAlvo.TryGetValue(nomeTabela, out var tabelaAlvo))
             {
-                resultado.ItensCriados.Add(M(
-                    idioma,
+                resultado.ItensCriados.Add(TextoLocalizado.Obter(idioma,
                     $"Table missing in target: {nomeTabela}",
                     $"Tabela ausente no alvo: {nomeTabela}"));
                 resultado.ComandosSql.Add(GeradorDdlSql.GerarCreateTable(tabelaOrigem));
@@ -68,8 +67,7 @@ public static class ComparadorSchema
         {
             if (!tabelasOrigem.ContainsKey(nomeTabelaAlvo))
             {
-                resultado.ItensSomenteNoAlvo.Add(M(
-                    idioma,
+                resultado.ItensSomenteNoAlvo.Add(TextoLocalizado.Obter(idioma,
                     $"Table exists only in target: {nomeTabelaAlvo}",
                     $"Tabela existe apenas no alvo: {nomeTabelaAlvo}"));
             }
@@ -194,8 +192,7 @@ public static class ComparadorSchema
             var colunaOrigem = colunasOrigem[nomeColuna];
             if (!colunasAlvo.TryGetValue(nomeColuna, out var colunaAlvo))
             {
-                resultado.ItensCriados.Add(M(
-                    idioma,
+                resultado.ItensCriados.Add(TextoLocalizado.Obter(idioma,
                     $"Column missing in target: {origem.Nome}.{nomeColuna}",
                     $"Coluna ausente no alvo: {origem.Nome}.{nomeColuna}"));
                 resultado.ComandosSql.Add(
@@ -210,8 +207,7 @@ public static class ComparadorSchema
         {
             if (!colunasOrigem.ContainsKey(nomeColunaAlvo))
             {
-                resultado.ItensSomenteNoAlvo.Add(M(
-                    idioma,
+                resultado.ItensSomenteNoAlvo.Add(TextoLocalizado.Obter(idioma,
                     $"Column exists only in target: {origem.Nome}.{nomeColunaAlvo}",
                     $"Coluna existe apenas no alvo: {origem.Nome}.{nomeColunaAlvo}"));
             }
@@ -231,8 +227,7 @@ public static class ComparadorSchema
     {
         if (!string.Equals(origem.ComputedBySql, alvo.ComputedBySql, StringComparison.OrdinalIgnoreCase))
         {
-            resultado.Avisos.Add(M(
-                idioma,
+            resultado.Avisos.Add(TextoLocalizado.Obter(idioma,
                 $"Computed column differs: {nomeTabela}.{origem.Nome} (manual adjustment recommended).",
                 $"Coluna computada diferente: {nomeTabela}.{origem.Nome} (ajuste manual recomendado)."));
             return;
@@ -240,8 +235,7 @@ public static class ComparadorSchema
 
         if (!string.Equals(origem.TipoSql, alvo.TipoSql, StringComparison.OrdinalIgnoreCase))
         {
-            resultado.ItensAlterados.Add(M(
-                idioma,
+            resultado.ItensAlterados.Add(TextoLocalizado.Obter(idioma,
                 $"Type differs: {nomeTabela}.{origem.Nome} ({alvo.TipoSql} -> {origem.TipoSql})",
                 $"Tipo diferente: {nomeTabela}.{origem.Nome} ({alvo.TipoSql} -> {origem.TipoSql})"));
             resultado.ComandosSql.Add(
@@ -252,8 +246,7 @@ public static class ComparadorSchema
         {
             string nulidadeOrigem = origem.AceitaNulo ? "NULL" : "NOT NULL";
             string nulidadeAlvo = alvo.AceitaNulo ? "NULL" : "NOT NULL";
-            resultado.ItensAlterados.Add(M(
-                idioma,
+            resultado.ItensAlterados.Add(TextoLocalizado.Obter(idioma,
                 $"Nullability differs: {nomeTabela}.{origem.Nome} (target: {nulidadeAlvo} -> source: {nulidadeOrigem})",
                 $"Nulidade diferente: {nomeTabela}.{origem.Nome} (alvo: {nulidadeAlvo} -> origem: {nulidadeOrigem})"));
             resultado.ComandosSql.Add(
@@ -262,8 +255,7 @@ public static class ComparadorSchema
 
         if (!string.Equals(origem.DefaultSql, alvo.DefaultSql, StringComparison.OrdinalIgnoreCase))
         {
-            resultado.ItensAlterados.Add(M(
-                idioma,
+            resultado.ItensAlterados.Add(TextoLocalizado.Obter(idioma,
                 $"Default differs: {nomeTabela}.{origem.Nome}",
                 $"Default diferente: {nomeTabela}.{origem.Nome}"));
             if (string.IsNullOrWhiteSpace(origem.DefaultSql))
@@ -290,16 +282,15 @@ public static class ComparadorSchema
         if (assinaturaOrigem == assinaturaAlvo)
             return;
 
-        string nomePkOrigem = origem.ChavePrimaria?.Nome ?? M(idioma, "none", "nenhuma");
-        string nomePkAlvo = alvo.ChavePrimaria?.Nome ?? M(idioma, "none", "nenhuma");
+        string nomePkOrigem = origem.ChavePrimaria?.Nome ?? TextoLocalizado.Obter(idioma, "none", "nenhuma");
+        string nomePkAlvo = alvo.ChavePrimaria?.Nome ?? TextoLocalizado.Obter(idioma, "none", "nenhuma");
         string colunasOrigem = origem.ChavePrimaria is null
-            ? M(idioma, "none", "nenhuma")
+            ? TextoLocalizado.Obter(idioma, "none", "nenhuma")
             : string.Join(", ", origem.ChavePrimaria.Colunas);
         string colunasAlvo = alvo.ChavePrimaria is null
-            ? M(idioma, "none", "nenhuma")
+            ? TextoLocalizado.Obter(idioma, "none", "nenhuma")
             : string.Join(", ", alvo.ChavePrimaria.Colunas);
-        resultado.ItensAlterados.Add(M(
-            idioma,
+        resultado.ItensAlterados.Add(TextoLocalizado.Obter(idioma,
             $"PK differs: {origem.Nome} (target: {nomePkAlvo} [{colunasAlvo}] -> source: {nomePkOrigem} [{colunasOrigem}])",
             $"PK diferente: {origem.Nome} (alvo: {nomePkAlvo} [{colunasAlvo}] -> origem: {nomePkOrigem} [{colunasOrigem}])"));
         if (alvo.ChavePrimaria is not null)
@@ -323,21 +314,20 @@ public static class ComparadorSchema
             AssinaturaFk,
             fk => fk.Nome,
             resultado,
-            M(idioma, $"Duplicated FK in source ({origem.Nome})", $"FK duplicada na origem ({origem.Nome})"));
+            TextoLocalizado.Obter(idioma, $"Duplicated FK in source ({origem.Nome})", $"FK duplicada na origem ({origem.Nome})"));
         var fksAlvo = CriarMapaPorAssinatura(
             alvo.ChavesEstrangeiras,
             AssinaturaFk,
             fk => fk.Nome,
             resultado,
-            M(idioma, $"Duplicated FK in target ({alvo.Nome})", $"FK duplicada no alvo ({alvo.Nome})"));
+            TextoLocalizado.Obter(idioma, $"Duplicated FK in target ({alvo.Nome})", $"FK duplicada no alvo ({alvo.Nome})"));
 
         foreach (var assinatura in fksOrigem.Keys.OrderBy(v => v, StringComparer.OrdinalIgnoreCase))
         {
             if (fksAlvo.ContainsKey(assinatura))
                 continue;
 
-            resultado.ItensCriados.Add(M(
-                idioma,
+            resultado.ItensCriados.Add(TextoLocalizado.Obter(idioma,
                 $"FK missing in target: {origem.Nome}.{fksOrigem[assinatura].Nome}",
                 $"FK ausente no alvo: {origem.Nome}.{fksOrigem[assinatura].Nome}"));
             resultado.ComandosSql.Add(GeradorDdlSql.GerarAddFk(origem, fksOrigem[assinatura]));
@@ -347,8 +337,7 @@ public static class ComparadorSchema
         {
             if (!fksOrigem.ContainsKey(assinatura))
             {
-                resultado.ItensSomenteNoAlvo.Add(M(
-                    idioma,
+                resultado.ItensSomenteNoAlvo.Add(TextoLocalizado.Obter(idioma,
                     $"FK exists only in target: {origem.Nome}.{fksAlvo[assinatura].Nome}",
                     $"FK existe apenas no alvo: {origem.Nome}.{fksAlvo[assinatura].Nome}"));
             }
@@ -366,23 +355,22 @@ public static class ComparadorSchema
             AssinaturaIndice,
             idx => idx.Nome,
             resultado,
-            M(idioma, $"Duplicated index in source ({origem.Nome})", $"Indice duplicado na origem ({origem.Nome})"));
+            TextoLocalizado.Obter(idioma, $"Duplicated index in source ({origem.Nome})", $"Índice duplicado na origem ({origem.Nome})"));
         var idxAlvo = CriarMapaPorAssinatura(
             alvo.Indices,
             AssinaturaIndice,
             idx => idx.Nome,
             resultado,
-            M(idioma, $"Duplicated index in target ({alvo.Nome})", $"Indice duplicado no alvo ({alvo.Nome})"));
+            TextoLocalizado.Obter(idioma, $"Duplicated index in target ({alvo.Nome})", $"Índice duplicado no alvo ({alvo.Nome})"));
 
         foreach (var assinatura in idxOrigem.Keys.OrderBy(v => v, StringComparer.OrdinalIgnoreCase))
         {
             if (idxAlvo.ContainsKey(assinatura))
                 continue;
 
-            resultado.ItensCriados.Add(M(
-                idioma,
+            resultado.ItensCriados.Add(TextoLocalizado.Obter(idioma,
                 $"Index missing in target: {origem.Nome}.{idxOrigem[assinatura].Nome}",
-                $"Indice ausente no alvo: {origem.Nome}.{idxOrigem[assinatura].Nome}"));
+                $"Índice ausente no alvo: {origem.Nome}.{idxOrigem[assinatura].Nome}"));
             resultado.ComandosSql.Add(GeradorDdlSql.GerarCreateIndex(origem, idxOrigem[assinatura]));
         }
 
@@ -390,10 +378,9 @@ public static class ComparadorSchema
         {
             if (!idxOrigem.ContainsKey(assinatura))
             {
-                resultado.ItensSomenteNoAlvo.Add(M(
-                    idioma,
+                resultado.ItensSomenteNoAlvo.Add(TextoLocalizado.Obter(idioma,
                     $"Index exists only in target: {origem.Nome}.{idxAlvo[assinatura].Nome}",
-                    $"Indice existe apenas no alvo: {origem.Nome}.{idxAlvo[assinatura].Nome}"));
+                    $"Índice existe apenas no alvo: {origem.Nome}.{idxAlvo[assinatura].Nome}"));
             }
         }
     }
@@ -483,8 +470,7 @@ public static class ComparadorSchema
     {
         if (resultado.ComandosSql.Count == 0)
         {
-            return M(
-                       idioma,
+            return TextoLocalizado.Obter(idioma,
                        "-- No differences requiring automatic SQL generation.",
                        "-- Nenhuma diferenca que exija SQL automatico.")
                    + Environment.NewLine;
@@ -493,13 +479,9 @@ public static class ComparadorSchema
         return string.Join(Environment.NewLine, resultado.ComandosSql) + Environment.NewLine;
     }
 
-    private static string M(IdiomaSaida idioma, string english, string portuguese)
-    {
-        return idioma == IdiomaSaida.PortugueseBrazil ? portuguese : english;
-    }
-
     private static readonly JsonSerializerOptions JsonOptions = new()
     {
         WriteIndented = true
     };
 }
+

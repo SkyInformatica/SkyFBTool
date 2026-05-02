@@ -10,7 +10,7 @@ public static class ExtratorDdlFirebird
     public static async Task<SnapshotSchema> ExtrairSnapshotAsync(OpcoesDdlExtracao opcoes)
     {
         if (string.IsNullOrWhiteSpace(opcoes.Database))
-            throw new ArgumentException("Banco nao informado (--database).");
+            throw new ArgumentException("Banco não informado (--database).");
 
         try
         {
@@ -34,7 +34,7 @@ public static class ExtratorDdlFirebird
     public static async Task<(string ArquivoSql, string ArquivoJson)> ExtrairAsync(OpcoesDdlExtracao opcoes)
     {
         if (string.IsNullOrWhiteSpace(opcoes.Database))
-            throw new ArgumentException("Banco nao informado (--database).");
+            throw new ArgumentException("Banco não informado (--database).");
 
         var (arquivoSql, arquivoJson) = ResolverArquivosSaida(opcoes);
         Directory.CreateDirectory(Path.GetDirectoryName(arquivoSql)!);

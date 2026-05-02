@@ -1,3 +1,4 @@
+using SkyFBTool.Core;
 using SkyFBTool.Services.Ddl;
 
 namespace SkyFBTool.Cli.Common;
@@ -17,10 +18,10 @@ public static class CliBatchPatternResolver
         string padrao = Path.GetFileName(caminho);
 
         if (string.IsNullOrWhiteSpace(padrao))
-            throw new ArgumentException(CliText.Texto(idioma, "Invalid batch pattern.", "Padrão de lote inválido."));
+            throw new ArgumentException(TextoLocalizado.Obter(idioma, "Invalid batch pattern.", "Padrão de lote inválido."));
 
         if (!Directory.Exists(diretorio))
-            throw new DirectoryNotFoundException(CliText.Texto(idioma, diretorioInexistenteEnglish, diretorioInexistentePortuguese) + $": {diretorio}");
+            throw new DirectoryNotFoundException(TextoLocalizado.Obter(idioma, diretorioInexistenteEnglish, diretorioInexistentePortuguese) + $": {diretorio}");
 
         var arquivos = Directory
             .GetFiles(diretorio, padrao)
@@ -28,7 +29,7 @@ public static class CliBatchPatternResolver
             .ToList();
 
         if (arquivos.Count == 0)
-            throw new FileNotFoundException(CliText.Texto(idioma, nenhumArquivoEnglish, nenhumArquivoPortuguese) + $": {padraoBatch}");
+            throw new FileNotFoundException(TextoLocalizado.Obter(idioma, nenhumArquivoEnglish, nenhumArquivoPortuguese) + $": {padraoBatch}");
 
         return arquivos;
     }

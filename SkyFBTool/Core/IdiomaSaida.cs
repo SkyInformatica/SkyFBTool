@@ -1,6 +1,7 @@
+using SkyFBTool.Core;
 using System.Globalization;
 
-namespace SkyFBTool.Services.Ddl;
+namespace SkyFBTool.Core;
 
 public enum IdiomaSaida
 {

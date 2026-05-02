@@ -19,7 +19,7 @@ public static class CarregadorSnapshotSchema
                 return (await LerArquivoJsonAsync(arquivoJson), arquivoJson);
 
             if (!File.Exists(caminho))
-                throw new FileNotFoundException($"Arquivo SQL nao encontrado: {caminho}");
+                throw new FileNotFoundException($"Arquivo SQL não encontrado: {caminho}");
 
             return (await ParserSqlDdlSnapshot.LerArquivoSqlAsync(caminho), caminho);
         }
@@ -33,7 +33,7 @@ public static class CarregadorSnapshotSchema
             return (await ParserSqlDdlSnapshot.LerArquivoSqlAsync(candidatoSql), candidatoSql);
 
         throw new FileNotFoundException(
-            $"Nao foi encontrado arquivo de schema para '{caminhoInformado}'. " +
+            $"Não foi encontrado arquivo de schema para '{caminhoInformado}'. " +
             $"Esperado: '{candidatoJson}' ou '{candidatoSql}'.");
     }
 
@@ -53,12 +53,12 @@ public static class CarregadorSnapshotSchema
     public static async Task<SnapshotSchema> LerArquivoJsonAsync(string arquivoJson)
     {
         if (!File.Exists(arquivoJson))
-            throw new FileNotFoundException($"Arquivo de schema nao encontrado: {arquivoJson}");
+            throw new FileNotFoundException($"Arquivo de schema não encontrado: {arquivoJson}");
 
         string texto = await File.ReadAllTextAsync(arquivoJson);
         var snapshot = JsonSerializer.Deserialize<SnapshotSchema>(texto, JsonOptions);
         if (snapshot is null)
-            throw new ArgumentException($"Nao foi possivel ler snapshot JSON: {arquivoJson}");
+            throw new ArgumentException($"Não foi possível ler snapshot JSON: {arquivoJson}");
 
         return snapshot;
     }
