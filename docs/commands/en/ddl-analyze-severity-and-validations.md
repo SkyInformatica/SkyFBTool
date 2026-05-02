@@ -93,7 +93,7 @@ This document describes exactly which validations `ddl-analyze` runs and how eac
 
 - Operational checks are emitted only in DB mode (`--database`, and per DB in `--databases-batch`).
 - File mode (`--input/--source`) has no live transaction context; therefore no `OPERACIONAL_*` findings.
-- If MON$ collection fails (permissions/access/query), structural findings are still produced; operational findings are skipped.
+- If MON$ collection fails (permissions/access/query), structural findings are still produced and the report marks operational analysis as `unavailable`, with the reason in the summary.
 
 ### Operational metrics source
 
@@ -110,6 +110,6 @@ This document describes exactly which validations `ddl-analyze` runs and how eac
 ## Interpretation notes
 
 - In `--input/--source` mode, `MON$` is not queried; therefore `OPERACIONAL_*` codes are not emitted.
-- If operational collection fails in `--database` mode (permissions/access/query failure), structural analysis still completes and the report is generated without `OPERACIONAL_*` findings.
+- If operational collection fails in `--database` mode (permissions/access/query failure), structural analysis still completes and the report is generated with operational analysis marked as `unavailable`.
 - `FK_SEM_INDICE_COBERTURA` is not emitted when the FK has a support index bound to the constraint (for example, `RDB$RELATION_CONSTRAINTS.RDB$INDEX_NAME` in DB mode, or matching FK/constraint index in SQL snapshot mode).
 - Volume-priority findings are emitted only in DB mode and use index-based estimated row count by default (best-effort); exact `COUNT(*)` is optional via `--volume-count-exact on`.

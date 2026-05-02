@@ -51,7 +51,7 @@ SkyFBTool ddl-analyze --databases-batch "C:\dados\*.fdb" --output DIRETÓRIO [op
 - Checks operacionais estão disponíveis apenas no modo por banco (`--database`), não no modo por arquivo (`--input/--source`).
 - A coleta operacional de `MON$` no modo por banco é best-effort:
   - se falhar (permissão/versão/consulta/timeout), a análise estrutural ainda conclui normalmente;
-  - os metadados do relatório passam a indicar status da análise operacional e resumo de erro.
+  - o relatório marca a análise operacional como `indisponível` e registra o motivo no resumo.
 - A estimativa de volume no modo por banco é best-effort; se falhar ou estourar timeout, a análise continua sem os achados de prioridade por volume.
 
 ## Exemplos
@@ -60,7 +60,7 @@ SkyFBTool ddl-analyze --input "C:\ddl\origem.schema.json" --output "C:\ddl\anali
 SkyFBTool ddl-analyze --database "C:\dados\origem.fdb" --output "C:\ddl\analise_do_banco"
 SkyFBTool ddl-analyze --databases-batch "C:\dados\*.fdb" --output "C:\ddl\analises_lote\"
 SkyFBTool ddl-analyze --input "C:\ddl\origem.sql" --ignore-table-prefix LOG_ --ignore-table-prefixes TMP_,IBE$ --severity-config ".\docs\examples\ddl-severity.sample.json" --output "C:\ddl\analise_custom"
-SkyFBTool ddl-analyze --input "C:\ddl\origem.schema.json" --description "analise no banco XYZ" --output "C:\ddl\analise_com_contexto"
+SkyFBTool ddl-analyze --input "C:\ddl\origem.schema.json" --description "análise no banco XYZ" --output "C:\ddl\analise_com_contexto"
 ```
 
 ## Exemplos de relatório

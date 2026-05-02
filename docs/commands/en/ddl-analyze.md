@@ -51,7 +51,7 @@ SkyFBTool ddl-analyze --databases-batch "C:\data\*.fdb" --output DIRECTORY [opti
 - Operational checks are available only in DB mode (`--database`), not in file mode (`--input/--source`).
 - Operational `MON$` collection is best-effort in DB mode:
   - if it fails (permission/version/query/timeout), structural analysis still completes;
-  - report metadata now includes operational analysis status and error summary.
+  - the report marks operational analysis as `unavailable` and includes the error reason in the summary.
 - Volume estimation is best-effort in DB mode; if it fails or times out, analysis continues without volume-priority findings.
 
 ## Examples

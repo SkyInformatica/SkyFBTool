@@ -93,7 +93,7 @@ Este documento descreve, de forma precisa, quais validações o `ddl-analyze` ex
 
 - Checks operacionais saem apenas no modo por banco (`--database`, e por banco no `--databases-batch`).
 - No modo por arquivo (`--input/--source`) não existe contexto transacional ao vivo; por isso não há `OPERACIONAL_*`.
-- Se a coleta MON$ falhar (permissão/acesso/consulta), os achados estruturais continuam sendo gerados e os operacionais são omitidos.
+- Se a coleta MON$ falhar (permissão/acesso/consulta), os achados estruturais continuam sendo gerados e o relatório marca a análise operacional como `indisponível`, com o motivo no resumo.
 
 ### Origem das métricas operacionais
 
@@ -110,6 +110,6 @@ Este documento descreve, de forma precisa, quais validações o `ddl-analyze` ex
 ## Importante para interpretação
 
 - No modo `--input/--source`, não há coleta de `MON$`; portanto, os códigos `OPERACIONAL_*` não aparecem.
-- Se a coleta operacional falhar no modo `--database` (permissão/acesso/erro de consulta), a análise estrutural continua e o relatório é gerado sem os achados `OPERACIONAL_*`.
+- Se a coleta operacional falhar no modo `--database` (permissão/acesso/erro de consulta), a análise estrutural continua e o relatório é gerado com a análise operacional marcada como `indisponível`.
 - `FK_SEM_INDICE_COBERTURA` não é emitido quando a FK já possui índice de suporte vinculado à constraint (por exemplo, `RDB$RELATION_CONSTRAINTS.RDB$INDEX_NAME` no modo por banco, ou índice equivalente no modo por snapshot SQL).
 - Achados de prioridade por volume são emitidos apenas no modo por banco e usam estimativa por índice como padrão (coleta best-effort); `COUNT(*)` exato é opcional via `--volume-count-exact on`.
