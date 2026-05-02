@@ -61,5 +61,8 @@
     "Indice existe apenas no alvo: PEDIDOS.IX_PEDIDOS_DATA",
     "Tabela existe apenas no alvo: PAGAMENTOS"
   ],
-  "Avisos": []
+  "Avisos": [
+    "Coluna computada diferente: CLIENTES.NOME_NORM (ajuste manual recomendado).",
+    "Indice duplicado no alvo (PEDIDOS): IX_PEDIDOS_DATA \u003C-\u003E IX_PEDIDOS_DATA_DUP | N|A|DATA_EMISSAO"
+  ]
 }

@@ -15,8 +15,20 @@
     .card { border: 1px solid #e5e7eb; border-radius: 10px; background: #fff; padding: 10px; }
     .criteria-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 10px; align-items: start; }
     .summary-scroll { height: 320px; overflow: auto; border: 1px solid #eef2f7; border-radius: 8px; }
-    .legend { margin: 0; font-size: 13px; color: #1f2937; line-height: 1.35; background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 8px; padding: 8px 10px; }
-    .legend strong { color: #111827; display: block; margin-bottom: 4px; }
+    .legend { margin: 0; font-size: 13px; color: #1f2937; line-height: 1.35; background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 8px; padding: 10px; }
+    .legend strong { color: #111827; display: block; margin-bottom: 8px; }
+    .legend-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+    .legend-item { display: grid; grid-template-columns: 34px 1fr; gap: 8px; align-items: start; border: 1px solid #e5e7eb; background: #fff; border-radius: 8px; padding: 6px 8px; }
+    .legend-badge { display: inline-flex; align-items: center; justify-content: center; min-height: 22px; border-radius: 999px; font-size: 12px; font-weight: 700; border: 1px solid; }
+    .legend-badge.p0 { color: #7f1d1d; background: #fee2e2; border-color: #fca5a5; }
+    .legend-badge.p1 { color: #9a3412; background: #ffedd5; border-color: #fdba74; }
+    .legend-badge.p2 { color: #1e3a8a; background: #dbeafe; border-color: #93c5fd; }
+    .legend-badge.p3 { color: #065f46; background: #d1fae5; border-color: #86efac; }
+    .priority-pill { display: inline-flex; align-items: center; justify-content: center; min-width: 34px; min-height: 22px; padding: 0 8px; border-radius: 999px; font-size: 12px; font-weight: 700; border: 1px solid; }
+    .priority-pill.p0 { color: #7f1d1d; background: #fee2e2; border-color: #fca5a5; }
+    .priority-pill.p1 { color: #9a3412; background: #ffedd5; border-color: #fdba74; }
+    .priority-pill.p2 { color: #1e3a8a; background: #dbeafe; border-color: #93c5fd; }
+    .priority-pill.p3 { color: #065f46; background: #d1fae5; border-color: #86efac; }
     .toolbar { display: flex; gap: 10px; flex-wrap: wrap; margin: 8px 0 10px; align-items: center; }
     .toolbar input, .toolbar select { padding: 6px 8px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 13px; }
     .count { font-size: 13px; color: #374151; }
@@ -29,6 +41,11 @@
     .high { color: #92400e; font-weight: 700; }
     .medium { color: #1d4ed8; font-weight: 700; }
     .low { color: #065f46; font-weight: 700; }
+    .severity-pill { display: inline-flex; align-items: center; justify-content: center; min-height: 22px; padding: 0 10px; border-radius: 999px; font-size: 12px; font-weight: 700; border: 1px solid; }
+    .severity-pill.critical { color: #7f1d1d; background: #fee2e2; border-color: #fca5a5; }
+    .severity-pill.high { color: #9a3412; background: #ffedd5; border-color: #fdba74; }
+    .severity-pill.medium { color: #1e3a8a; background: #dbeafe; border-color: #93c5fd; }
+    .severity-pill.low { color: #065f46; background: #d1fae5; border-color: #86efac; }
     @media (max-width: 900px) { .grid { grid-template-columns: 1fr; } .criteria-grid { grid-template-columns: 1fr; } body { margin: 12px; } }
     @media print {
       body { margin: 0; font-size: 11px; color: #000; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
@@ -50,7 +67,7 @@
   <div class="meta">
     <div><strong>Origem:</strong> <span title="D:\Projetos\SkyFBTool\docs\examples\ddl-analyze-sample-rich-input.sql">ddl-analyze-sample-rich-input.sql</span></div>
     
-    <div><strong>Gerado em (UTC):</strong> 2026-04-30 01:28:21</div>
+    <div><strong>Gerado em (UTC):</strong> 2026-05-02 14:07:48</div>
     
     <div><strong>Análise de volume:</strong> n&#227;o aplic&#225;vel</div>
   </div>
@@ -71,25 +88,25 @@
       </tr></thead><tbody>
         
                 <tr>
-                  <td class="critical">cr&#237;tico</td>
+                  <td><span class="severity-pill critical">cr&#237;tico</span></td>
                   <td>Metadado estrutural quebrado: colunas ausentes ou inv&#225;lidas em PK/FK, constraints vazias ou refer&#234;ncias imposs&#237;veis.</td>
                   <td>Alta chance de falha funcional, sintomas de corrup&#231;&#227;o ou impossibilidade de sincronismo seguro sem reparo manual.</td>
                 </tr>
                 
                 <tr>
-                  <td class="high">alto</td>
+                  <td><span class="severity-pill high">alto</span></td>
                   <td>Inconsist&#234;ncia de alto risco que pode quebrar integridade ou performance em carga.</td>
                   <td>Risco relevante em produ&#231;&#227;o; corrigir antes de migra&#231;&#227;o ou importa&#231;&#227;o/exporta&#231;&#227;o intensa.</td>
                 </tr>
                 
                 <tr>
-                  <td class="medium">m&#233;dio</td>
+                  <td><span class="severity-pill medium">m&#233;dio</span></td>
                   <td>Lacuna importante de qualidade ou performance, normalmente sem corrup&#231;&#227;o imediata.</td>
                   <td>Pode degradar vaz&#227;o e aumentar risco de lock/conten&#231;&#227;o ao longo do tempo.</td>
                 </tr>
                 
                 <tr>
-                  <td class="low">baixo</td>
+                  <td><span class="severity-pill low">baixo</span></td>
                   <td>Padr&#227;o consultivo ou smell de modelagem com menor risco imediato.</td>
                   <td>Recomendado para endurecimento e manutenibilidade; pode ser planejado.</td>
                 </tr>
@@ -97,10 +114,12 @@
       </tbody></table>
       <div class="legend">
         <strong>Legenda de prioridade:</strong>
-        <div>P0: ação imediata (risco crítico).</div>
-        <div>P1: alta prioridade (correção de curto prazo).</div>
-        <div>P2: prioridade planejada (programar e acompanhar).</div>
-        <div>P3: otimização/backlog (menor urgência).</div>
+        <ul class="legend-list">
+          <li class="legend-item"><span class="legend-badge p0">P0</span><span>P0: ação imediata (risco crítico).</span></li>
+          <li class="legend-item"><span class="legend-badge p1">P1</span><span>P1: alta prioridade (correção de curto prazo).</span></li>
+          <li class="legend-item"><span class="legend-badge p2">P2</span><span>P2: prioridade planejada (programar e acompanhar).</span></li>
+          <li class="legend-item"><span class="legend-badge p3">P3</span><span>P3: otimização/backlog (menor urgência).</span></li>
+        </ul>
       </div>
     </div>
   </div>
@@ -135,13 +154,49 @@
         <th>Escopo</th><th>Prioridade</th><th>Índice de risco</th><th>Qtde</th>
       </tr></thead><tbody>
         
-                <tr><td>PEDIDOS</td><td>P1</td><td>81</td><td>11</td></tr>
+                <tr>
+                  <td>PEDIDOS</td>
+                  <td>
+                    
+                        <span class="priority-pill p1">P1</span>
+                        
+                  </td>
+                  <td>81</td>
+                  <td>11</td>
+                </tr>
                 
-                <tr><td>LOG_EVENTOS</td><td>P1</td><td>79</td><td>2</td></tr>
+                <tr>
+                  <td>LOG_EVENTOS</td>
+                  <td>
+                    
+                        <span class="priority-pill p1">P1</span>
+                        
+                  </td>
+                  <td>79</td>
+                  <td>2</td>
+                </tr>
                 
-                <tr><td>CLIENTES</td><td>P2</td><td>65</td><td>2</td></tr>
+                <tr>
+                  <td>CLIENTES</td>
+                  <td>
+                    
+                        <span class="priority-pill p2">P2</span>
+                        
+                  </td>
+                  <td>65</td>
+                  <td>2</td>
+                </tr>
                 
-                <tr><td>ITENS_PEDIDO</td><td>P2</td><td>64</td><td>1</td></tr>
+                <tr>
+                  <td>ITENS_PEDIDO</td>
+                  <td>
+                    
+                        <span class="priority-pill p2">P2</span>
+                        
+                  </td>
+                  <td>64</td>
+                  <td>1</td>
+                </tr>
                 
         
       </tbody></table>
@@ -168,7 +223,7 @@
       <tbody>
         
             <tr data-sev="critical" data-code="FK_CARDINALIDADE_INVALIDA" data-text="pedidos.fk_pedidos_card fk_cardinalidade_invalida fk fk_pedidos_card possui cardinalidade diferente entre colunas locais e de refer&#234;ncia. recrie a fk preservando cardinalidade equivalente.">
-              <td class="critical">cr&#237;tico</td>
+              <td><span class="severity-pill critical">cr&#237;tico</span></td>
               <td>FK_CARDINALIDADE_INVALIDA</td>
               <td>PEDIDOS.FK_PEDIDOS_CARD</td>
               <td>FK FK_PEDIDOS_CARD possui cardinalidade diferente entre colunas locais e de refer&#234;ncia.</td>
@@ -176,7 +231,7 @@
             </tr>
             
             <tr data-sev="critical" data-code="FK_COLUNA_LOCAL_INEXISTENTE" data-text="pedidos.fk_pedidos_local_missing fk_coluna_local_inexistente fk fk_pedidos_local_missing referencia coluna local inexistente cliente_inexistente. valide os campos da rela&#231;&#227;o e recrie a fk.">
-              <td class="critical">cr&#237;tico</td>
+              <td><span class="severity-pill critical">cr&#237;tico</span></td>
               <td>FK_COLUNA_LOCAL_INEXISTENTE</td>
               <td>PEDIDOS.FK_PEDIDOS_LOCAL_MISSING</td>
               <td>FK FK_PEDIDOS_LOCAL_MISSING referencia coluna local inexistente CLIENTE_INEXISTENTE.</td>
@@ -184,7 +239,7 @@
             </tr>
             
             <tr data-sev="critical" data-code="FK_COLUNA_REFERENCIA_INEXISTENTE" data-text="pedidos.fk_pedidos_ref_column_missing fk_coluna_referencia_inexistente fk fk_pedidos_ref_column_missing aponta para coluna referenciada inexistente id_x. recrie a fk ap&#243;s validar a defini&#231;&#227;o da chave referenciada.">
-              <td class="critical">cr&#237;tico</td>
+              <td><span class="severity-pill critical">cr&#237;tico</span></td>
               <td>FK_COLUNA_REFERENCIA_INEXISTENTE</td>
               <td>PEDIDOS.FK_PEDIDOS_REF_COLUMN_MISSING</td>
               <td>FK FK_PEDIDOS_REF_COLUMN_MISSING aponta para coluna referenciada inexistente ID_X.</td>
@@ -192,7 +247,7 @@
             </tr>
             
             <tr data-sev="critical" data-code="FK_TABELA_REFERENCIA_INEXISTENTE" data-text="pedidos.fk_pedidos_ref_table_missing fk_tabela_referencia_inexistente fk fk_pedidos_ref_table_missing aponta para tabela inexistente clientes_x. valide ordem de depend&#234;ncia e integridade de metadados da tabela referenciada.">
-              <td class="critical">cr&#237;tico</td>
+              <td><span class="severity-pill critical">cr&#237;tico</span></td>
               <td>FK_TABELA_REFERENCIA_INEXISTENTE</td>
               <td>PEDIDOS.FK_PEDIDOS_REF_TABLE_MISSING</td>
               <td>FK FK_PEDIDOS_REF_TABLE_MISSING aponta para tabela inexistente CLIENTES_X.</td>
@@ -200,7 +255,7 @@
             </tr>
             
             <tr data-sev="critical" data-code="PK_REFERENCIA_COLUNA_INEXISTENTE" data-text="pedidos pk_referencia_coluna_inexistente pk pk_pedidos referencia coluna inexistente id_coluna_inexistente. recrie a pk e valide o cat&#225;logo de campos da rela&#231;&#227;o.">
-              <td class="critical">cr&#237;tico</td>
+              <td><span class="severity-pill critical">cr&#237;tico</span></td>
               <td>PK_REFERENCIA_COLUNA_INEXISTENTE</td>
               <td>PEDIDOS</td>
               <td>PK PK_PEDIDOS referencia coluna inexistente ID_COLUNA_INEXISTENTE.</td>
@@ -208,7 +263,7 @@
             </tr>
             
             <tr data-sev="critical" data-code="TABELA_SEM_COLUNAS" data-text="log_eventos tabela_sem_colunas tabela log_eventos n&#227;o possui colunas. reextraia o metadado e valide esta tabela diretamente nos cat&#225;logos do firebird.">
-              <td class="critical">cr&#237;tico</td>
+              <td><span class="severity-pill critical">cr&#237;tico</span></td>
               <td>TABELA_SEM_COLUNAS</td>
               <td>LOG_EVENTOS</td>
               <td>Tabela LOG_EVENTOS n&#227;o possui colunas.</td>
@@ -216,7 +271,7 @@
             </tr>
             
             <tr data-sev="high" data-code="INDICE_COLUNA_INEXISTENTE" data-text="pedidos.ind_pedidos_coluna_inexistente indice_coluna_inexistente &#237;ndice ind_pedidos_coluna_inexistente referencia coluna inexistente cliente_id_nao_existe. recrie o &#237;ndice e valide o cat&#225;logo de campos da rela&#231;&#227;o.">
-              <td class="high">alto</td>
+              <td><span class="severity-pill high">alto</span></td>
               <td>INDICE_COLUNA_INEXISTENTE</td>
               <td>PEDIDOS.IND_PEDIDOS_COLUNA_INEXISTENTE</td>
               <td>&#205;ndice IND_PEDIDOS_COLUNA_INEXISTENTE referencia coluna inexistente CLIENTE_ID_NAO_EXISTE.</td>
@@ -224,7 +279,7 @@
             </tr>
             
             <tr data-sev="high" data-code="INDICE_SEM_COLUNAS" data-text="pedidos.ind_pedidos_sem_coluna indice_sem_colunas &#237;ndice ind_pedidos_sem_coluna n&#227;o possui colunas. recrie o &#237;ndice com lista expl&#237;cita de colunas.">
-              <td class="high">alto</td>
+              <td><span class="severity-pill high">alto</span></td>
               <td>INDICE_SEM_COLUNAS</td>
               <td>PEDIDOS.IND_PEDIDOS_SEM_COLUNA</td>
               <td>&#205;ndice IND_PEDIDOS_SEM_COLUNA n&#227;o possui colunas.</td>
@@ -232,7 +287,7 @@
             </tr>
             
             <tr data-sev="high" data-code="TABELA_SEM_PK" data-text="clientes tabela_sem_pk tabela clientes n&#227;o possui chave prim&#225;ria. revise se isso &#233; esperado. aus&#234;ncia de pk pode mascarar duplicidades.">
-              <td class="high">alto</td>
+              <td><span class="severity-pill high">alto</span></td>
               <td>TABELA_SEM_PK</td>
               <td>CLIENTES</td>
               <td>Tabela CLIENTES n&#227;o possui chave prim&#225;ria.</td>
@@ -240,7 +295,7 @@
             </tr>
             
             <tr data-sev="high" data-code="TABELA_SEM_PK" data-text="itens_pedido tabela_sem_pk tabela itens_pedido n&#227;o possui chave prim&#225;ria. revise se isso &#233; esperado. aus&#234;ncia de pk pode mascarar duplicidades.">
-              <td class="high">alto</td>
+              <td><span class="severity-pill high">alto</span></td>
               <td>TABELA_SEM_PK</td>
               <td>ITENS_PEDIDO</td>
               <td>Tabela ITENS_PEDIDO n&#227;o possui chave prim&#225;ria.</td>
@@ -248,7 +303,7 @@
             </tr>
             
             <tr data-sev="high" data-code="TABELA_SEM_PK" data-text="log_eventos tabela_sem_pk tabela log_eventos n&#227;o possui chave prim&#225;ria. revise se isso &#233; esperado. aus&#234;ncia de pk pode mascarar duplicidades.">
-              <td class="high">alto</td>
+              <td><span class="severity-pill high">alto</span></td>
               <td>TABELA_SEM_PK</td>
               <td>LOG_EVENTOS</td>
               <td>Tabela LOG_EVENTOS n&#227;o possui chave prim&#225;ria.</td>
@@ -256,7 +311,7 @@
             </tr>
             
             <tr data-sev="high" data-code="TIPO_DESCONHECIDO" data-text="clientes.tipo_invalido tipo_desconhecido coluna clientes.tipo_invalido possui mapeamento de tipo desconhecido: type_999. valide compatibilidade de vers&#227;o e confira a defini&#231;&#227;o no rdb$fields.">
-              <td class="high">alto</td>
+              <td><span class="severity-pill high">alto</span></td>
               <td>TIPO_DESCONHECIDO</td>
               <td>CLIENTES.TIPO_INVALIDO</td>
               <td>Coluna CLIENTES.TIPO_INVALIDO possui mapeamento de tipo desconhecido: TYPE_999.</td>
@@ -264,7 +319,7 @@
             </tr>
             
             <tr data-sev="medium" data-code="INDICE_REDUNDANTE_PREFIXO" data-text="pedidos indice_redundante_prefixo &#237;ndice ind_pedidos_cliente_a (non-unique, asc, (cliente_id)) pode ser redundante porque ind_pedidos_cliente_valor (non-unique, asc, (cliente_id, valor)) j&#225; cobre seu prefixo (cliente_id). valide planos de execu&#231;&#227;o e mantenha apenas o &#237;ndice com melhor seletividade/cobertura.">
-              <td class="medium">m&#233;dio</td>
+              <td><span class="severity-pill medium">m&#233;dio</span></td>
               <td>INDICE_REDUNDANTE_PREFIXO</td>
               <td>PEDIDOS</td>
               <td>&#205;ndice IND_PEDIDOS_CLIENTE_A (NON-UNIQUE, ASC, (CLIENTE_ID)) pode ser redundante porque IND_PEDIDOS_CLIENTE_VALOR (NON-UNIQUE, ASC, (CLIENTE_ID, VALOR)) j&#225; cobre seu prefixo (CLIENTE_ID).</td>
@@ -272,7 +327,7 @@
             </tr>
             
             <tr data-sev="medium" data-code="INDICE_REDUNDANTE_PREFIXO" data-text="pedidos indice_redundante_prefixo &#237;ndice ind_pedidos_cliente_b (non-unique, asc, (cliente_id)) pode ser redundante porque ind_pedidos_cliente_valor (non-unique, asc, (cliente_id, valor)) j&#225; cobre seu prefixo (cliente_id). valide planos de execu&#231;&#227;o e mantenha apenas o &#237;ndice com melhor seletividade/cobertura.">
-              <td class="medium">m&#233;dio</td>
+              <td><span class="severity-pill medium">m&#233;dio</span></td>
               <td>INDICE_REDUNDANTE_PREFIXO</td>
               <td>PEDIDOS</td>
               <td>&#205;ndice IND_PEDIDOS_CLIENTE_B (NON-UNIQUE, ASC, (CLIENTE_ID)) pode ser redundante porque IND_PEDIDOS_CLIENTE_VALOR (NON-UNIQUE, ASC, (CLIENTE_ID, VALOR)) j&#225; cobre seu prefixo (CLIENTE_ID).</td>
@@ -280,7 +335,7 @@
             </tr>
             
             <tr data-sev="low" data-code="FK_DUPLICADA" data-text="pedidos fk_duplicada assinatura de fk duplicada em pedidos: fk_pedidos_cliente, fk_pedidos_cliente_dup. consolide fks equivalentes e mantenha apenas uma restri&#231;&#227;o validada.">
-              <td class="low">baixo</td>
+              <td><span class="severity-pill low">baixo</span></td>
               <td>FK_DUPLICADA</td>
               <td>PEDIDOS</td>
               <td>Assinatura de FK duplicada em PEDIDOS: FK_PEDIDOS_CLIENTE, FK_PEDIDOS_CLIENTE_DUP.</td>
@@ -288,7 +343,7 @@
             </tr>
             
             <tr data-sev="low" data-code="INDICE_DUPLICADO" data-text="pedidos indice_duplicado assinatura de &#237;ndice duplicada em pedidos: ind_pedidos_cliente_a, ind_pedidos_cliente_b. assinatura: non-unique, asc, (cliente_id). mantenha apenas um &#237;ndice por assinatura ap&#243;s validar carga de trabalho.">
-              <td class="low">baixo</td>
+              <td><span class="severity-pill low">baixo</span></td>
               <td>INDICE_DUPLICADO</td>
               <td>PEDIDOS</td>
               <td>Assinatura de &#237;ndice duplicada em PEDIDOS: IND_PEDIDOS_CLIENTE_A, IND_PEDIDOS_CLIENTE_B. Assinatura: NON-UNIQUE, ASC, (CLIENTE_ID).</td>

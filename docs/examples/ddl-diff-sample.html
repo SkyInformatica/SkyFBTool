@@ -5,20 +5,46 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Relatorio DDL Diff</title>
   <style>
+    @page { size: A4; margin: 12mm; }
     body { font-family: Segoe UI, Arial, sans-serif; margin: 20px; color: #1f2937; }
     h1, h2 { margin: 0 0 12px 0; }
     .meta { margin-bottom: 14px; font-size: 14px; }
     .kpi { display: flex; gap: 10px; flex-wrap: wrap; margin: 10px 0 18px; }
     .pill { border: 1px solid #d1d5db; border-radius: 12px; padding: 8px 10px; background: #f9fafb; font-size: 13px; }
-    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 8px 0 16px; }
+    .summary-grid { display: grid; grid-template-columns: 3fr 1fr; gap: 12px; margin: 8px 0 16px; }
+    .content-grid { display: grid; grid-template-columns: 1fr; gap: 12px; margin: 8px 0 16px; }
     .card { border: 1px solid #e5e7eb; border-radius: 10px; background: #fff; padding: 10px; }
-    .table-wrap { max-height: 58vh; overflow: auto; border: 1px solid #e5e7eb; border-radius: 8px; margin-top: 8px; }
+    .section { margin-top: 14px; }
+    .toolbar { display: flex; gap: 10px; flex-wrap: wrap; margin: 8px 0 10px; align-items: center; }
+    .toolbar input, .toolbar select { padding: 6px 8px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 13px; }
+    .btn { padding: 6px 10px; border: 1px solid #d1d5db; border-radius: 8px; background: #fff; font-size: 12px; cursor: pointer; color: #111827; }
+    .btn:hover { background: #f9fafb; }
+    .btn:active { background: #f3f4f6; }
+    .cmd-actions { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; margin-bottom: 8px; }
+    .line-actions { width: 1%; white-space: nowrap; }
+    .sql-line { white-space: pre-wrap; word-break: break-word; overflow-wrap: anywhere; }
+    .count { font-size: 13px; color: #374151; }
+    .summary-scroll { max-height: 320px; overflow: auto; border: 1px solid #eef2f7; border-radius: 8px; }
+    .warnings-scroll { max-height: 320px; overflow: auto; border: 1px solid #eef2f7; border-radius: 8px; }
+    .table-wrap { max-height: 70vh; overflow: auto; border: 1px solid #e5e7eb; border-radius: 8px; margin-top: 8px; }
     table { width: 100%; border-collapse: collapse; }
     th, td { border-bottom: 1px solid #eef2f7; padding: 8px; text-align: left; vertical-align: top; font-size: 13px; }
     th { position: sticky; top: 0; background: #f3f4f6; z-index: 1; }
-    .section { margin-top: 14px; }
     .muted { color: #6b7280; }
-    @media (max-width: 900px) { .grid { grid-template-columns: 1fr; } body { margin: 12px; } }
+    @media (max-width: 900px) { .summary-grid, .content-grid { grid-template-columns: 1fr; } body { margin: 12px; } }
+    @media print {
+      body { margin: 0; font-size: 11px; color: #000; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+      .toolbar { display: none; }
+      .count { display: none; }
+      .summary-grid, .content-grid { grid-template-columns: 1fr; gap: 8px; }
+      .card, .summary-scroll, .table-wrap { border: 1px solid #d1d5db; border-radius: 0; }
+      .summary-scroll, .warnings-scroll, .table-wrap { max-height: none; height: auto; overflow: visible; }
+      table { width: 100%; table-layout: fixed; }
+      th, td { font-size: 10.5px; padding: 5px; word-break: break-word; overflow-wrap: anywhere; }
+      th { position: static; }
+      tr, td, th { page-break-inside: avoid; break-inside: avoid; }
+      h1, h2, .meta, .kpi, .card { page-break-inside: avoid; break-inside: avoid; }
+    }
   </style>
 </head>
 <body>
@@ -26,179 +52,494 @@
   <div class="meta">
     <div><strong>Origem:</strong> ddl-diff-sample-source.sql</div>
     <div><strong>Alvo:</strong> ddl-diff-sample-target.sql</div>
-    <div><strong>Gerado em (UTC):</strong> 2026-05-01 11:56:16</div>
+    <div><strong>Gerado em (UTC):</strong> 2026-05-02 15:39:33</div>
   </div>
   <div class="kpi">
     <div class="pill"><strong>Comandos SQL gerados:</strong> 25</div>
     <div class="pill"><strong>Itens criados:</strong> 17</div>
     <div class="pill"><strong>Itens alterados:</strong> 6</div>
     <div class="pill"><strong>Itens somente no alvo:</strong> 6</div>
-    <div class="pill"><strong>Avisos:</strong> 0</div>
   </div>
 
-  <div class="grid">
+  <div class="summary-grid">
     <div class="card">
+      <h2>Resumo</h2>
+      <div class="summary-scroll">
+        <table>
+          <thead><tr><th>Item</th><th>Quantidade</th></tr></thead>
+          <tbody>
+            <tr><td>Comandos SQL gerados</td><td>25</td></tr>
+            <tr><td>Itens criados</td><td>17</td></tr>
+            <tr><td>Itens alterados</td><td>6</td></tr>
+            <tr><td>Itens somente no alvo</td><td>6</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div class="card">
+      <h2>Avisos</h2>
+      <div class="warnings-scroll">
+        
+                <table><thead><tr><th>#</th><th>Item</th></tr></thead><tbody>
+                  
+                    <tr data-text="Coluna computada diferente: CLIENTES.NOME_NORM (ajuste manual recomendado)."><td>1</td><td>Coluna computada diferente: CLIENTES.NOME_NORM (ajuste manual recomendado).</td></tr>
+                    
+                    <tr data-text="Indice duplicado no alvo (PEDIDOS): IX_PEDIDOS_DATA &lt;-&gt; IX_PEDIDOS_DATA_DUP | N|A|DATA_EMISSAO"><td>2</td><td>Indice duplicado no alvo (PEDIDOS): IX_PEDIDOS_DATA &lt;-&gt; IX_PEDIDOS_DATA_DUP | N|A|DATA_EMISSAO</td></tr>
+                    
+                </tbody></table>
+                
+      </div>
+    </div>
+  </div>
+
+  <h2>Filtros</h2>
+  <div class="toolbar">
+    <label>Seção
+      <select id="f-section">
+        <option value="">Todos</option>
+        <option value="comandos">Comandos SQL gerados</option>
+        <option value="criados">Itens criados</option>
+        <option value="alterados">Itens alterados</option>
+        <option value="somente-alvo">Itens somente no alvo</option>
+      </select>
+    </label>
+    <label>Busca <input id="f-q" type="text" placeholder="Digite para buscar..." /></label>
+    <span class="count" id="f-count">Mostrando 0 de 0</span>
+  </div>
+
+  <div class="content-grid">
+    <div class="card section-box" data-section="comandos">
       <h2>Comandos SQL gerados</h2>
       
+            <div class="cmd-actions">
+              <button type="button" class="btn" id="copy-all-cmds">Copiar todos os comandos</button>
+              <button type="button" class="btn" id="download-all-cmds">Baixar SQL</button>
+            </div>
             <div class="table-wrap">
-              <table><thead><tr><th>#</th><th>Item</th></tr></thead><tbody>
+              <table><thead><tr><th>#</th><th>Item</th><th>Ações</th></tr></thead><tbody>
                 
-                    <tr><td>1</td><td>ALTER TABLE &quot;CLIENTES&quot; ADD &quot;ATIVO&quot; SMALLINT DEFAULT 1;</td></tr>
+                    <tr data-text="ALTER TABLE &quot;CLIENTES&quot; ADD &quot;ATIVO&quot; SMALLINT DEFAULT 1;">
+                      <td>1</td>
+                      <td class="sql-line">ALTER TABLE &quot;CLIENTES&quot; ADD &quot;ATIVO&quot; SMALLINT DEFAULT 1;</td>
+                      <td class="line-actions">
+                        <button type="button" class="btn copy-line" data-cmd="ALTER TABLE &quot;CLIENTES&quot; ADD &quot;ATIVO&quot; SMALLINT DEFAULT 1;">Copiar linha</button>
+                      </td>
+                    </tr>
                     
-                    <tr><td>2</td><td>ALTER TABLE &quot;CLIENTES&quot; ADD &quot;DATA_CADASTRO&quot; TIMESTAMP DEFAULT CURRENT_TIMESTAMP;</td></tr>
+                    <tr data-text="ALTER TABLE &quot;CLIENTES&quot; ADD &quot;DATA_CADASTRO&quot; TIMESTAMP DEFAULT CURRENT_TIMESTAMP;">
+                      <td>2</td>
+                      <td class="sql-line">ALTER TABLE &quot;CLIENTES&quot; ADD &quot;DATA_CADASTRO&quot; TIMESTAMP DEFAULT CURRENT_TIMESTAMP;</td>
+                      <td class="line-actions">
+                        <button type="button" class="btn copy-line" data-cmd="ALTER TABLE &quot;CLIENTES&quot; ADD &quot;DATA_CADASTRO&quot; TIMESTAMP DEFAULT CURRENT_TIMESTAMP;">Copiar linha</button>
+                      </td>
+                    </tr>
                     
-                    <tr><td>3</td><td>ALTER TABLE &quot;CLIENTES&quot; ADD &quot;EMAIL&quot; VARCHAR(120);</td></tr>
+                    <tr data-text="ALTER TABLE &quot;CLIENTES&quot; ADD &quot;EMAIL&quot; VARCHAR(120);">
+                      <td>3</td>
+                      <td class="sql-line">ALTER TABLE &quot;CLIENTES&quot; ADD &quot;EMAIL&quot; VARCHAR(120);</td>
+                      <td class="line-actions">
+                        <button type="button" class="btn copy-line" data-cmd="ALTER TABLE &quot;CLIENTES&quot; ADD &quot;EMAIL&quot; VARCHAR(120);">Copiar linha</button>
+                      </td>
+                    </tr>
                     
-                    <tr><td>4</td><td>ALTER TABLE &quot;CLIENTES&quot; ALTER COLUMN &quot;NOME&quot; TYPE VARCHAR(120);</td></tr>
+                    <tr data-text="ALTER TABLE &quot;CLIENTES&quot; ALTER COLUMN &quot;NOME&quot; TYPE VARCHAR(120);">
+                      <td>4</td>
+                      <td class="sql-line">ALTER TABLE &quot;CLIENTES&quot; ALTER COLUMN &quot;NOME&quot; TYPE VARCHAR(120);</td>
+                      <td class="line-actions">
+                        <button type="button" class="btn copy-line" data-cmd="ALTER TABLE &quot;CLIENTES&quot; ALTER COLUMN &quot;NOME&quot; TYPE VARCHAR(120);">Copiar linha</button>
+                      </td>
+                    </tr>
                     
-                    <tr><td>5</td><td>CREATE INDEX &quot;IX_CLIENTES_NOME&quot; ON &quot;CLIENTES&quot; (&quot;NOME&quot;);</td></tr>
+                    <tr data-text="CREATE INDEX &quot;IX_CLIENTES_NOME&quot; ON &quot;CLIENTES&quot; (&quot;NOME&quot;);">
+                      <td>5</td>
+                      <td class="sql-line">CREATE INDEX &quot;IX_CLIENTES_NOME&quot; ON &quot;CLIENTES&quot; (&quot;NOME&quot;);</td>
+                      <td class="line-actions">
+                        <button type="button" class="btn copy-line" data-cmd="CREATE INDEX &quot;IX_CLIENTES_NOME&quot; ON &quot;CLIENTES&quot; (&quot;NOME&quot;);">Copiar linha</button>
+                      </td>
+                    </tr>
                     
-                    <tr><td>6</td><td>CREATE UNIQUE INDEX &quot;UX_CLIENTES_EMAIL&quot; ON &quot;CLIENTES&quot; (&quot;EMAIL&quot;);</td></tr>
+                    <tr data-text="CREATE UNIQUE INDEX &quot;UX_CLIENTES_EMAIL&quot; ON &quot;CLIENTES&quot; (&quot;EMAIL&quot;);">
+                      <td>6</td>
+                      <td class="sql-line">CREATE UNIQUE INDEX &quot;UX_CLIENTES_EMAIL&quot; ON &quot;CLIENTES&quot; (&quot;EMAIL&quot;);</td>
+                      <td class="line-actions">
+                        <button type="button" class="btn copy-line" data-cmd="CREATE UNIQUE INDEX &quot;UX_CLIENTES_EMAIL&quot; ON &quot;CLIENTES&quot; (&quot;EMAIL&quot;);">Copiar linha</button>
+                      </td>
+                    </tr>
                     
-                    <tr><td>7</td><td>ALTER TABLE &quot;ITENS_PEDIDO&quot; ALTER COLUMN &quot;PEDIDO_ID&quot; SET NOT NULL;</td></tr>
+                    <tr data-text="ALTER TABLE &quot;ITENS_PEDIDO&quot; ALTER COLUMN &quot;PEDIDO_ID&quot; SET NOT NULL;">
+                      <td>7</td>
+                      <td class="sql-line">ALTER TABLE &quot;ITENS_PEDIDO&quot; ALTER COLUMN &quot;PEDIDO_ID&quot; SET NOT NULL;</td>
+                      <td class="line-actions">
+                        <button type="button" class="btn copy-line" data-cmd="ALTER TABLE &quot;ITENS_PEDIDO&quot; ALTER COLUMN &quot;PEDIDO_ID&quot; SET NOT NULL;">Copiar linha</button>
+                      </td>
+                    </tr>
                     
-                    <tr><td>8</td><td>ALTER TABLE &quot;ITENS_PEDIDO&quot; ADD &quot;PRODUTO_ID&quot; INTEGER NOT NULL;</td></tr>
+                    <tr data-text="ALTER TABLE &quot;ITENS_PEDIDO&quot; ADD &quot;PRODUTO_ID&quot; INTEGER NOT NULL;">
+                      <td>8</td>
+                      <td class="sql-line">ALTER TABLE &quot;ITENS_PEDIDO&quot; ADD &quot;PRODUTO_ID&quot; INTEGER NOT NULL;</td>
+                      <td class="line-actions">
+                        <button type="button" class="btn copy-line" data-cmd="ALTER TABLE &quot;ITENS_PEDIDO&quot; ADD &quot;PRODUTO_ID&quot; INTEGER NOT NULL;">Copiar linha</button>
+                      </td>
+                    </tr>
                     
-                    <tr><td>9</td><td>ALTER TABLE &quot;ITENS_PEDIDO&quot; ALTER COLUMN &quot;QUANTIDADE&quot; TYPE NUMERIC(15,3);</td></tr>
+                    <tr data-text="ALTER TABLE &quot;ITENS_PEDIDO&quot; ALTER COLUMN &quot;QUANTIDADE&quot; TYPE NUMERIC(15,3);">
+                      <td>9</td>
+                      <td class="sql-line">ALTER TABLE &quot;ITENS_PEDIDO&quot; ALTER COLUMN &quot;QUANTIDADE&quot; TYPE NUMERIC(15,3);</td>
+                      <td class="line-actions">
+                        <button type="button" class="btn copy-line" data-cmd="ALTER TABLE &quot;ITENS_PEDIDO&quot; ALTER COLUMN &quot;QUANTIDADE&quot; TYPE NUMERIC(15,3);">Copiar linha</button>
+                      </td>
+                    </tr>
                     
-                    <tr><td>10</td><td>ALTER TABLE &quot;ITENS_PEDIDO&quot; ALTER COLUMN &quot;QUANTIDADE&quot; SET NOT NULL;</td></tr>
+                    <tr data-text="ALTER TABLE &quot;ITENS_PEDIDO&quot; ALTER COLUMN &quot;QUANTIDADE&quot; SET NOT NULL;">
+                      <td>10</td>
+                      <td class="sql-line">ALTER TABLE &quot;ITENS_PEDIDO&quot; ALTER COLUMN &quot;QUANTIDADE&quot; SET NOT NULL;</td>
+                      <td class="line-actions">
+                        <button type="button" class="btn copy-line" data-cmd="ALTER TABLE &quot;ITENS_PEDIDO&quot; ALTER COLUMN &quot;QUANTIDADE&quot; SET NOT NULL;">Copiar linha</button>
+                      </td>
+                    </tr>
                     
-                    <tr><td>11</td><td>ALTER TABLE &quot;ITENS_PEDIDO&quot; ADD &quot;VALOR_TOTAL&quot; NUMERIC(15,2) NOT NULL;</td></tr>
+                    <tr data-text="ALTER TABLE &quot;ITENS_PEDIDO&quot; ADD &quot;VALOR_TOTAL&quot; NUMERIC(15,2) NOT NULL;">
+                      <td>11</td>
+                      <td class="sql-line">ALTER TABLE &quot;ITENS_PEDIDO&quot; ADD &quot;VALOR_TOTAL&quot; NUMERIC(15,2) NOT NULL;</td>
+                      <td class="line-actions">
+                        <button type="button" class="btn copy-line" data-cmd="ALTER TABLE &quot;ITENS_PEDIDO&quot; ADD &quot;VALOR_TOTAL&quot; NUMERIC(15,2) NOT NULL;">Copiar linha</button>
+                      </td>
+                    </tr>
                     
-                    <tr><td>12</td><td>ALTER TABLE &quot;ITENS_PEDIDO&quot; ADD &quot;VALOR_UNITARIO&quot; NUMERIC(15,2) NOT NULL;</td></tr>
+                    <tr data-text="ALTER TABLE &quot;ITENS_PEDIDO&quot; ADD &quot;VALOR_UNITARIO&quot; NUMERIC(15,2) NOT NULL;">
+                      <td>12</td>
+                      <td class="sql-line">ALTER TABLE &quot;ITENS_PEDIDO&quot; ADD &quot;VALOR_UNITARIO&quot; NUMERIC(15,2) NOT NULL;</td>
+                      <td class="line-actions">
+                        <button type="button" class="btn copy-line" data-cmd="ALTER TABLE &quot;ITENS_PEDIDO&quot; ADD &quot;VALOR_UNITARIO&quot; NUMERIC(15,2) NOT NULL;">Copiar linha</button>
+                      </td>
+                    </tr>
                     
-                    <tr><td>13</td><td>ALTER TABLE &quot;ITENS_PEDIDO&quot; ADD CONSTRAINT &quot;FK_ITENS_PEDIDO_PEDIDO&quot; FOREIGN KEY (&quot;PEDIDO_ID&quot;) REFERENCES &quot;PEDIDOS&quot; (&quot;ID&quot;) ON DELETE CASCADE;</td></tr>
+                    <tr data-text="ALTER TABLE &quot;ITENS_PEDIDO&quot; ADD CONSTRAINT &quot;FK_ITENS_PEDIDO_PEDIDO&quot; FOREIGN KEY (&quot;PEDIDO_ID&quot;) REFERENCES &quot;PEDIDOS&quot; (&quot;ID&quot;) ON DELETE CASCADE;">
+                      <td>13</td>
+                      <td class="sql-line">ALTER TABLE &quot;ITENS_PEDIDO&quot; ADD CONSTRAINT &quot;FK_ITENS_PEDIDO_PEDIDO&quot; FOREIGN KEY (&quot;PEDIDO_ID&quot;) REFERENCES &quot;PEDIDOS&quot; (&quot;ID&quot;) ON DELETE CASCADE;</td>
+                      <td class="line-actions">
+                        <button type="button" class="btn copy-line" data-cmd="ALTER TABLE &quot;ITENS_PEDIDO&quot; ADD CONSTRAINT &quot;FK_ITENS_PEDIDO_PEDIDO&quot; FOREIGN KEY (&quot;PEDIDO_ID&quot;) REFERENCES &quot;PEDIDOS&quot; (&quot;ID&quot;) ON DELETE CASCADE;">Copiar linha</button>
+                      </td>
+                    </tr>
                     
-                    <tr><td>14</td><td>CREATE INDEX &quot;IX_ITENS_PEDIDO_PEDIDO&quot; ON &quot;ITENS_PEDIDO&quot; (&quot;PEDIDO_ID&quot;);</td></tr>
+                    <tr data-text="CREATE INDEX &quot;IX_ITENS_PEDIDO_PEDIDO&quot; ON &quot;ITENS_PEDIDO&quot; (&quot;PEDIDO_ID&quot;);">
+                      <td>14</td>
+                      <td class="sql-line">CREATE INDEX &quot;IX_ITENS_PEDIDO_PEDIDO&quot; ON &quot;ITENS_PEDIDO&quot; (&quot;PEDIDO_ID&quot;);</td>
+                      <td class="line-actions">
+                        <button type="button" class="btn copy-line" data-cmd="CREATE INDEX &quot;IX_ITENS_PEDIDO_PEDIDO&quot; ON &quot;ITENS_PEDIDO&quot; (&quot;PEDIDO_ID&quot;);">Copiar linha</button>
+                      </td>
+                    </tr>
                     
-                    <tr><td>15</td><td>CREATE INDEX &quot;IX_ITENS_PEDIDO_PRODUTO&quot; ON &quot;ITENS_PEDIDO&quot; (&quot;PRODUTO_ID&quot;);</td></tr>
+                    <tr data-text="CREATE INDEX &quot;IX_ITENS_PEDIDO_PRODUTO&quot; ON &quot;ITENS_PEDIDO&quot; (&quot;PRODUTO_ID&quot;);">
+                      <td>15</td>
+                      <td class="sql-line">CREATE INDEX &quot;IX_ITENS_PEDIDO_PRODUTO&quot; ON &quot;ITENS_PEDIDO&quot; (&quot;PRODUTO_ID&quot;);</td>
+                      <td class="line-actions">
+                        <button type="button" class="btn copy-line" data-cmd="CREATE INDEX &quot;IX_ITENS_PEDIDO_PRODUTO&quot; ON &quot;ITENS_PEDIDO&quot; (&quot;PRODUTO_ID&quot;);">Copiar linha</button>
+                      </td>
+                    </tr>
                     
-                    <tr><td>16</td><td>ALTER TABLE &quot;PEDIDOS&quot; ALTER COLUMN &quot;CLIENTE_ID&quot; SET NOT NULL;</td></tr>
+                    <tr data-text="ALTER TABLE &quot;PEDIDOS&quot; ALTER COLUMN &quot;CLIENTE_ID&quot; SET NOT NULL;">
+                      <td>16</td>
+                      <td class="sql-line">ALTER TABLE &quot;PEDIDOS&quot; ALTER COLUMN &quot;CLIENTE_ID&quot; SET NOT NULL;</td>
+                      <td class="line-actions">
+                        <button type="button" class="btn copy-line" data-cmd="ALTER TABLE &quot;PEDIDOS&quot; ALTER COLUMN &quot;CLIENTE_ID&quot; SET NOT NULL;">Copiar linha</button>
+                      </td>
+                    </tr>
                     
-                    <tr><td>17</td><td>ALTER TABLE &quot;PEDIDOS&quot; ALTER COLUMN &quot;DATA_EMISSAO&quot; SET NOT NULL;</td></tr>
+                    <tr data-text="ALTER TABLE &quot;PEDIDOS&quot; ALTER COLUMN &quot;DATA_EMISSAO&quot; SET NOT NULL;">
+                      <td>17</td>
+                      <td class="sql-line">ALTER TABLE &quot;PEDIDOS&quot; ALTER COLUMN &quot;DATA_EMISSAO&quot; SET NOT NULL;</td>
+                      <td class="line-actions">
+                        <button type="button" class="btn copy-line" data-cmd="ALTER TABLE &quot;PEDIDOS&quot; ALTER COLUMN &quot;DATA_EMISSAO&quot; SET NOT NULL;">Copiar linha</button>
+                      </td>
+                    </tr>
                     
-                    <tr><td>18</td><td>ALTER TABLE &quot;PEDIDOS&quot; ADD &quot;STATUS&quot; VARCHAR(20) DEFAULT &#39;ABERTO&#39;;</td></tr>
+                    <tr data-text="ALTER TABLE &quot;PEDIDOS&quot; ADD &quot;STATUS&quot; VARCHAR(20) DEFAULT &#39;ABERTO&#39;;">
+                      <td>18</td>
+                      <td class="sql-line">ALTER TABLE &quot;PEDIDOS&quot; ADD &quot;STATUS&quot; VARCHAR(20) DEFAULT &#39;ABERTO&#39;;</td>
+                      <td class="line-actions">
+                        <button type="button" class="btn copy-line" data-cmd="ALTER TABLE &quot;PEDIDOS&quot; ADD &quot;STATUS&quot; VARCHAR(20) DEFAULT &#39;ABERTO&#39;;">Copiar linha</button>
+                      </td>
+                    </tr>
                     
-                    <tr><td>19</td><td>ALTER TABLE &quot;PEDIDOS&quot; ADD &quot;VALOR_TOTAL&quot; NUMERIC(15,2) DEFAULT 0;</td></tr>
+                    <tr data-text="ALTER TABLE &quot;PEDIDOS&quot; ADD &quot;VALOR_TOTAL&quot; NUMERIC(15,2) DEFAULT 0;">
+                      <td>19</td>
+                      <td class="sql-line">ALTER TABLE &quot;PEDIDOS&quot; ADD &quot;VALOR_TOTAL&quot; NUMERIC(15,2) DEFAULT 0;</td>
+                      <td class="line-actions">
+                        <button type="button" class="btn copy-line" data-cmd="ALTER TABLE &quot;PEDIDOS&quot; ADD &quot;VALOR_TOTAL&quot; NUMERIC(15,2) DEFAULT 0;">Copiar linha</button>
+                      </td>
+                    </tr>
                     
-                    <tr><td>20</td><td>ALTER TABLE &quot;PEDIDOS&quot; ADD CONSTRAINT &quot;FK_PEDIDOS_CLIENTE&quot; FOREIGN KEY (&quot;CLIENTE_ID&quot;) REFERENCES &quot;CLIENTES&quot; (&quot;ID&quot;);</td></tr>
+                    <tr data-text="ALTER TABLE &quot;PEDIDOS&quot; ADD CONSTRAINT &quot;FK_PEDIDOS_CLIENTE&quot; FOREIGN KEY (&quot;CLIENTE_ID&quot;) REFERENCES &quot;CLIENTES&quot; (&quot;ID&quot;);">
+                      <td>20</td>
+                      <td class="sql-line">ALTER TABLE &quot;PEDIDOS&quot; ADD CONSTRAINT &quot;FK_PEDIDOS_CLIENTE&quot; FOREIGN KEY (&quot;CLIENTE_ID&quot;) REFERENCES &quot;CLIENTES&quot; (&quot;ID&quot;);</td>
+                      <td class="line-actions">
+                        <button type="button" class="btn copy-line" data-cmd="ALTER TABLE &quot;PEDIDOS&quot; ADD CONSTRAINT &quot;FK_PEDIDOS_CLIENTE&quot; FOREIGN KEY (&quot;CLIENTE_ID&quot;) REFERENCES &quot;CLIENTES&quot; (&quot;ID&quot;);">Copiar linha</button>
+                      </td>
+                    </tr>
                     
-                    <tr><td>21</td><td>CREATE INDEX &quot;IX_PEDIDOS_CLIENTE&quot; ON &quot;PEDIDOS&quot; (&quot;CLIENTE_ID&quot;);</td></tr>
+                    <tr data-text="CREATE INDEX &quot;IX_PEDIDOS_CLIENTE&quot; ON &quot;PEDIDOS&quot; (&quot;CLIENTE_ID&quot;);">
+                      <td>21</td>
+                      <td class="sql-line">CREATE INDEX &quot;IX_PEDIDOS_CLIENTE&quot; ON &quot;PEDIDOS&quot; (&quot;CLIENTE_ID&quot;);</td>
+                      <td class="line-actions">
+                        <button type="button" class="btn copy-line" data-cmd="CREATE INDEX &quot;IX_PEDIDOS_CLIENTE&quot; ON &quot;PEDIDOS&quot; (&quot;CLIENTE_ID&quot;);">Copiar linha</button>
+                      </td>
+                    </tr>
                     
-                    <tr><td>22</td><td>CREATE INDEX &quot;IX_PEDIDOS_DATA_STATUS&quot; ON &quot;PEDIDOS&quot; (&quot;DATA_EMISSAO&quot;, &quot;STATUS&quot;);</td></tr>
+                    <tr data-text="CREATE INDEX &quot;IX_PEDIDOS_DATA_STATUS&quot; ON &quot;PEDIDOS&quot; (&quot;DATA_EMISSAO&quot;, &quot;STATUS&quot;);">
+                      <td>22</td>
+                      <td class="sql-line">CREATE INDEX &quot;IX_PEDIDOS_DATA_STATUS&quot; ON &quot;PEDIDOS&quot; (&quot;DATA_EMISSAO&quot;, &quot;STATUS&quot;);</td>
+                      <td class="line-actions">
+                        <button type="button" class="btn copy-line" data-cmd="CREATE INDEX &quot;IX_PEDIDOS_DATA_STATUS&quot; ON &quot;PEDIDOS&quot; (&quot;DATA_EMISSAO&quot;, &quot;STATUS&quot;);">Copiar linha</button>
+                      </td>
+                    </tr>
                     
-                    <tr><td>23</td><td>CREATE TABLE &quot;PRODUTOS&quot; (
+                    <tr data-text="CREATE TABLE &quot;PRODUTOS&quot; (
     &quot;ID&quot; INTEGER NOT NULL,
     &quot;NOME&quot; VARCHAR(120) NOT NULL,
     &quot;PRECO&quot; NUMERIC(15,2) NOT NULL,
     &quot;ATIVO&quot; SMALLINT DEFAULT 1
-);</td></tr>
+);">
+                      <td>23</td>
+                      <td class="sql-line">CREATE TABLE &quot;PRODUTOS&quot; (
+    &quot;ID&quot; INTEGER NOT NULL,
+    &quot;NOME&quot; VARCHAR(120) NOT NULL,
+    &quot;PRECO&quot; NUMERIC(15,2) NOT NULL,
+    &quot;ATIVO&quot; SMALLINT DEFAULT 1
+);</td>
+                      <td class="line-actions">
+                        <button type="button" class="btn copy-line" data-cmd="CREATE TABLE &quot;PRODUTOS&quot; (
+    &quot;ID&quot; INTEGER NOT NULL,
+    &quot;NOME&quot; VARCHAR(120) NOT NULL,
+    &quot;PRECO&quot; NUMERIC(15,2) NOT NULL,
+    &quot;ATIVO&quot; SMALLINT DEFAULT 1
+);">Copiar linha</button>
+                      </td>
+                    </tr>
                     
-                    <tr><td>24</td><td>ALTER TABLE &quot;PRODUTOS&quot; ADD CONSTRAINT &quot;PK_PRODUTOS&quot; PRIMARY KEY (&quot;ID&quot;);</td></tr>
+                    <tr data-text="ALTER TABLE &quot;PRODUTOS&quot; ADD CONSTRAINT &quot;PK_PRODUTOS&quot; PRIMARY KEY (&quot;ID&quot;);">
+                      <td>24</td>
+                      <td class="sql-line">ALTER TABLE &quot;PRODUTOS&quot; ADD CONSTRAINT &quot;PK_PRODUTOS&quot; PRIMARY KEY (&quot;ID&quot;);</td>
+                      <td class="line-actions">
+                        <button type="button" class="btn copy-line" data-cmd="ALTER TABLE &quot;PRODUTOS&quot; ADD CONSTRAINT &quot;PK_PRODUTOS&quot; PRIMARY KEY (&quot;ID&quot;);">Copiar linha</button>
+                      </td>
+                    </tr>
                     
-                    <tr><td>25</td><td>CREATE UNIQUE INDEX &quot;UX_PRODUTOS_NOME&quot; ON &quot;PRODUTOS&quot; (&quot;NOME&quot;);</td></tr>
+                    <tr data-text="CREATE UNIQUE INDEX &quot;UX_PRODUTOS_NOME&quot; ON &quot;PRODUTOS&quot; (&quot;NOME&quot;);">
+                      <td>25</td>
+                      <td class="sql-line">CREATE UNIQUE INDEX &quot;UX_PRODUTOS_NOME&quot; ON &quot;PRODUTOS&quot; (&quot;NOME&quot;);</td>
+                      <td class="line-actions">
+                        <button type="button" class="btn copy-line" data-cmd="CREATE UNIQUE INDEX &quot;UX_PRODUTOS_NOME&quot; ON &quot;PRODUTOS&quot; (&quot;NOME&quot;);">Copiar linha</button>
+                      </td>
+                    </tr>
                     
               </tbody></table>
             </div>
             
     </div>
-    <div class="card">
-      <h2>Avisos</h2>
-      
-            <div class="muted">Nenhum</div>
-            
-    </div>
   </div>
 
-  <div class="section">
+  <div class="section section-box" data-section="criados">
     <h2>Itens criados</h2>
     
         <div class="table-wrap">
           <table><thead><tr><th>#</th><th>Item</th></tr></thead><tbody>
             
-                <tr><td>1</td><td>Coluna ausente no alvo: CLIENTES.ATIVO</td></tr>
+                <tr data-text="Coluna ausente no alvo: CLIENTES.ATIVO"><td>1</td><td>Coluna ausente no alvo: CLIENTES.ATIVO</td></tr>
                 
-                <tr><td>2</td><td>Coluna ausente no alvo: CLIENTES.DATA_CADASTRO</td></tr>
+                <tr data-text="Coluna ausente no alvo: CLIENTES.DATA_CADASTRO"><td>2</td><td>Coluna ausente no alvo: CLIENTES.DATA_CADASTRO</td></tr>
                 
-                <tr><td>3</td><td>Coluna ausente no alvo: CLIENTES.EMAIL</td></tr>
+                <tr data-text="Coluna ausente no alvo: CLIENTES.EMAIL"><td>3</td><td>Coluna ausente no alvo: CLIENTES.EMAIL</td></tr>
                 
-                <tr><td>4</td><td>Indice ausente no alvo: CLIENTES.IX_CLIENTES_NOME</td></tr>
+                <tr data-text="Indice ausente no alvo: CLIENTES.IX_CLIENTES_NOME"><td>4</td><td>Indice ausente no alvo: CLIENTES.IX_CLIENTES_NOME</td></tr>
                 
-                <tr><td>5</td><td>Indice ausente no alvo: CLIENTES.UX_CLIENTES_EMAIL</td></tr>
+                <tr data-text="Indice ausente no alvo: CLIENTES.UX_CLIENTES_EMAIL"><td>5</td><td>Indice ausente no alvo: CLIENTES.UX_CLIENTES_EMAIL</td></tr>
                 
-                <tr><td>6</td><td>Coluna ausente no alvo: ITENS_PEDIDO.PRODUTO_ID</td></tr>
+                <tr data-text="Coluna ausente no alvo: ITENS_PEDIDO.PRODUTO_ID"><td>6</td><td>Coluna ausente no alvo: ITENS_PEDIDO.PRODUTO_ID</td></tr>
                 
-                <tr><td>7</td><td>Coluna ausente no alvo: ITENS_PEDIDO.VALOR_TOTAL</td></tr>
+                <tr data-text="Coluna ausente no alvo: ITENS_PEDIDO.VALOR_TOTAL"><td>7</td><td>Coluna ausente no alvo: ITENS_PEDIDO.VALOR_TOTAL</td></tr>
                 
-                <tr><td>8</td><td>Coluna ausente no alvo: ITENS_PEDIDO.VALOR_UNITARIO</td></tr>
+                <tr data-text="Coluna ausente no alvo: ITENS_PEDIDO.VALOR_UNITARIO"><td>8</td><td>Coluna ausente no alvo: ITENS_PEDIDO.VALOR_UNITARIO</td></tr>
                 
-                <tr><td>9</td><td>FK ausente no alvo: ITENS_PEDIDO.FK_ITENS_PEDIDO_PEDIDO</td></tr>
+                <tr data-text="FK ausente no alvo: ITENS_PEDIDO.FK_ITENS_PEDIDO_PEDIDO"><td>9</td><td>FK ausente no alvo: ITENS_PEDIDO.FK_ITENS_PEDIDO_PEDIDO</td></tr>
                 
-                <tr><td>10</td><td>Indice ausente no alvo: ITENS_PEDIDO.IX_ITENS_PEDIDO_PEDIDO</td></tr>
+                <tr data-text="Indice ausente no alvo: ITENS_PEDIDO.IX_ITENS_PEDIDO_PEDIDO"><td>10</td><td>Indice ausente no alvo: ITENS_PEDIDO.IX_ITENS_PEDIDO_PEDIDO</td></tr>
                 
-                <tr><td>11</td><td>Indice ausente no alvo: ITENS_PEDIDO.IX_ITENS_PEDIDO_PRODUTO</td></tr>
+                <tr data-text="Indice ausente no alvo: ITENS_PEDIDO.IX_ITENS_PEDIDO_PRODUTO"><td>11</td><td>Indice ausente no alvo: ITENS_PEDIDO.IX_ITENS_PEDIDO_PRODUTO</td></tr>
                 
-                <tr><td>12</td><td>Coluna ausente no alvo: PEDIDOS.STATUS</td></tr>
+                <tr data-text="Coluna ausente no alvo: PEDIDOS.STATUS"><td>12</td><td>Coluna ausente no alvo: PEDIDOS.STATUS</td></tr>
                 
-                <tr><td>13</td><td>Coluna ausente no alvo: PEDIDOS.VALOR_TOTAL</td></tr>
+                <tr data-text="Coluna ausente no alvo: PEDIDOS.VALOR_TOTAL"><td>13</td><td>Coluna ausente no alvo: PEDIDOS.VALOR_TOTAL</td></tr>
                 
-                <tr><td>14</td><td>FK ausente no alvo: PEDIDOS.FK_PEDIDOS_CLIENTE</td></tr>
+                <tr data-text="FK ausente no alvo: PEDIDOS.FK_PEDIDOS_CLIENTE"><td>14</td><td>FK ausente no alvo: PEDIDOS.FK_PEDIDOS_CLIENTE</td></tr>
                 
-                <tr><td>15</td><td>Indice ausente no alvo: PEDIDOS.IX_PEDIDOS_CLIENTE</td></tr>
+                <tr data-text="Indice ausente no alvo: PEDIDOS.IX_PEDIDOS_CLIENTE"><td>15</td><td>Indice ausente no alvo: PEDIDOS.IX_PEDIDOS_CLIENTE</td></tr>
                 
-                <tr><td>16</td><td>Indice ausente no alvo: PEDIDOS.IX_PEDIDOS_DATA_STATUS</td></tr>
+                <tr data-text="Indice ausente no alvo: PEDIDOS.IX_PEDIDOS_DATA_STATUS"><td>16</td><td>Indice ausente no alvo: PEDIDOS.IX_PEDIDOS_DATA_STATUS</td></tr>
                 
-                <tr><td>17</td><td>Tabela ausente no alvo: PRODUTOS</td></tr>
+                <tr data-text="Tabela ausente no alvo: PRODUTOS"><td>17</td><td>Tabela ausente no alvo: PRODUTOS</td></tr>
                 
           </tbody></table>
         </div>
         
   </div>
 
-  <div class="section">
+  <div class="section section-box" data-section="alterados">
     <h2>Itens alterados</h2>
     
         <div class="table-wrap">
           <table><thead><tr><th>#</th><th>Item</th></tr></thead><tbody>
             
-                <tr><td>1</td><td>Tipo diferente: CLIENTES.NOME (VARCHAR(80) -&gt; VARCHAR(120))</td></tr>
+                <tr data-text="Tipo diferente: CLIENTES.NOME (VARCHAR(80) -&gt; VARCHAR(120))"><td>1</td><td>Tipo diferente: CLIENTES.NOME (VARCHAR(80) -&gt; VARCHAR(120))</td></tr>
                 
-                <tr><td>2</td><td>Nulidade diferente: ITENS_PEDIDO.PEDIDO_ID (alvo: NULL -&gt; origem: NOT NULL)</td></tr>
+                <tr data-text="Nulidade diferente: ITENS_PEDIDO.PEDIDO_ID (alvo: NULL -&gt; origem: NOT NULL)"><td>2</td><td>Nulidade diferente: ITENS_PEDIDO.PEDIDO_ID (alvo: NULL -&gt; origem: NOT NULL)</td></tr>
                 
-                <tr><td>3</td><td>Tipo diferente: ITENS_PEDIDO.QUANTIDADE (NUMERIC(15,2) -&gt; NUMERIC(15,3))</td></tr>
+                <tr data-text="Tipo diferente: ITENS_PEDIDO.QUANTIDADE (NUMERIC(15,2) -&gt; NUMERIC(15,3))"><td>3</td><td>Tipo diferente: ITENS_PEDIDO.QUANTIDADE (NUMERIC(15,2) -&gt; NUMERIC(15,3))</td></tr>
                 
-                <tr><td>4</td><td>Nulidade diferente: ITENS_PEDIDO.QUANTIDADE (alvo: NULL -&gt; origem: NOT NULL)</td></tr>
+                <tr data-text="Nulidade diferente: ITENS_PEDIDO.QUANTIDADE (alvo: NULL -&gt; origem: NOT NULL)"><td>4</td><td>Nulidade diferente: ITENS_PEDIDO.QUANTIDADE (alvo: NULL -&gt; origem: NOT NULL)</td></tr>
                 
-                <tr><td>5</td><td>Nulidade diferente: PEDIDOS.CLIENTE_ID (alvo: NULL -&gt; origem: NOT NULL)</td></tr>
+                <tr data-text="Nulidade diferente: PEDIDOS.CLIENTE_ID (alvo: NULL -&gt; origem: NOT NULL)"><td>5</td><td>Nulidade diferente: PEDIDOS.CLIENTE_ID (alvo: NULL -&gt; origem: NOT NULL)</td></tr>
                 
-                <tr><td>6</td><td>Nulidade diferente: PEDIDOS.DATA_EMISSAO (alvo: NULL -&gt; origem: NOT NULL)</td></tr>
+                <tr data-text="Nulidade diferente: PEDIDOS.DATA_EMISSAO (alvo: NULL -&gt; origem: NOT NULL)"><td>6</td><td>Nulidade diferente: PEDIDOS.DATA_EMISSAO (alvo: NULL -&gt; origem: NOT NULL)</td></tr>
                 
           </tbody></table>
         </div>
         
   </div>
 
-  <div class="section">
+  <div class="section section-box" data-section="somente-alvo">
     <h2>Itens somente no alvo</h2>
     
         <div class="table-wrap">
           <table><thead><tr><th>#</th><th>Item</th></tr></thead><tbody>
             
-                <tr><td>1</td><td>Coluna existe apenas no alvo: CLIENTES.TIPO</td></tr>
+                <tr data-text="Coluna existe apenas no alvo: CLIENTES.TIPO"><td>1</td><td>Coluna existe apenas no alvo: CLIENTES.TIPO</td></tr>
                 
-                <tr><td>2</td><td>Indice existe apenas no alvo: CLIENTES.IX_CLIENTES_TIPO</td></tr>
+                <tr data-text="Indice existe apenas no alvo: CLIENTES.IX_CLIENTES_TIPO"><td>2</td><td>Indice existe apenas no alvo: CLIENTES.IX_CLIENTES_TIPO</td></tr>
                 
-                <tr><td>3</td><td>Indice existe apenas no alvo: ITENS_PEDIDO.IX_ITENS_PEDIDO_QTD</td></tr>
+                <tr data-text="Indice existe apenas no alvo: ITENS_PEDIDO.IX_ITENS_PEDIDO_QTD"><td>3</td><td>Indice existe apenas no alvo: ITENS_PEDIDO.IX_ITENS_PEDIDO_QTD</td></tr>
                 
-                <tr><td>4</td><td>Coluna existe apenas no alvo: PEDIDOS.OBSERVACAO</td></tr>
+                <tr data-text="Coluna existe apenas no alvo: PEDIDOS.OBSERVACAO"><td>4</td><td>Coluna existe apenas no alvo: PEDIDOS.OBSERVACAO</td></tr>
                 
-                <tr><td>5</td><td>Indice existe apenas no alvo: PEDIDOS.IX_PEDIDOS_DATA</td></tr>
+                <tr data-text="Indice existe apenas no alvo: PEDIDOS.IX_PEDIDOS_DATA"><td>5</td><td>Indice existe apenas no alvo: PEDIDOS.IX_PEDIDOS_DATA</td></tr>
                 
-                <tr><td>6</td><td>Tabela existe apenas no alvo: PAGAMENTOS</td></tr>
+                <tr data-text="Tabela existe apenas no alvo: PAGAMENTOS"><td>6</td><td>Tabela existe apenas no alvo: PAGAMENTOS</td></tr>
                 
           </tbody></table>
         </div>
         
   </div>
+  <script>
+    (function(){
+      const section = document.getElementById('f-section');
+      const q = document.getElementById('f-q');
+      const boxes = Array.from(document.querySelectorAll('.section-box'));
+      const count = document.getElementById('f-count');
+      function run(){
+        const selected = section.value || '';
+        const term = (q.value || '').toLowerCase();
+        let totalVisible = 0;
+        let totalRows = 0;
+        boxes.forEach(box => {
+          const matchSection = !selected || box.dataset.section === selected;
+          const rows = Array.from(box.querySelectorAll('tbody tr'));
+          let visibleRows = 0;
+          rows.forEach(row => {
+            totalRows++;
+            const text = (row.dataset.text || '').toLowerCase();
+            const okTerm = !term || text.includes(term);
+            const ok = matchSection && okTerm;
+            row.style.display = ok ? '' : 'none';
+            if (ok) {
+              visibleRows++;
+              totalVisible++;
+            }
+          });
+          const hasRows = rows.length > 0;
+          const showBox = matchSection && (!term || visibleRows > 0 || !hasRows);
+          box.style.display = showBox ? '' : 'none';
+        });
+        count.textContent = 'Mostrando ' + totalVisible + ' de ' + totalRows;
+      }
+      section.addEventListener('change', run);
+      q.addEventListener('input', run);
+      run();
+
+      const copyAllButton = document.getElementById('copy-all-cmds');
+      const downloadAllButton = document.getElementById('download-all-cmds');
+      const lineButtons = Array.from(document.querySelectorAll('.copy-line'));
+      const commandRows = Array.from(document.querySelectorAll('.section-box[data-section="comandos"] tbody tr'));
+
+      async function copyText(text){
+        try{
+          if(navigator.clipboard && navigator.clipboard.writeText){
+            await navigator.clipboard.writeText(text);
+            return true;
+          }
+        }catch(_){}
+        try{
+          const area = document.createElement('textarea');
+          area.value = text;
+          document.body.appendChild(area);
+          area.select();
+          const ok = document.execCommand('copy');
+          document.body.removeChild(area);
+          return !!ok;
+        }catch(_){
+          return false;
+        }
+      }
+
+      lineButtons.forEach(btn => {
+        btn.addEventListener('click', async () => {
+          const cmd = btn.getAttribute('data-cmd') || '';
+          const ok = await copyText(cmd);
+          if(ok){
+            const original = btn.textContent;
+            btn.textContent = 'Copiado.';
+            setTimeout(() => btn.textContent = original, 900);
+          }else{
+            alert('Falha ao copiar.');
+          }
+        });
+      });
+
+      if(copyAllButton){
+        copyAllButton.addEventListener('click', async () => {
+          const commands = commandRows
+            .map(r => (r.querySelector('.sql-line')?.textContent || '').trim())
+            .filter(v => v.length > 0);
+          const content = commands.join('\n') + (commands.length ? '\n' : '');
+          const ok = await copyText(content);
+          if(ok){
+            const original = copyAllButton.textContent;
+            copyAllButton.textContent = 'Copiado.';
+            setTimeout(() => copyAllButton.textContent = original, 900);
+          }else{
+            alert('Falha ao copiar.');
+          }
+        });
+      }
+
+      if(downloadAllButton){
+        downloadAllButton.addEventListener('click', () => {
+          const commands = commandRows
+            .map(r => (r.querySelector('.sql-line')?.textContent || '').trim())
+            .filter(v => v.length > 0);
+          const content = commands.join('\n') + (commands.length ? '\n' : '');
+          const blob = new Blob([content], { type: 'text/sql;charset=utf-8' });
+          const url = URL.createObjectURL(blob);
+          const link = document.createElement('a');
+          link.href = url;
+          link.download = 'ddl-diff-commands.sql';
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+          URL.revokeObjectURL(url);
+        });
+      }
+
+    })();
+  </script>
 </body>
 </html>

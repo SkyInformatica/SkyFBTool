@@ -15,8 +15,20 @@
     .card { border: 1px solid #e5e7eb; border-radius: 10px; background: #fff; padding: 10px; }
     .criteria-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 10px; align-items: start; }
     .summary-scroll { height: 320px; overflow: auto; border: 1px solid #eef2f7; border-radius: 8px; }
-    .legend { margin: 0; font-size: 13px; color: #1f2937; line-height: 1.35; background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 8px; padding: 8px 10px; }
-    .legend strong { color: #111827; display: block; margin-bottom: 4px; }
+    .legend { margin: 0; font-size: 13px; color: #1f2937; line-height: 1.35; background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 8px; padding: 10px; }
+    .legend strong { color: #111827; display: block; margin-bottom: 8px; }
+    .legend-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+    .legend-item { display: grid; grid-template-columns: 34px 1fr; gap: 8px; align-items: start; border: 1px solid #e5e7eb; background: #fff; border-radius: 8px; padding: 6px 8px; }
+    .legend-badge { display: inline-flex; align-items: center; justify-content: center; min-height: 22px; border-radius: 999px; font-size: 12px; font-weight: 700; border: 1px solid; }
+    .legend-badge.p0 { color: #7f1d1d; background: #fee2e2; border-color: #fca5a5; }
+    .legend-badge.p1 { color: #9a3412; background: #ffedd5; border-color: #fdba74; }
+    .legend-badge.p2 { color: #1e3a8a; background: #dbeafe; border-color: #93c5fd; }
+    .legend-badge.p3 { color: #065f46; background: #d1fae5; border-color: #86efac; }
+    .priority-pill { display: inline-flex; align-items: center; justify-content: center; min-width: 34px; min-height: 22px; padding: 0 8px; border-radius: 999px; font-size: 12px; font-weight: 700; border: 1px solid; }
+    .priority-pill.p0 { color: #7f1d1d; background: #fee2e2; border-color: #fca5a5; }
+    .priority-pill.p1 { color: #9a3412; background: #ffedd5; border-color: #fdba74; }
+    .priority-pill.p2 { color: #1e3a8a; background: #dbeafe; border-color: #93c5fd; }
+    .priority-pill.p3 { color: #065f46; background: #d1fae5; border-color: #86efac; }
     .toolbar { display: flex; gap: 10px; flex-wrap: wrap; margin: 8px 0 10px; align-items: center; }
     .toolbar input, .toolbar select { padding: 6px 8px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 13px; }
     .count { font-size: 13px; color: #374151; }
@@ -29,6 +41,11 @@
     .high { color: #92400e; font-weight: 700; }
     .medium { color: #1d4ed8; font-weight: 700; }
     .low { color: #065f46; font-weight: 700; }
+    .severity-pill { display: inline-flex; align-items: center; justify-content: center; min-height: 22px; padding: 0 10px; border-radius: 999px; font-size: 12px; font-weight: 700; border: 1px solid; }
+    .severity-pill.critical { color: #7f1d1d; background: #fee2e2; border-color: #fca5a5; }
+    .severity-pill.high { color: #9a3412; background: #ffedd5; border-color: #fdba74; }
+    .severity-pill.medium { color: #1e3a8a; background: #dbeafe; border-color: #93c5fd; }
+    .severity-pill.low { color: #065f46; background: #d1fae5; border-color: #86efac; }
     @media (max-width: 900px) { .grid { grid-template-columns: 1fr; } .criteria-grid { grid-template-columns: 1fr; } body { margin: 12px; } }
     @media print {
       body { margin: 0; font-size: 11px; color: #000; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
@@ -50,7 +67,7 @@
   <div class="meta">
     <div><strong>Origem:</strong> <span title="D:\Projetos\SkyFBTool\docs\examples\ddl-analyze-sample-input.sql">ddl-analyze-sample-input.sql</span></div>
     
-    <div><strong>Gerado em (UTC):</strong> 2026-04-30 01:28:20</div>
+    <div><strong>Gerado em (UTC):</strong> 2026-05-02 14:07:48</div>
     
     <div><strong>Análise de volume:</strong> n&#227;o aplic&#225;vel</div>
   </div>
@@ -71,25 +88,25 @@
       </tr></thead><tbody>
         
                 <tr>
-                  <td class="critical">cr&#237;tico</td>
+                  <td><span class="severity-pill critical">cr&#237;tico</span></td>
                   <td>Metadado estrutural quebrado: colunas ausentes ou inv&#225;lidas em PK/FK, constraints vazias ou refer&#234;ncias imposs&#237;veis.</td>
                   <td>Alta chance de falha funcional, sintomas de corrup&#231;&#227;o ou impossibilidade de sincronismo seguro sem reparo manual.</td>
                 </tr>
                 
                 <tr>
-                  <td class="high">alto</td>
+                  <td><span class="severity-pill high">alto</span></td>
                   <td>Inconsist&#234;ncia de alto risco que pode quebrar integridade ou performance em carga.</td>
                   <td>Risco relevante em produ&#231;&#227;o; corrigir antes de migra&#231;&#227;o ou importa&#231;&#227;o/exporta&#231;&#227;o intensa.</td>
                 </tr>
                 
                 <tr>
-                  <td class="medium">m&#233;dio</td>
+                  <td><span class="severity-pill medium">m&#233;dio</span></td>
                   <td>Lacuna importante de qualidade ou performance, normalmente sem corrup&#231;&#227;o imediata.</td>
                   <td>Pode degradar vaz&#227;o e aumentar risco de lock/conten&#231;&#227;o ao longo do tempo.</td>
                 </tr>
                 
                 <tr>
-                  <td class="low">baixo</td>
+                  <td><span class="severity-pill low">baixo</span></td>
                   <td>Padr&#227;o consultivo ou smell de modelagem com menor risco imediato.</td>
                   <td>Recomendado para endurecimento e manutenibilidade; pode ser planejado.</td>
                 </tr>
@@ -97,10 +114,12 @@
       </tbody></table>
       <div class="legend">
         <strong>Legenda de prioridade:</strong>
-        <div>P0: ação imediata (risco crítico).</div>
-        <div>P1: alta prioridade (correção de curto prazo).</div>
-        <div>P2: prioridade planejada (programar e acompanhar).</div>
-        <div>P3: otimização/backlog (menor urgência).</div>
+        <ul class="legend-list">
+          <li class="legend-item"><span class="legend-badge p0">P0</span><span>P0: ação imediata (risco crítico).</span></li>
+          <li class="legend-item"><span class="legend-badge p1">P1</span><span>P1: alta prioridade (correção de curto prazo).</span></li>
+          <li class="legend-item"><span class="legend-badge p2">P2</span><span>P2: prioridade planejada (programar e acompanhar).</span></li>
+          <li class="legend-item"><span class="legend-badge p3">P3</span><span>P3: otimização/backlog (menor urgência).</span></li>
+        </ul>
       </div>
     </div>
   </div>
@@ -127,9 +146,27 @@
         <th>Escopo</th><th>Prioridade</th><th>Índice de risco</th><th>Qtde</th>
       </tr></thead><tbody>
         
-                <tr><td>CLIENTES</td><td>P2</td><td>64</td><td>1</td></tr>
+                <tr>
+                  <td>CLIENTES</td>
+                  <td>
+                    
+                        <span class="priority-pill p2">P2</span>
+                        
+                  </td>
+                  <td>64</td>
+                  <td>1</td>
+                </tr>
                 
-                <tr><td>PEDIDOS</td><td>P2</td><td>54</td><td>2</td></tr>
+                <tr>
+                  <td>PEDIDOS</td>
+                  <td>
+                    
+                        <span class="priority-pill p2">P2</span>
+                        
+                  </td>
+                  <td>54</td>
+                  <td>2</td>
+                </tr>
                 
         
       </tbody></table>
@@ -156,7 +193,7 @@
       <tbody>
         
             <tr data-sev="high" data-code="TABELA_SEM_PK" data-text="clientes tabela_sem_pk tabela clientes n&#227;o possui chave prim&#225;ria. revise se isso &#233; esperado. aus&#234;ncia de pk pode mascarar duplicidades.">
-              <td class="high">alto</td>
+              <td><span class="severity-pill high">alto</span></td>
               <td>TABELA_SEM_PK</td>
               <td>CLIENTES</td>
               <td>Tabela CLIENTES n&#227;o possui chave prim&#225;ria.</td>
@@ -164,7 +201,7 @@
             </tr>
             
             <tr data-sev="high" data-code="TABELA_SEM_PK" data-text="pedidos tabela_sem_pk tabela pedidos n&#227;o possui chave prim&#225;ria. revise se isso &#233; esperado. aus&#234;ncia de pk pode mascarar duplicidades.">
-              <td class="high">alto</td>
+              <td><span class="severity-pill high">alto</span></td>
               <td>TABELA_SEM_PK</td>
               <td>PEDIDOS</td>
               <td>Tabela PEDIDOS n&#227;o possui chave prim&#225;ria.</td>
@@ -172,7 +209,7 @@
             </tr>
             
             <tr data-sev="low" data-code="INDICE_DUPLICADO" data-text="pedidos indice_duplicado assinatura de &#237;ndice duplicada em pedidos: ind_pedidos_cliente_a, ind_pedidos_cliente_b. assinatura: non-unique, asc, (cliente_id). mantenha apenas um &#237;ndice por assinatura ap&#243;s validar carga de trabalho.">
-              <td class="low">baixo</td>
+              <td><span class="severity-pill low">baixo</span></td>
               <td>INDICE_DUPLICADO</td>
               <td>PEDIDOS</td>
               <td>Assinatura de &#237;ndice duplicada em PEDIDOS: IND_PEDIDOS_CLIENTE_A, IND_PEDIDOS_CLIENTE_B. Assinatura: NON-UNIQUE, ASC, (CLIENTE_ID).</td>

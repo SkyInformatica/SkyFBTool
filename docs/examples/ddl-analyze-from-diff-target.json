@@ -1,7 +1,7 @@
 {
   "Origem": "D:\\Projetos\\SkyFBTool\\docs\\examples\\ddl-diff-sample-target.sql",
   "Description": "",
-  "GeradoEmUtc": "2026-05-01T11:56:16.8885681Z",
+  "GeradoEmUtc": "2026-05-02T14:07:48.9883612Z",
   "DataUltimaManutencaoUtc": null,
   "FonteDataUltimaManutencao": "",
   "AnaliseVolumeHabilitada": true,
@@ -10,12 +10,34 @@
   "TabelasLidasAnaliseVolume": 0,
   "AchadosGeradosAnaliseVolume": 0,
   "TotalTabelas": 4,
-  "TotalAchados": 0,
+  "TotalAchados": 1,
   "TotalCriticos": 0,
   "TotalAltos": 0,
   "TotalMedios": 0,
-  "TotalBaixos": 0,
-  "Achados": [],
-  "ResumoPorCodigo": [],
-  "ResumoPorTabela": []
+  "TotalBaixos": 1,
+  "Achados": [
+    {
+      "Severidade": "low",
+      "ScoreRisco": 17,
+      "Prioridade": "P3",
+      "Codigo": "INDICE_DUPLICADO",
+      "Escopo": "PEDIDOS",
+      "Descricao": "Assinatura de \u00EDndice duplicada em PEDIDOS: IX_PEDIDOS_DATA, IX_PEDIDOS_DATA_DUP. Assinatura: NON-UNIQUE, ASC, (DATA_EMISSAO).",
+      "Recomendacao": "Mantenha apenas um \u00EDndice por assinatura ap\u00F3s validar carga de trabalho."
+    }
+  ],
+  "ResumoPorCodigo": [
+    {
+      "Chave": "INDICE_DUPLICADO",
+      "Quantidade": 1,
+      "Percentual": 100
+    }
+  ],
+  "ResumoPorTabela": [
+    {
+      "Chave": "PEDIDOS",
+      "Quantidade": 1,
+      "Percentual": 100
+    }
+  ]
 }

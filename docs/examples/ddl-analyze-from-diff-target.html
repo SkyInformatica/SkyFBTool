@@ -15,8 +15,20 @@
     .card { border: 1px solid #e5e7eb; border-radius: 10px; background: #fff; padding: 10px; }
     .criteria-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 10px; align-items: start; }
     .summary-scroll { height: 320px; overflow: auto; border: 1px solid #eef2f7; border-radius: 8px; }
-    .legend { margin: 0; font-size: 13px; color: #1f2937; line-height: 1.35; background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 8px; padding: 8px 10px; }
-    .legend strong { color: #111827; display: block; margin-bottom: 4px; }
+    .legend { margin: 0; font-size: 13px; color: #1f2937; line-height: 1.35; background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 8px; padding: 10px; }
+    .legend strong { color: #111827; display: block; margin-bottom: 8px; }
+    .legend-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+    .legend-item { display: grid; grid-template-columns: 34px 1fr; gap: 8px; align-items: start; border: 1px solid #e5e7eb; background: #fff; border-radius: 8px; padding: 6px 8px; }
+    .legend-badge { display: inline-flex; align-items: center; justify-content: center; min-height: 22px; border-radius: 999px; font-size: 12px; font-weight: 700; border: 1px solid; }
+    .legend-badge.p0 { color: #7f1d1d; background: #fee2e2; border-color: #fca5a5; }
+    .legend-badge.p1 { color: #9a3412; background: #ffedd5; border-color: #fdba74; }
+    .legend-badge.p2 { color: #1e3a8a; background: #dbeafe; border-color: #93c5fd; }
+    .legend-badge.p3 { color: #065f46; background: #d1fae5; border-color: #86efac; }
+    .priority-pill { display: inline-flex; align-items: center; justify-content: center; min-width: 34px; min-height: 22px; padding: 0 8px; border-radius: 999px; font-size: 12px; font-weight: 700; border: 1px solid; }
+    .priority-pill.p0 { color: #7f1d1d; background: #fee2e2; border-color: #fca5a5; }
+    .priority-pill.p1 { color: #9a3412; background: #ffedd5; border-color: #fdba74; }
+    .priority-pill.p2 { color: #1e3a8a; background: #dbeafe; border-color: #93c5fd; }
+    .priority-pill.p3 { color: #065f46; background: #d1fae5; border-color: #86efac; }
     .toolbar { display: flex; gap: 10px; flex-wrap: wrap; margin: 8px 0 10px; align-items: center; }
     .toolbar input, .toolbar select { padding: 6px 8px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 13px; }
     .count { font-size: 13px; color: #374151; }
@@ -29,6 +41,11 @@
     .high { color: #92400e; font-weight: 700; }
     .medium { color: #1d4ed8; font-weight: 700; }
     .low { color: #065f46; font-weight: 700; }
+    .severity-pill { display: inline-flex; align-items: center; justify-content: center; min-height: 22px; padding: 0 10px; border-radius: 999px; font-size: 12px; font-weight: 700; border: 1px solid; }
+    .severity-pill.critical { color: #7f1d1d; background: #fee2e2; border-color: #fca5a5; }
+    .severity-pill.high { color: #9a3412; background: #ffedd5; border-color: #fdba74; }
+    .severity-pill.medium { color: #1e3a8a; background: #dbeafe; border-color: #93c5fd; }
+    .severity-pill.low { color: #065f46; background: #d1fae5; border-color: #86efac; }
     @media (max-width: 900px) { .grid { grid-template-columns: 1fr; } .criteria-grid { grid-template-columns: 1fr; } body { margin: 12px; } }
     @media print {
       body { margin: 0; font-size: 11px; color: #000; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
@@ -50,16 +67,16 @@
   <div class="meta">
     <div><strong>Origem:</strong> <span title="D:\Projetos\SkyFBTool\docs\examples\ddl-diff-sample-target.sql">ddl-diff-sample-target.sql</span></div>
     
-    <div><strong>Gerado em (UTC):</strong> 2026-05-01 11:56:16</div>
+    <div><strong>Gerado em (UTC):</strong> 2026-05-02 14:07:48</div>
     
     <div><strong>Análise de volume:</strong> n&#227;o aplic&#225;vel</div>
   </div>
   <div class="kpi">
-    <div class="pill"><strong>Total de achados:</strong> 0</div>
+    <div class="pill"><strong>Total de achados:</strong> 1</div>
     <div class="pill"><strong>Críticos:</strong> 0</div>
     <div class="pill"><strong>Altos:</strong> 0</div>
     <div class="pill"><strong>Médios:</strong> 0</div>
-    <div class="pill"><strong>Baixos:</strong> 0</div>
+    <div class="pill"><strong>Baixos:</strong> 1</div>
   </div>
   <div class="card criteria">
     <h2>Critérios de severidade</h2>
@@ -71,25 +88,25 @@
       </tr></thead><tbody>
         
                 <tr>
-                  <td class="critical">cr&#237;tico</td>
+                  <td><span class="severity-pill critical">cr&#237;tico</span></td>
                   <td>Metadado estrutural quebrado: colunas ausentes ou inv&#225;lidas em PK/FK, constraints vazias ou refer&#234;ncias imposs&#237;veis.</td>
                   <td>Alta chance de falha funcional, sintomas de corrup&#231;&#227;o ou impossibilidade de sincronismo seguro sem reparo manual.</td>
                 </tr>
                 
                 <tr>
-                  <td class="high">alto</td>
+                  <td><span class="severity-pill high">alto</span></td>
                   <td>Inconsist&#234;ncia de alto risco que pode quebrar integridade ou performance em carga.</td>
                   <td>Risco relevante em produ&#231;&#227;o; corrigir antes de migra&#231;&#227;o ou importa&#231;&#227;o/exporta&#231;&#227;o intensa.</td>
                 </tr>
                 
                 <tr>
-                  <td class="medium">m&#233;dio</td>
+                  <td><span class="severity-pill medium">m&#233;dio</span></td>
                   <td>Lacuna importante de qualidade ou performance, normalmente sem corrup&#231;&#227;o imediata.</td>
                   <td>Pode degradar vaz&#227;o e aumentar risco de lock/conten&#231;&#227;o ao longo do tempo.</td>
                 </tr>
                 
                 <tr>
-                  <td class="low">baixo</td>
+                  <td><span class="severity-pill low">baixo</span></td>
                   <td>Padr&#227;o consultivo ou smell de modelagem com menor risco imediato.</td>
                   <td>Recomendado para endurecimento e manutenibilidade; pode ser planejado.</td>
                 </tr>
@@ -97,10 +114,12 @@
       </tbody></table>
       <div class="legend">
         <strong>Legenda de prioridade:</strong>
-        <div>P0: ação imediata (risco crítico).</div>
-        <div>P1: alta prioridade (correção de curto prazo).</div>
-        <div>P2: prioridade planejada (programar e acompanhar).</div>
-        <div>P3: otimização/backlog (menor urgência).</div>
+        <ul class="legend-list">
+          <li class="legend-item"><span class="legend-badge p0">P0</span><span>P0: ação imediata (risco crítico).</span></li>
+          <li class="legend-item"><span class="legend-badge p1">P1</span><span>P1: alta prioridade (correção de curto prazo).</span></li>
+          <li class="legend-item"><span class="legend-badge p2">P2</span><span>P2: prioridade planejada (programar e acompanhar).</span></li>
+          <li class="legend-item"><span class="legend-badge p3">P3</span><span>P3: otimização/backlog (menor urgência).</span></li>
+        </ul>
       </div>
     </div>
   </div>
@@ -112,9 +131,9 @@
         <th>Código</th><th>Qtde</th><th>%</th>
       </tr></thead><tbody>
         
-        
-                <tr><td colspan="3">Sem achados.</td></tr>
+                <tr><td>INDICE_DUPLICADO</td><td>1</td><td>100</td></tr>
                 
+        
       </tbody></table>
       </div>
     </div>
@@ -125,15 +144,81 @@
         <th>Escopo</th><th>Prioridade</th><th>Índice de risco</th><th>Qtde</th>
       </tr></thead><tbody>
         
-        
-                <tr><td colspan="4">Sem achados.</td></tr>
+                <tr>
+                  <td>PEDIDOS</td>
+                  <td>
+                    
+                        <span class="priority-pill p3">P3</span>
+                        
+                  </td>
+                  <td>16</td>
+                  <td>1</td>
+                </tr>
                 
+        
       </tbody></table>
       </div>
     </div>
   </div>
   
-    <p>Sem achados.</p>
+    <h2>Filtros</h2>
+    <div class="toolbar">
+      <label>Severidade <select id="f-sev"><option value="">Todos</option><option value="critical">cr&#237;tico</option><option value="high">alto</option><option value="medium">m&#233;dio</option><option value="low">baixo</option></select></label>
+      <label>Código <select id="f-code"><option value="">Todos</option><option value="INDICE_DUPLICADO">INDICE_DUPLICADO</option></select></label>
+      <label>Busca <input id="f-q" type="text" placeholder="tabela, código ou texto..." /></label>
+      <span class="count" id="f-count">Exibindo 0 de 1</span>
+    </div>
+    <div class="table-wrap">
+    <table id="achados">
+      <thead><tr>
+        <th>Severidade</th>
+        <th>Código</th>
+        <th>Escopo</th>
+        <th>Descrição</th>
+        <th>Recomendação</th>
+      </tr></thead>
+      <tbody>
+        
+            <tr data-sev="low" data-code="INDICE_DUPLICADO" data-text="pedidos indice_duplicado assinatura de &#237;ndice duplicada em pedidos: ix_pedidos_data, ix_pedidos_data_dup. assinatura: non-unique, asc, (data_emissao). mantenha apenas um &#237;ndice por assinatura ap&#243;s validar carga de trabalho.">
+              <td><span class="severity-pill low">baixo</span></td>
+              <td>INDICE_DUPLICADO</td>
+              <td>PEDIDOS</td>
+              <td>Assinatura de &#237;ndice duplicada em PEDIDOS: IX_PEDIDOS_DATA, IX_PEDIDOS_DATA_DUP. Assinatura: NON-UNIQUE, ASC, (DATA_EMISSAO).</td>
+              <td>Mantenha apenas um &#237;ndice por assinatura ap&#243;s validar carga de trabalho.</td>
+            </tr>
+            
+      </tbody>
+    </table>
+    </div>
+    <script>
+      (function(){
+        const sev = document.getElementById('f-sev');
+        const code = document.getElementById('f-code');
+        const q = document.getElementById('f-q');
+        const rows = Array.from(document.querySelectorAll('#achados tbody tr'));
+        const count = document.getElementById('f-count');
+        const total = 1;
+        function run(){
+          const s = (sev.value || '').toLowerCase();
+          const c = code.value || '';
+          const t = (q.value || '').toLowerCase();
+          let visible = 0;
+          rows.forEach(r => {
+            const okS = !s || r.dataset.sev === s;
+            const okC = !c || r.dataset.code === c;
+            const okT = !t || (r.dataset.text || '').includes(t);
+            const ok = okS && okC && okT;
+            r.style.display = ok ? '' : 'none';
+            if (ok) visible++;
+          });
+          count.textContent = 'Exibindo ' + visible + ' de ' + total;
+        }
+        sev.addEventListener('change', run);
+        code.addEventListener('change', run);
+        q.addEventListener('input', run);
+        run();
+      })();
+    </script>
     
 </body>
 </html>
