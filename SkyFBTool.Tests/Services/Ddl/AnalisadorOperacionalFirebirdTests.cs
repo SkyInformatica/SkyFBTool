@@ -6,6 +6,36 @@ namespace SkyFBTool.Tests.Services.Ddl;
 public class AnalisadorOperacionalFirebirdTests
 {
     [Fact]
+    public void ClassificarFalhaOperacional_ComErroPermissao_DeveRetornarPermissionDenied()
+    {
+        var ex = new Exception("Dynamic SQL Error SQL error code = -551 no permission for SELECT access to MON$DATABASE");
+
+        string classe = AnalisadorOperacionalFirebird.ClassificarFalhaOperacional(ex);
+
+        Assert.Equal("permission_denied", classe);
+    }
+
+    [Fact]
+    public void ClassificarFalhaOperacional_ComErroMetadataMon_DeveRetornarMetadataIncompatible()
+    {
+        var ex = new Exception("Dynamic SQL Error SQL error code = -206 Column unknown R.RDB$CARDINALITY at line 3 in MON$ query");
+
+        string classe = AnalisadorOperacionalFirebird.ClassificarFalhaOperacional(ex);
+
+        Assert.Equal("metadata_incompatible", classe);
+    }
+
+    [Fact]
+    public void ClassificarFalhaOperacional_ComTimeout_DeveRetornarTimeout()
+    {
+        var ex = new TimeoutException("Operation timeout while querying MON$");
+
+        string classe = AnalisadorOperacionalFirebird.ClassificarFalhaOperacional(ex);
+
+        Assert.Equal("timeout", classe);
+    }
+
+    [Fact]
     public void Avaliar_ComGapOitOatCritico_DeveGerarAchadoCritico()
     {
         var metricas = new MetricasOperacionaisFirebird

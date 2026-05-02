@@ -8,6 +8,9 @@ public class ResultadoAnaliseDdl
     public DateTime? DataUltimaManutencaoUtc { get; set; }
     public string FonteDataUltimaManutencao { get; set; } = string.Empty;
     public bool AnaliseVolumeHabilitada { get; set; } = true;
+    public string StatusAnaliseOperacional { get; set; } = "not_applicable";
+    public string ErroAnaliseOperacional { get; set; } = string.Empty;
+    public int AchadosGeradosAnaliseOperacional { get; set; }
     public string StatusAnaliseVolume { get; set; } = "not_applicable";
     public string ErroAnaliseVolume { get; set; } = string.Empty;
     public int TabelasLidasAnaliseVolume { get; set; }

@@ -79,6 +79,7 @@ public static class AnalisadorDdlSchema
             severidadesOverride);
 
         resultado.Description = opcoes.Descricao?.Trim() ?? string.Empty;
+        resultado.StatusAnaliseOperacional = possuiEntradaBanco ? "pending" : "not_applicable";
         resultado.AnaliseVolumeHabilitada = opcoes.AnaliseVolumeHabilitada;
         resultado.StatusAnaliseVolume = possuiEntradaBanco
             ? (opcoes.AnaliseVolumeHabilitada ? "pending" : "disabled")
@@ -710,15 +711,19 @@ public static class AnalisadorDdlSchema
         IdiomaSaida idioma,
         IReadOnlyDictionary<string, string>? severidadesOverride)
     {
-        List<AchadoOperacionalDdl> achadosOperacionais;
+        List<AchadoOperacionalDdl> achadosOperacionais = [];
+        bool coletaOperacionalComSucesso = false;
 
         try
         {
             achadosOperacionais = await AnalisadorOperacionalFirebird.ColetarAchadosAsync(opcoes, idioma);
+            coletaOperacionalComSucesso = true;
         }
-        catch
+        catch (Exception ex)
         {
-            return;
+            resultado.StatusAnaliseOperacional = "failed";
+            resultado.ErroAnaliseOperacional = AnalisadorOperacionalFirebird.FormatarErroColetaOperacional(ex);
+            resultado.AchadosGeradosAnaliseOperacional = 0;
         }
 
         foreach (var achado in achadosOperacionais)
@@ -731,6 +736,13 @@ public static class AnalisadorDdlSchema
                 achado.Descricao,
                 achado.Recomendacao,
                 severidadesOverride);
+        }
+        
+        if (coletaOperacionalComSucesso)
+        {
+            resultado.StatusAnaliseOperacional = "executed";
+            resultado.ErroAnaliseOperacional = string.Empty;
+            resultado.AchadosGeradosAnaliseOperacional = achadosOperacionais.Count;
         }
 
         if (opcoes.AnaliseVolumeHabilitada)

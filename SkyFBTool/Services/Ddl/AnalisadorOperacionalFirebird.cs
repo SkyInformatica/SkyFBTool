@@ -6,6 +6,35 @@ namespace SkyFBTool.Services.Ddl;
 
 public static class AnalisadorOperacionalFirebird
 {
+    public static string FormatarErroColetaOperacional(Exception ex)
+    {
+        string classe = ClassificarFalhaOperacional(ex);
+        return $"{classe}: {ex.Message}";
+    }
+
+    public static string ClassificarFalhaOperacional(Exception ex)
+    {
+        string mensagem = (ex.Message ?? string.Empty).ToLowerInvariant();
+
+        if (ex is TimeoutException ||
+            mensagem.Contains("timeout", StringComparison.OrdinalIgnoreCase))
+            return "timeout";
+
+        if (mensagem.Contains("permission", StringComparison.OrdinalIgnoreCase) ||
+            mensagem.Contains("not permitted", StringComparison.OrdinalIgnoreCase) ||
+            mensagem.Contains("access denied", StringComparison.OrdinalIgnoreCase) ||
+            mensagem.Contains("sql error code = -551", StringComparison.OrdinalIgnoreCase))
+            return "permission_denied";
+
+        if (mensagem.Contains("mon$", StringComparison.OrdinalIgnoreCase) &&
+            (mensagem.Contains("column unknown", StringComparison.OrdinalIgnoreCase) ||
+             mensagem.Contains("token unknown", StringComparison.OrdinalIgnoreCase) ||
+             mensagem.Contains("sql error code = -206", StringComparison.OrdinalIgnoreCase)))
+            return "metadata_incompatible";
+
+        return "query_failure";
+    }
+
     public static async Task<List<AchadoOperacionalDdl>> ColetarAchadosAsync(OpcoesDdlAnalise opcoes, IdiomaSaida idioma)
     {
         await using var conexao = FabricaConexaoFirebird.CriarConexao(

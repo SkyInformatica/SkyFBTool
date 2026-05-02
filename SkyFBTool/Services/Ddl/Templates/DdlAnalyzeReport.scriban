@@ -73,6 +73,7 @@
     {{ if TemUltimaManutencao }}
     <div><strong>{{ UltimaManutencaoLabel }}:</strong> {{ UltimaManutencao }} <span title="{{ FonteUltimaManutencao }}">({{ FonteUltimaManutencao }})</span></div>
     {{ end }}
+    <div><strong>{{ AnaliseOperacionalLabel }}:</strong> {{ AnaliseOperacionalResumo }}</div>
     <div><strong>{{ AnaliseVolumeLabel }}:</strong> {{ AnaliseVolumeResumo }}</div>
   </div>
   <div class="kpi">
