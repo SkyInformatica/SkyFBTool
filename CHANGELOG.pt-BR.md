@@ -10,6 +10,23 @@ e o projeto adota [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ## [Não Lançado]
 
 ### Adicionado
+- Importação e exportação agora aplicam política de retry automático para falhas transitórias (até 3 tentativas) em cenários de instabilidade de execução e escrita.
+
+### Alterado
+- A análise operacional de `ddl-analyze --database` foi reforçada com classificação explícita de status/erro da coleta MON$ (sucesso, parcial ou falha com contexto nos metadados do relatório).
+- Layout e elementos visuais de severidade/prioridade no relatório `ddl-analyze` foram refinados para maior consistência entre relatório rico e relatório em lote.
+- Renderização HTML de `ddl-analyze` agora remove campos internos de filtro de risco não utilizados (`ScoreRisco`, `Prioridade`) do modelo/payload de saída.
+- `export` e `import` agora compartilham padrão de progresso no console: linha dinâmica em terminal interativo, checkpoints fixos periódicos (50 mil unidades ou 30s) e fallback em linhas fixas para saída redirecionada/CI.
+- `ddl-diff` agora gera SQL em ordem determinística orientada a dependências (remoção de constraints, criação/alteração de estrutura, PK, índices e por último FK), reduzindo falhas por dependência na aplicação.
+- Documentação dos comandos (EN/PT-BR) e README foram atualizados para refletir a ordenação por dependência e a política de retry transitório.
+- Artefatos de exemplo DDL e documentação de comandos foram atualizados para refletir o comportamento visual/funcional atual.
+
+### Corrigido
+- Resumo do `import` em lote agora classifica corretamente arquivos com erros de comandos SQL em `--continue-on-error` como `Sucesso com erros`, em vez de `Sucesso`.
+
+## [0.4.0] - 2026-04-29
+
+### Adicionado
 - `ddl-analyze` agora suporta `--volume-analysis on|off` (padrão: `on`) para habilitar/desabilitar explicitamente a análise de prioridade por volume via SQL.
 - `ddl-analyze` agora suporta `--volume-count-exact on|off` (padrão: `off`) para opcionalmente executar `COUNT(*)` exato por tabela na análise de volume.
 - Metadados do relatório em `ddl-analyze --database` agora incluem data estimada da última manutenção via `MON$DATABASE.MON$CREATION_DATE` (criação/último restore do banco).
@@ -20,11 +37,11 @@ e o projeto adota [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - `ddl-analyze` agora emite achados operacionais de prioridade por volume (`OPERACIONAL_VOLUME_PRIORIDADE_ALTA|MEDIA|BAIXA`) usando estimativa leve por índice no modo por banco.
 - Relatório HTML de `ddl-analyze` agora inclui seção de priorização para correção por tabela (`Tabelas priorizadas para correção`) com `Prioridade` (`P0..P3`), `Índice de risco` e `Qtde`.
 - Layout do relatório `ddl-analyze` agora exibe a legenda de prioridade (`P0..P3`) ao lado dos critérios de severidade e alinha os painéis de resumo com áreas de rolagem de altura fixa.
-- `export` e `import` agora compartilham padrão de progresso no console: linha dinâmica em terminal interativo, checkpoints fixos periódicos (50 mil unidades ou 30s) e fallback em linhas fixas para saída redirecionada/CI.
+- Pipeline/versionamento de release foi alinhado para derivar versão de build a partir da tag Git (`v*`).
+- Documentação do `ddl-analyze` e relatórios de exemplo foram atualizados.
 
 ### Corrigido
 - Falsos positivos de `FK_SEM_INDICE_COBERTURA` foram corrigidos ao considerar metadados do índice de suporte da FK (índice vinculado à constraint) tanto na extração por banco quanto na análise por snapshot SQL.
-- Resumo do `import` em lote agora classifica corretamente arquivos com erros de comandos SQL em `--continue-on-error` como `Sucesso com erros`, em vez de `Sucesso`.
 
 ## [0.3.0] - 2026-04-28
 
@@ -84,7 +101,8 @@ e o projeto adota [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Compatibilidade com Firebird 2.5, 3.0, 4.0 e 5.0 nos fluxos de exportação/importação.
 - Suíte de testes unitários e de integração.
 
-[Não Lançado]: https://github.com/SkyInformatica/SkyFBTool/compare/v0.3.0...HEAD
+[Não Lançado]: https://github.com/SkyInformatica/SkyFBTool/compare/v0.4.0...HEAD
+[0.4.0]: https://github.com/SkyInformatica/SkyFBTool/compare/v0.3.0...v0.4.0
 [0.3.0]: https://github.com/SkyInformatica/SkyFBTool/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/SkyInformatica/SkyFBTool/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/SkyInformatica/SkyFBTool/releases/tag/v0.1.0

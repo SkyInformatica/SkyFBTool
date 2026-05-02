@@ -10,6 +10,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- Import/export now apply automatic transient retry policy (up to 3 attempts) for command execution and file write instability scenarios.
+
+### Changed
+- `ddl-analyze --database` operational analysis was hardened with explicit status/error classification for MON$ collection outcomes (success, partial, or failure context in report metadata).
+- `ddl-analyze` report layout and severity/priority visuals were refined for better consistency in rich and batch HTML reports.
+- `ddl-analyze` HTML rendering now removes unused risk filter fields (`ScoreRisco`, `Prioridade`) from internal payload/output model.
+- `export` and `import` now share standardized console progress behavior: live dynamic line in interactive terminals, periodic fixed checkpoints (50k units or 30s), and CI-safe fixed-line fallback for redirected output.
+- `ddl-diff` now emits SQL in deterministic dependency-aware order (drop constraints, create/alter structures, PK, indexes, then FK) to reduce apply-time dependency failures.
+- Command docs (EN/PT-BR) and README were updated to reflect dependency ordering and transient retry behavior.
+- DDL sample artifacts and command docs were refreshed to reflect current report/UI behavior.
+
+### Fixed
+- Batch `import` summary now correctly classifies files with SQL command errors under `--continue-on-error` as `Succeeded with errors` instead of plain `Succeeded`.
+
+## [0.4.0] - 2026-04-29
+
+### Added
 - `ddl-analyze` now supports `--volume-analysis on|off` (default: `on`) to explicitly enable/disable SQL-based volume-priority analysis.
 - `ddl-analyze` now supports `--volume-count-exact on|off` (default: `off`) to optionally run exact `COUNT(*)` per table for volume analysis.
 - `ddl-analyze --database` report metadata now includes estimated last maintenance timestamp from `MON$DATABASE.MON$CREATION_DATE` (database creation/last restore).
@@ -20,11 +37,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `ddl-analyze` now emits volume-priority operational findings (`OPERACIONAL_VOLUME_PRIORIDADE_ALTA|MEDIA|BAIXA`) using lightweight index-based estimates in DB mode.
 - `ddl-analyze` HTML report now includes a table-focused remediation prioritization section (`Tables prioritized for remediation`) with `Priority` (`P0..P3`), `Risk index`, and `Count`.
 - `ddl-analyze` report layout now shows the priority legend (`P0..P3`) next to severity criteria and aligns summary panels with fixed-height scroll areas for long outputs.
-- `export` and `import` now share standardized console progress behavior: live dynamic line in interactive terminals, periodic fixed checkpoints (50k units or 30s), and CI-safe fixed-line fallback for redirected output.
+- Release pipeline/versioning was aligned to derive build version from Git tag (`v*`).
+- `ddl-analyze` docs and sample reports were refreshed.
 
 ### Fixed
 - False positives for `FK_SEM_INDICE_COBERTURA` were fixed by considering FK support index metadata (constraint-bound index) in both DB extraction and SQL snapshot analysis.
-- Batch `import` summary now correctly classifies files with SQL command errors under `--continue-on-error` as `Succeeded with errors` instead of plain `Succeeded`.
 
 ## [0.3.0] - 2026-04-28
 
@@ -84,7 +101,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Firebird 2.5, 3.0, 4.0, and 5.0 compatibility for export/import workflows.
 - Unit and integration test suite.
 
-[Unreleased]: https://github.com/SkyInformatica/SkyFBTool/compare/v0.3.0...HEAD
+[Unreleased]: https://github.com/SkyInformatica/SkyFBTool/compare/v0.4.0...HEAD
+[0.4.0]: https://github.com/SkyInformatica/SkyFBTool/compare/v0.3.0...v0.4.0
 [0.3.0]: https://github.com/SkyInformatica/SkyFBTool/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/SkyInformatica/SkyFBTool/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/SkyInformatica/SkyFBTool/releases/tag/v0.1.0
