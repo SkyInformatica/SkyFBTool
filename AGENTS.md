@@ -103,6 +103,12 @@ Esta secao adiciona regras explicitas para evitar problemas recorrentes observad
     - parsing de argumentos;
     - execucao de regra;
     - escrita de saida/log.
+- Em CLI, manter tambem separadas as responsabilidades de:
+    - parsing;
+    - validacao;
+    - resolucao de batch/wildcard;
+    - ajuda/saida do usuario;
+    - impressao de resultados.
 
 ### 9.3) Tamanho e Complexidade
 - Evitar metodos longos (> ~50 linhas).
@@ -131,6 +137,7 @@ Esta secao adiciona regras explicitas para evitar problemas recorrentes observad
     - `ExecutorSql`
 - Nao criar novos "servicos paralelos" que duplicam responsabilidade.
 - Manter padrao atual de organizacao por pasta.
+- Se surgir logica comum de texto/idioma, batch pattern ou ajuda, centralizar em `Cli/Common` antes de duplicar nos comandos.
 
 ### 9.7) Dependencias
 - Nao adicionar bibliotecas externas sem necessidade clara.
@@ -165,17 +172,18 @@ Antes de finalizar, validar:
 5. O tratamento de erro esta consistente?
 6. Alguma responsabilidade ficou misturada indevidamente?
 7. A mudanca manteve o padrao arquitetural do projeto?
+8. A mudanca introduziu texto novo em PT-BR sem revisao de acentuacao?
 
 Se qualquer resposta indicar problema de qualidade, ajustar antes de concluir.
 
-### 10) Politica de Idioma (Portugues vs Ingles)
+### 10) Politica de Idioma (Ingles por padrao, PT-BR quando detectado)
 
-Este projeto e internacional. O idioma padrao do codigo e da interface CLI e INGLES.
+Este projeto e internacional. O padrao de runtime e CLI e **inglês**. Quando `IdiomaSaidaDetector` identificar `pt-BR`, a mesma mensagem deve sair em portugues com acentuacao correta.
 Documentacao interna pode estar em portugues.
 
-#### 10.1) Onde usar INGLES (obrigatorio)
-- Mensagens da CLI (stdout/stderr)
-- Logs
+#### 10.1) Onde usar INGLES
+- Mensagens da CLI quando a cultura nao for `pt-BR`
+- Logs operacionais
 - README principal
 - Nomes de comandos e flags
 
@@ -184,16 +192,28 @@ Exemplo:
 - "File not found"
 
 #### 10.2) Onde usar PORTUGUES
+- Mensagens da CLI quando `pt-BR` for detectado
 - Nomes de classes, metodos, variaveis e arquivos
 - Documentacao interna (ex: AGENTS.md, comentarios explicativos quando realmente necessarios)
 - Materiais de apoio para desenvolvedores brasileiros
 
-#### 10.3) Regra de Qualidade para Portugues
+#### 10.3) Regra de Localizacao
+- Toda mensagem nova voltada ao usuario deve ter variante em ingles e em portugues.
+- A variante em ingles e o padrao de fallback.
+- A variante em portugues deve usar acentuacao correta e linguagem natural.
+- Quando a mensagem tiver suporte a idioma, usar o helper compartilhado de localizacao em vez de concatenar texto solto.
+
+Exemplo:
+- `CliText.Texto(idioma, "Invalid option.", "Opção inválida.")`
+
+#### 10.4) Regra de Qualidade para Portugues
 Quando portugues for utilizado:
 - Sempre usar acentuacao correta
 - Nao gerar texto sem acento (ex: "acao", "informacao")
 - Evitar erros gramaticais basicos
 - Manter linguagem clara e natural
+- Texto em PT-BR nao pode ser gerado sem acento, cedilha ou com ortografia simplificada.
+- Antes de finalizar, revisar strings novas com foco em palavras como `nao`, `opcao`, `padrao`, `relatorio`, `invalido`.
 
 Exemplo:
 
@@ -205,19 +225,20 @@ Certo:
 - "Erro na execução do comando"
 - "Arquivo não encontrado"
 
-#### 10.4) Consistencia (regra critica)
-- Nunca misturar idiomas no mesmo contexto:
-    - CLI inteira deve estar em ingles
-    - Documentacao deve ser consistente no idioma escolhido
-- Nao traduzir parcialmente mensagens ou nomes
+#### 10.5) Consistencia (regra critica)
+- Nunca misturar idiomas no mesmo contexto.
+- Mensagens de runtime devem seguir o idioma da cultura detectada.
+- Documentacao pode ser bilíngue, mas cada trecho precisa estar claro no idioma escolhido.
+- Nao traduzir parcialmente mensagens ou nomes.
 
-#### 10.5) Checklist de Idioma
+#### 10.6) Checklist de Idioma
 Antes de finalizar, validar:
 
-1. Codigo e CLI estao 100% em ingles?
-2. Algum texto em portugues apareceu em logs ou mensagens ao usuario?
-3. Textos em portugues (se existirem) estao com acentuacao correta?
+1. Codigo e CLI estao com ingles como padrao e PT-BR somente quando detectado?
+2. Algum texto em portugues apareceu sem acentuacao correta?
+3. Textos com suporte a idioma usam o helper compartilhado?
 4. Ha mistura de idiomas no mesmo contexto?
+5. A documentacao e a ajuda nao ficaram defasadas em relacao ao comportamento atual?
 
 Se houver inconsistencias, corrigir antes de concluir.
 
