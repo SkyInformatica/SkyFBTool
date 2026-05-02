@@ -49,6 +49,9 @@ SkyFBTool ddl-analyze --databases-batch "C:\data\*.fdb" --output DIRECTORY [opti
 - Use only one input mode: file (`--input/--source`) or single DB (`--database`) or batch (`--databases-batch`).
 - `--database` does not accept wildcard; wildcard mode is `--databases-batch`.
 - Operational checks are available only in DB mode (`--database`), not in file mode (`--input/--source`).
+- Operational `MON$` collection is best-effort in DB mode:
+  - if it fails (permission/version/query/timeout), structural analysis still completes;
+  - report metadata now includes operational analysis status and error summary.
 - Volume estimation is best-effort in DB mode; if it fails or times out, analysis continues without volume-priority findings.
 
 ## Examples

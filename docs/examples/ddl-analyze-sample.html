@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Análise de Risco DDL</title>
+  <title>AnÃ¡lise de Risco DDL</title>
   <style>
     @page { size: A4; margin: 12mm; }
     body { font-family: Segoe UI, Arial, sans-serif; margin: 20px; color: #1f2937; }
@@ -63,51 +63,52 @@
   </style>
 </head>
 <body>
-  <h1>Análise de Risco DDL</h1>
+  <h1>AnÃ¡lise de Risco DDL</h1>
   <div class="meta">
     <div><strong>Origem:</strong> <span title="D:\Projetos\SkyFBTool\docs\examples\ddl-analyze-sample-input.sql">ddl-analyze-sample-input.sql</span></div>
     
-    <div><strong>Gerado em (UTC):</strong> 2026-05-02 14:07:48</div>
+    <div><strong>Gerado em (UTC):</strong> 2026-05-02 16:20:47</div>
     
-    <div><strong>Análise de volume:</strong> n&#227;o aplic&#225;vel</div>
+    <div><strong>Análise operacional (MON$):</strong> n&#227;o aplic&#225;vel</div>
+    <div><strong>AnÃ¡lise de volume:</strong> n&#195;&#163;o aplic&#195;&#161;vel</div>
   </div>
   <div class="kpi">
     <div class="pill"><strong>Total de achados:</strong> 3</div>
-    <div class="pill"><strong>Críticos:</strong> 0</div>
+    <div class="pill"><strong>CrÃ­ticos:</strong> 0</div>
     <div class="pill"><strong>Altos:</strong> 2</div>
-    <div class="pill"><strong>Médios:</strong> 0</div>
+    <div class="pill"><strong>MÃ©dios:</strong> 0</div>
     <div class="pill"><strong>Baixos:</strong> 1</div>
   </div>
   <div class="card criteria">
-    <h2>Critérios de severidade</h2>
+    <h2>CritÃ©rios de severidade</h2>
     <div class="criteria-grid">
       <table><thead><tr>
-        <th>Nível</th>
+        <th>NÃ­vel</th>
         <th>Quando se aplica</th>
         <th>Impacto esperado</th>
       </tr></thead><tbody>
         
                 <tr>
-                  <td><span class="severity-pill critical">cr&#237;tico</span></td>
-                  <td>Metadado estrutural quebrado: colunas ausentes ou inv&#225;lidas em PK/FK, constraints vazias ou refer&#234;ncias imposs&#237;veis.</td>
-                  <td>Alta chance de falha funcional, sintomas de corrup&#231;&#227;o ou impossibilidade de sincronismo seguro sem reparo manual.</td>
+                  <td><span class="severity-pill critical">cr&#195;&#173;tico</span></td>
+                  <td>Metadado estrutural quebrado: colunas ausentes ou inv&#195;&#161;lidas em PK/FK, constraints vazias ou refer&#195;&#170;ncias imposs&#195;&#173;veis.</td>
+                  <td>Alta chance de falha funcional, sintomas de corrup&#195;&#167;&#195;&#163;o ou impossibilidade de sincronismo seguro sem reparo manual.</td>
                 </tr>
                 
                 <tr>
                   <td><span class="severity-pill high">alto</span></td>
-                  <td>Inconsist&#234;ncia de alto risco que pode quebrar integridade ou performance em carga.</td>
-                  <td>Risco relevante em produ&#231;&#227;o; corrigir antes de migra&#231;&#227;o ou importa&#231;&#227;o/exporta&#231;&#227;o intensa.</td>
+                  <td>Inconsist&#195;&#170;ncia de alto risco que pode quebrar integridade ou performance em carga.</td>
+                  <td>Risco relevante em produ&#195;&#167;&#195;&#163;o; corrigir antes de migra&#195;&#167;&#195;&#163;o ou importa&#195;&#167;&#195;&#163;o/exporta&#195;&#167;&#195;&#163;o intensa.</td>
                 </tr>
                 
                 <tr>
-                  <td><span class="severity-pill medium">m&#233;dio</span></td>
-                  <td>Lacuna importante de qualidade ou performance, normalmente sem corrup&#231;&#227;o imediata.</td>
-                  <td>Pode degradar vaz&#227;o e aumentar risco de lock/conten&#231;&#227;o ao longo do tempo.</td>
+                  <td><span class="severity-pill medium">m&#195;&#169;dio</span></td>
+                  <td>Lacuna importante de qualidade ou performance, normalmente sem corrup&#195;&#167;&#195;&#163;o imediata.</td>
+                  <td>Pode degradar vaz&#195;&#163;o e aumentar risco de lock/conten&#195;&#167;&#195;&#163;o ao longo do tempo.</td>
                 </tr>
                 
                 <tr>
                   <td><span class="severity-pill low">baixo</span></td>
-                  <td>Padr&#227;o consultivo ou smell de modelagem com menor risco imediato.</td>
+                  <td>Padr&#195;&#163;o consultivo ou smell de modelagem com menor risco imediato.</td>
                   <td>Recomendado para endurecimento e manutenibilidade; pode ser planejado.</td>
                 </tr>
                 
@@ -115,10 +116,10 @@
       <div class="legend">
         <strong>Legenda de prioridade:</strong>
         <ul class="legend-list">
-          <li class="legend-item"><span class="legend-badge p0">P0</span><span>P0: ação imediata (risco crítico).</span></li>
-          <li class="legend-item"><span class="legend-badge p1">P1</span><span>P1: alta prioridade (correção de curto prazo).</span></li>
+          <li class="legend-item"><span class="legend-badge p0">P0</span><span>P0: aÃ§Ã£o imediata (risco crÃ­tico).</span></li>
+          <li class="legend-item"><span class="legend-badge p1">P1</span><span>P1: alta prioridade (correÃ§Ã£o de curto prazo).</span></li>
           <li class="legend-item"><span class="legend-badge p2">P2</span><span>P2: prioridade planejada (programar e acompanhar).</span></li>
-          <li class="legend-item"><span class="legend-badge p3">P3</span><span>P3: otimização/backlog (menor urgência).</span></li>
+          <li class="legend-item"><span class="legend-badge p3">P3</span><span>P3: otimizaÃ§Ã£o/backlog (menor urgÃªncia).</span></li>
         </ul>
       </div>
     </div>
@@ -128,7 +129,7 @@
       <h2>Resumo por tipo de achado</h2>
       <div class="summary-scroll">
       <table><thead><tr>
-        <th>Código</th><th>Qtde</th><th>%</th>
+        <th>CÃ³digo</th><th>Qtde</th><th>%</th>
       </tr></thead><tbody>
         
                 <tr><td>TABELA_SEM_PK</td><td>2</td><td>66,67</td></tr>
@@ -140,10 +141,10 @@
       </div>
     </div>
     <div class="card">
-      <h2>Tabelas priorizadas para correção</h2>
+      <h2>Tabelas priorizadas para correÃ§Ã£o</h2>
       <div class="summary-scroll">
       <table><thead><tr>
-        <th>Escopo</th><th>Prioridade</th><th>Índice de risco</th><th>Qtde</th>
+        <th>Escopo</th><th>Prioridade</th><th>Ãndice de risco</th><th>Qtde</th>
       </tr></thead><tbody>
         
                 <tr>
@@ -176,19 +177,19 @@
   
     <h2>Filtros</h2>
     <div class="toolbar">
-      <label>Severidade <select id="f-sev"><option value="">Todos</option><option value="critical">cr&#237;tico</option><option value="high">alto</option><option value="medium">m&#233;dio</option><option value="low">baixo</option></select></label>
-      <label>Código <select id="f-code"><option value="">Todos</option><option value="TABELA_SEM_PK">TABELA_SEM_PK</option><option value="INDICE_DUPLICADO">INDICE_DUPLICADO</option></select></label>
-      <label>Busca <input id="f-q" type="text" placeholder="tabela, código ou texto..." /></label>
+      <label>Severidade <select id="f-sev"><option value="">Todos</option><option value="critical">cr&#195;&#173;tico</option><option value="high">alto</option><option value="medium">m&#195;&#169;dio</option><option value="low">baixo</option></select></label>
+      <label>CÃ³digo <select id="f-code"><option value="">Todos</option><option value="TABELA_SEM_PK">TABELA_SEM_PK</option><option value="INDICE_DUPLICADO">INDICE_DUPLICADO</option></select></label>
+      <label>Busca <input id="f-q" type="text" placeholder="tabela, cÃ³digo ou texto..." /></label>
       <span class="count" id="f-count">Exibindo 0 de 3</span>
     </div>
     <div class="table-wrap">
     <table id="achados">
       <thead><tr>
         <th>Severidade</th>
-        <th>Código</th>
+        <th>CÃ³digo</th>
         <th>Escopo</th>
-        <th>Descrição</th>
-        <th>Recomendação</th>
+        <th>DescriÃ§Ã£o</th>
+        <th>RecomendaÃ§Ã£o</th>
       </tr></thead>
       <tbody>
         

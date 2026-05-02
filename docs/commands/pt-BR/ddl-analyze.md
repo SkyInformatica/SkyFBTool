@@ -49,6 +49,9 @@ SkyFBTool ddl-analyze --databases-batch "C:\dados\*.fdb" --output DIRETÓRIO [op
 - Use apenas um modo de entrada: arquivo (`--input/--source`) ou banco único (`--database`) ou lote (`--databases-batch`).
 - `--database` não aceita wildcard; wildcard é via `--databases-batch`.
 - Checks operacionais estão disponíveis apenas no modo por banco (`--database`), não no modo por arquivo (`--input/--source`).
+- A coleta operacional de `MON$` no modo por banco é best-effort:
+  - se falhar (permissão/versão/consulta/timeout), a análise estrutural ainda conclui normalmente;
+  - os metadados do relatório passam a indicar status da análise operacional e resumo de erro.
 - A estimativa de volume no modo por banco é best-effort; se falhar ou estourar timeout, a análise continua sem os achados de prioridade por volume.
 
 ## Exemplos
