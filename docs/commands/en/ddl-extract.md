@@ -7,6 +7,10 @@ Extracts Firebird schema metadata and generates two synchronized outputs:
 
 `ddl-extract` is the canonical entry point before `ddl-diff` and `ddl-analyze` when you want reproducible metadata artifacts.
 
+## When to use
+- DBA: capture current schema baseline before maintenance or migration.
+- Developer: produce versionable schema snapshots for review and CI comparisons.
+
 ## How to use
 ```powershell
 SkyFBTool ddl-extract --database PATH.fdb --output PREFIX [options]

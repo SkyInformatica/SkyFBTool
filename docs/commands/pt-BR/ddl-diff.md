@@ -8,6 +8,10 @@ Compara duas entradas de schema e gera:
 
 `ddl-diff` foi desenhado para fluxos controlados de sincronização de schema (promoções, auditorias, planejamento de migração).
 
+## Quando usar
+- DBA: avaliar drift de schema e gerar SQL de ajuste revisado antes do rollout.
+- Desenvolvedor: validar impacto de migrações e manter alinhamento explícito entre origem e alvo.
+
 ## Como usar
 ```powershell
 SkyFBTool ddl-diff --source ORIGEM --target ALVO --output PREFIXO

@@ -3,6 +3,10 @@
 ## What it does
 Exports table data from Firebird to SQL script using streaming.
 
+## When to use
+- DBA: controlled data extraction for migration windows and rollback-ready SQL artifacts.
+- Developer: deterministic fixture/data snapshots for test and homologation scenarios.
+
 ## How to use
 ```powershell
 SkyFBTool export --database PATH.fdb --table TABLE [options]
@@ -36,6 +40,8 @@ SkyFBTool export --database PATH.fdb --table TABLE [options]
   - Do not combine `--query-file` with `--filter` or `--filter-file`.
   - Use `--table` as the default mode (simple table export); use `--query-file` only when you need full SQL control.
   - `--filter` and `--filter-file` are intended for simple predicates; they are appended to generated table query.
+  - In default table mode (`--table`), Firebird computed/read-only columns are automatically excluded from export (only writable columns are emitted in generated `INSERT`/`UPSERT`).
+  - In custom query mode (`--query-file`), selected columns are your responsibility; if you include computed/read-only columns, validate import strategy accordingly.
 
 - Consistency between source and generated SQL
   - If `--target-table` is used, ensure destination table schema is compatible with exported columns/order.
@@ -52,6 +58,15 @@ SkyFBTool export --database PATH.fdb --table TABLE [options]
   - Use `--progress-every` to monitor long-running exports.
   - Use `--continue-on-error` only when partial export is acceptable and row-level failures will be reviewed later.
   - `--commit-every` affects generated script transaction boundaries during import, not extraction consistency from source.
+
+## Console progress behavior
+- Interactive terminal (TTY):
+  - live dynamic progress line is updated in place (`processed`, `commands`, `speed`, `elapsed`).
+  - fixed checkpoints are printed every 50,000 processed units or every 30 seconds (whichever comes first).
+- Redirected output / CI logs:
+  - dynamic single-line rendering is disabled.
+  - fixed progress/checkpoint lines are printed for log readability.
+- Final summary is always printed with totals, elapsed time, throughput, and error count.
 
 ## Examples
 ```powershell

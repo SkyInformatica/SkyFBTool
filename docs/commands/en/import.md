@@ -9,6 +9,10 @@ Executes SQL scripts on Firebird using streaming parsing (line-by-line), with su
 
 Use `import` for data loads, schema scripts, and controlled SQL replay.
 
+## When to use
+- DBA: operational execution of bulk SQL with auditable logs and resumable best-effort mode.
+- Developer: applying generated scripts in repeatable environment setup pipelines.
+
 ## How to use
 ```powershell
 SkyFBTool import --database PATH.fdb --input FILE.sql [options]
@@ -47,6 +51,15 @@ SkyFBTool import --database PATH.fdb --inputs-batch "C:\exports\*.sql" [options]
   - total executed commands
   - elapsed time
   - average command throughput
+
+## Console progress behavior
+- Interactive terminal (TTY):
+  - live dynamic progress line is updated in place (`processed`, `commands`, `speed`, `elapsed`).
+  - fixed checkpoints are printed every 50,000 processed units or every 30 seconds (whichever comes first).
+- Redirected output / CI logs:
+  - dynamic single-line rendering is disabled.
+  - fixed progress/checkpoint lines are printed for log readability.
+- Final summary is always printed with totals, elapsed time, throughput, and error count.
 
 ## Error handling semantics
 - Without `--continue-on-error`:

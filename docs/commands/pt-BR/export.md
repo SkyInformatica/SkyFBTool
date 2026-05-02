@@ -3,6 +3,10 @@
 ## O que faz
 Exporta dados de tabela Firebird para script SQL em modo streaming.
 
+## Quando usar
+- DBA: extração controlada de dados para janelas de migração e artefatos SQL com possibilidade de rollback.
+- Desenvolvedor: snapshots determinísticos de dados para teste e homologação.
+
 ## Como usar
 ```powershell
 SkyFBTool export --database CAMINHO.fdb --table TABELA [opções]
@@ -36,6 +40,8 @@ SkyFBTool export --database CAMINHO.fdb --table TABELA [opções]
   - Não combinar `--query-file` com `--filter` ou `--filter-file`.
   - Use `--table` como modo padrão (exportação simples de tabela); use `--query-file` apenas quando precisar de controle total do SQL.
   - `--filter` e `--filter-file` são para predicados simples; eles são anexados à consulta gerada da tabela.
+  - No modo padrão por tabela (`--table`), colunas computadas/somente leitura do Firebird são excluídas automaticamente da exportação (somente colunas graváveis entram no `INSERT`/`UPSERT` gerado).
+  - No modo de consulta personalizada (`--query-file`), as colunas selecionadas ficam sob sua responsabilidade; se incluir colunas computadas/somente leitura, valide a estratégia de importação.
 
 - Consistência entre origem e SQL gerado
   - Se usar `--target-table`, garanta que o schema da tabela de destino é compatível com colunas/ordem exportadas.
@@ -52,6 +58,15 @@ SkyFBTool export --database CAMINHO.fdb --table TABELA [opções]
   - Use `--progress-every` para acompanhar execução longa.
   - Use `--continue-on-error` apenas quando exportação parcial for aceitável e as falhas por linha forem revisadas depois.
   - `--commit-every` afeta os limites transacionais do script gerado durante a importação, não a consistência de leitura da origem.
+
+## Comportamento de progresso no console
+- Terminal interativo (TTY):
+  - linha dinâmica de progresso é atualizada em tempo real (`processado`, `comandos`, `velocidade`, `tempo`).
+  - checkpoints fixos são impressos a cada 50.000 unidades processadas ou 30 segundos (o que ocorrer primeiro).
+- Saída redirecionada / CI:
+  - renderização dinâmica em linha única é desativada.
+  - progresso/checkpoints são emitidos em linhas fixas para melhor leitura em log.
+- O resumo final sempre é exibido com totais, tempo decorrido, vazão e total de erros.
 
 ## Exemplos
 ```powershell

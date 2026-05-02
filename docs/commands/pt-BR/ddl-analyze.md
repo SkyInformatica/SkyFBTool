@@ -16,6 +16,10 @@ No relatório HTML, o `ddl-analyze` também apresenta:
 - tabela **Tabelas priorizadas para correção** (por escopo/tabela), com `Prioridade` (`P0..P3`), `Índice de risco` e `Qtde`;
 - legenda de prioridade (`P0..P3`) ao lado dos critérios de severidade para facilitar decisão rápida do DBA.
 
+## Quando usar
+- DBA: priorizar correções com base em severidade, índice de risco e concentração por tabela.
+- Desenvolvedor: validar gate de qualidade de schema e detectar regressões estruturais antes do deploy.
+
 ## Como usar
 ```powershell
 SkyFBTool ddl-analyze --input ENTRADA --output PREFIXO [opções]

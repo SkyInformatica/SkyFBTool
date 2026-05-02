@@ -4,6 +4,19 @@
 
 SkyFBTool é uma CLI em .NET 8 para exportação/importação de dados Firebird (2.5 / 3.0 / 4.0 / 5.0), focada em grandes volumes, execução em streaming e segurança de charset.
 
+## Público-alvo
+
+- DBA: execução operacional, comparação de schema, priorização de risco e validação de rollout.
+- Desenvolvedor: artefatos reprodutíveis de schema, revisão de migração, saídas compatíveis com CI e validações automatizadas.
+
+## Guia de escolha de comando
+
+- Precisa mover dados de tabela para script SQL: use `export`.
+- Precisa executar script(s) SQL no banco: use `import` (ou `exec-sql` para contexto de manutenção).
+- Precisa gerar snapshots de schema (`.sql` + `.schema.json`): use `ddl-extract`.
+- Precisa comparar estrutura entre dois schemas: use `ddl-diff`.
+- Precisa de relatório de risco/priorização com severidade e sinais operacionais: use `ddl-analyze`.
+
 ## O Que Há de Novo
 
 - [CHANGELOG.pt-BR.md](./CHANGELOG.pt-BR.md)
@@ -58,6 +71,26 @@ SkyFBTool ddl-extract [opções]
 SkyFBTool ddl-diff [opções]
 SkyFBTool ddl-analyze [opções]
 ```
+
+## Fluxos recomendados
+
+### 1) Fluxo de migração de dados (DBA/operação)
+1. Execute `export` na tabela/consulta de origem.
+2. Revise SQL gerado e parâmetros de split/charset.
+3. Execute `import` no destino monitorando progresso e log.
+4. Valide log de importação e resumo final.
+
+### 2) Fluxo de promoção de schema (DBA + dev)
+1. Rode `ddl-extract` em origem e destino.
+2. Rode `ddl-diff` para gerar comparação SQL/json/html.
+3. Revise HTML e SQL do diff em homologação.
+4. Aplique SQL aprovado e rode novo `ddl-diff` para confirmar convergência.
+
+### 3) Fluxo de triagem de risco (DBA)
+1. Execute `ddl-analyze` (preferencialmente em `--database`).
+2. Comece pela seção de priorização por tabela no relatório HTML.
+3. Trate primeiro itens `critical/high`, depois `medium`.
+4. Use itens `low` como backlog de otimização após validação por plano/carga.
 
 ### Exemplo de exportação
 
@@ -170,6 +203,17 @@ Testes de integração:
 $env:SKYFBTOOL_TEST_RUN_INTEGRATION="true"
 .\SkyFBTool.Tests\run-integration-tests.ps1
 ```
+
+## Guia rápido de troubleshooting
+
+- Falha com erros SQL:
+  - Consulte o log por execução (`*_import_log_*.log`) e o resumo final.
+- Problema de charset/acentuação:
+  - Defina `--charset` explícito; use `--legacy-win1252` só em cenário legado `CHARSET NONE` confirmado.
+- Execução/log muito grande:
+  - Use opções de split/progresso e prefira saída redirecionada em CI.
+- `ddl-analyze` sem achados operacionais:
+  - Confirme modo por banco (`--database` ou `--databases-batch`) e permissões de leitura em `MON$`.
 
 ## Padrão de Documentação
 

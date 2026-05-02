@@ -16,6 +16,10 @@ In the HTML report, `ddl-analyze` also provides:
 - a **Tables prioritized for remediation** section (scope/table), with `Priority` (`P0..P3`), `Risk index`, and `Count`;
 - a priority legend (`P0..P3`) placed next to severity criteria for faster DBA decision-making.
 
+## When to use
+- DBA: prioritize remediation using severity, risk index, and table-level concentration.
+- Developer: validate schema quality gates and detect structural regressions before deployment.
+
 ## How to use
 ```powershell
 SkyFBTool ddl-analyze --input INPUT --output PREFIX [options]

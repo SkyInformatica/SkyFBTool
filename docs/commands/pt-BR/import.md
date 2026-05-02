@@ -9,6 +9,10 @@ Executa scripts SQL no Firebird com parser em streaming (linha a linha), com sup
 
 Use `import` para carga de dados, aplicação de scripts de schema e replay controlado de SQL.
 
+## Quando usar
+- DBA: execução operacional de SQL em volume com log auditável e modo best-effort quando necessário.
+- Desenvolvedor: aplicação de scripts gerados em pipelines reproduzíveis de preparação de ambiente.
+
 ## Como usar
 ```powershell
 SkyFBTool import --database CAMINHO.fdb --input ARQUIVO.sql [opções]
@@ -47,6 +51,15 @@ SkyFBTool import --database CAMINHO.fdb --inputs-batch "C:\exports\*.sql" [opç�
   - total de comandos executados
   - tempo decorrido
   - vazão média de comandos
+
+## Comportamento de progresso no console
+- Terminal interativo (TTY):
+  - linha dinâmica de progresso é atualizada em tempo real (`processado`, `comandos`, `velocidade`, `tempo`).
+  - checkpoints fixos são impressos a cada 50.000 unidades processadas ou 30 segundos (o que ocorrer primeiro).
+- Saída redirecionada / CI:
+  - renderização dinâmica em linha única é desativada.
+  - progresso/checkpoints são emitidos em linhas fixas para melhor leitura em log.
+- O resumo final sempre é exibido com totais, tempo decorrido, vazão e total de erros.
 
 ## Semântica de erro
 - Sem `--continue-on-error`:

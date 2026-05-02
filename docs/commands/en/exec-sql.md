@@ -5,6 +5,10 @@ Executes an SQL script against Firebird using the same execution engine as `impo
 
 Use `exec-sql` when your intent is operational script execution (schema patch, data fix, maintenance script), not data export/import workflow.
 
+## When to use
+- DBA: controlled maintenance execution with explicit operational intent and post-run audit log.
+- Developer: deterministic patch application during environment bootstrap or migration rehearsal.
+
 ## How to use
 ```powershell
 SkyFBTool exec-sql --database PATH.fdb --script FILE.sql [options]

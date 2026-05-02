@@ -8,6 +8,10 @@ Compares two schema inputs and generates:
 
 `ddl-diff` is designed for controlled schema synchronization workflows (promotions, audits, migration planning).
 
+## When to use
+- DBA: assess schema drift and generate reviewed adjustment SQL before rollout.
+- Developer: validate migration impact and keep source/target model alignment explicit.
+
 ## How to use
 ```powershell
 SkyFBTool ddl-diff --source SOURCE --target TARGET --output PREFIX

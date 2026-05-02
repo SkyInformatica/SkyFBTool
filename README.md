@@ -4,6 +4,19 @@ English | [Português (Brasil)](./README.pt-BR.md)
 
 SkyFBTool is a .NET 8 CLI for Firebird data export/import (2.5 / 3.0 / 4.0 / 5.0), focused on large datasets, streaming execution, and charset-safe workflows.
 
+## Target audience
+
+- DBA: operational execution, schema comparison, risk triage, and controlled rollout checks.
+- Developer: reproducible schema artifacts, migration review, CI-friendly outputs, and automated validation flows.
+
+## Command selection guide
+
+- Need to move table data to SQL script: use `export`.
+- Need to execute SQL script(s) on a database: use `import` (or `exec-sql` for maintenance intent).
+- Need schema snapshots (`.sql` + `.schema.json`): use `ddl-extract`.
+- Need structural comparison between two schemas: use `ddl-diff`.
+- Need risk/prioritization report with severities and operational signals: use `ddl-analyze`.
+
 ## What's New
 
 - [CHANGELOG.md](./CHANGELOG.md)
@@ -58,6 +71,26 @@ SkyFBTool ddl-extract [options]
 SkyFBTool ddl-diff [options]
 SkyFBTool ddl-analyze [options]
 ```
+
+## Recommended workflows
+
+### 1) Data migration workflow (DBA/operations)
+1. `export` from source table/query.
+2. Review generated SQL and file split/charset settings.
+3. `import` into target with progress and log monitoring.
+4. Validate import log and final summary.
+
+### 2) Schema promotion workflow (DBA + dev)
+1. `ddl-extract` from source and target environments.
+2. `ddl-diff` to generate SQL/json/html comparison.
+3. Review `ddl-diff` HTML and SQL in staging.
+4. Apply approved SQL and re-run `ddl-diff` to confirm convergence.
+
+### 3) Risk triage workflow (DBA)
+1. Run `ddl-analyze` (prefer `--database` mode when possible).
+2. Start from table prioritization section in HTML report.
+3. Resolve `critical/high` findings first, then `medium`.
+4. Keep `low` findings as optimization backlog after plan validation.
 
 ### Export example
 
@@ -170,6 +203,17 @@ Integration tests:
 $env:SKYFBTOOL_TEST_RUN_INTEGRATION="true"
 .\SkyFBTool.Tests\run-integration-tests.ps1
 ```
+
+## Troubleshooting quick guide
+
+- Script failed with SQL errors:
+  - Check per-run log file (`*_import_log_*.log`) and final summary.
+- Charset/accent issues:
+  - Set explicit `--charset`; use `--legacy-win1252` only for confirmed legacy `CHARSET NONE` cases.
+- Very large execution/log output:
+  - Use split/progress options and prefer redirected output in CI pipelines.
+- `ddl-analyze` operational findings missing:
+  - Confirm DB mode (`--database` or `--databases-batch`) and MON$ access permissions.
 
 ## Documentation Standard
 
