@@ -657,6 +657,38 @@ public class ExportImportRoundTripTests
         }
     }
 
+    [Fact]
+    public async Task Export_ComFalhaIntermitenteNoDestino_RetentaEConcluiVolume()
+    {
+        if (!IntegracaoHabilitada())
+            return;
+
+        string pastaTemp = CriarPastaTemp();
+        string arquivoBanco = Path.Combine(pastaTemp, "export_retry_intermitente.fdb");
+        const string tabela = "TESTE_EXPORT_RETRY";
+
+        try
+        {
+            await CriarBancoAsync(arquivoBanco, "UTF8");
+            await CriarTabelaVaziaAsync(arquivoBanco, "UTF8", tabela);
+            await InserirMuitasLinhasAsync(arquivoBanco, "UTF8", tabela, 300);
+
+            var opcoesExportacao = CriarOpcoesExportacao(arquivoBanco, "UTF8", Path.Combine(pastaTemp, "ignorado.sql"), tabela);
+            opcoesExportacao.CommitACada = 100;
+
+            await using var destino = new DestinoComFalhaIntermitente();
+            await ExportadorTabelaFirebird.ExportarAsync(opcoesExportacao, destino);
+
+            Assert.Equal(300, destino.TotalInsertGravados);
+            Assert.Equal(2, destino.TotalFalhasSimuladas);
+            Assert.True(destino.TotalChamadas > destino.TotalInsertGravados);
+        }
+        finally
+        {
+            TentarExcluirDiretorio(pastaTemp);
+        }
+    }
+
     private static bool IntegracaoHabilitada()
     {
         string? flag = Environment.GetEnvironmentVariable("SKYFBTOOL_TEST_RUN_INTEGRATION");
@@ -984,6 +1016,39 @@ public class ExportImportRoundTripTests
                 _jaFalhou = true;
                 throw new IOException("Falha simulada no destino");
             }
+
+            return Task.CompletedTask;
+        }
+
+        public ValueTask DisposeAsync()
+        {
+            return ValueTask.CompletedTask;
+        }
+    }
+
+    private sealed class DestinoComFalhaIntermitente : IDestinoArquivo
+    {
+        private int _falhasRestantes = 2;
+
+        public int TotalChamadas { get; private set; }
+
+        public int TotalFalhasSimuladas { get; private set; }
+
+        public int TotalInsertGravados { get; private set; }
+
+        public Task EscreverLinhaAsync(string linha)
+        {
+            TotalChamadas++;
+
+            if (_falhasRestantes > 0 && linha.StartsWith("INSERT ", StringComparison.OrdinalIgnoreCase))
+            {
+                _falhasRestantes--;
+                TotalFalhasSimuladas++;
+                throw new IOException("Falha intermitente simulada no destino");
+            }
+
+            if (linha.StartsWith("INSERT ", StringComparison.OrdinalIgnoreCase))
+                TotalInsertGravados++;
 
             return Task.CompletedTask;
         }
