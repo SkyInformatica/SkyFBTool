@@ -121,7 +121,6 @@ SkyFBTool ddl-analyze --input "C:\ddl\source.schema.json" --description "analysi
 ```
 
 Notes:
-- DDL report/output language uses OS culture detection (`English` by default, `pt-BR` localized).
 - `ddl-extract` classifies extraction failures by root category (`incompatible_ods`, `permission_denied`, `database_file_access`, `metadata_query_failure`, `connection_failure`, `unknown`).
 - `ddl-diff` output files: `.sql`, `.json`, and `.html`.
 - `ddl-diff` report includes Top 10 critical target findings (with severity), suggested SQL block order, and a post-apply checklist.
@@ -137,7 +136,7 @@ Notes:
 - `ddl-analyze` accepts `--description` to include contextual text in JSON and HTML report metadata.
 - `ddl-analyze` supports `--volume-analysis on|off` (default `on`) to enable/disable volume-priority analysis.
 - `ddl-analyze` uses index-based volume estimation by default and executes exact `COUNT(*)` only when `--volume-count-exact on` is explicitly set.
-- CLI runtime messages follow OS culture detection: English is the default output, and `pt-BR` is used when the system culture is Brazilian Portuguese.
+- DDL reports and CLI runtime messages follow OS culture detection (`English` by default, `pt-BR` when the system culture is Brazilian Portuguese).
 - Use `docs/examples/ddl-severity.sample.json` as the reference schema (it covers all current finding codes).
 - Reproducible `ddl-analyze` sample outputs: `docs/examples/ddl-analyze-sample*.{sql,json,html}`.
 - Accepted severity values: `critical`, `high`, `medium`, `low`.

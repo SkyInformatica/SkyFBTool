@@ -122,8 +122,7 @@ SkyFBTool ddl-analyze --input "C:\ddl\origem.schema.json" --description "anális
 
 ## Observações
 
-- O idioma de saída/relatório de DDL usa detecção da cultura do SO (`English` padrão, `pt-BR` localizado).
-- As mensagens de runtime da CLI seguem a cultura do sistema: inglês é a saída padrão e `pt-BR` é usado quando a cultura do SO é português do Brasil.
+- Os relatórios de DDL e as mensagens de runtime da CLI seguem a detecção da cultura do SO (`English` como padrão, `pt-BR` quando a cultura do sistema é português do Brasil).
 - `ddl-extract` classifica falhas de extração por categoria raiz (`incompatible_ods`, `permission_denied`, `database_file_access`, `metadata_query_failure`, `connection_failure`, `unknown`).
 - Arquivos de saída do `ddl-diff`: `.sql`, `.json` e `.html`.
 - O relatório do `ddl-diff` inclui Top 10 achados críticos do alvo (com severidade), ordem sugerida de blocos SQL e checklist pós-aplicação.
