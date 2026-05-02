@@ -197,6 +197,33 @@ Regras:
 dotnet test SkyFBTool.Tests\SkyFBTool.Tests.csproj -p:RestoreSources=https://api.nuget.org/v3/index.json
 ```
 
+### O Que os Testes Garantem Hoje
+
+- Exportação:
+  - composição segura/válida de `SELECT` (`table`, `columns`, `filter`, `query-file`);
+  - consistência na geração de SQL (`INSERT`/`UPSERT`, formatos de BLOB, escape de newline, `commit-every`);
+  - cobertura de charset e comportamento legado (`UTF8`, `WIN1252`, `ISO8859_1`, `NONE` + modo legado);
+  - exclusão de colunas calculadas/somente leitura e cenários de round-trip export/import.
+- Importação / execução SQL:
+  - comportamento do parser streaming (`SET TERM`, comentários, literais de string);
+  - comportamento fail-fast vs `--continue-on-error` e geração de log de execução;
+  - fluxo de entrada em lote, validação de parâmetros e comportamento central de progresso/commit.
+- Fluxos DDL:
+  - `ddl-extract` gerando snapshot/DDL dos objetos principais;
+  - `ddl-diff` detectando mudanças estruturais e sugerindo SQL;
+  - `ddl-analyze` com validações estruturais, override de severidade e composição de resumos;
+  - checks operacionais (`MON$`) com limites principais e agregação do resumo em lote.
+- Infra e CLI:
+  - utilitários de detecção/resolução de charset e divisão de arquivo de saída;
+  - validação de opções da CLI e classificação contextual de erros.
+
+### Lacunas de Cobertura e Próximas Prioridades
+
+- Resiliência operacional de `MON$` em edge cases de versão/permissão do Firebird.
+- Casos complexos de ordenação de dependências no `ddl-diff` e combinações maiores de schema real.
+- Cenários de estresse de import/export com volumes muito grandes e falhas intermitentes.
+- Fluxos de lote com resultados mistos (falhas parciais e bases muito heterogêneas).
+
 Testes de integração:
 
 ```powershell

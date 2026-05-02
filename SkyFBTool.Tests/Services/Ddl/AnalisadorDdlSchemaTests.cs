@@ -115,9 +115,9 @@ public class AnalisadorDdlSchemaTests
 
         var resultado = AnalisadorDdlSchema.Analisar(snapshot);
 
-        var achado = Assert.Single(resultado.Achados.Where(a =>
+        var achado = Assert.Single(resultado.Achados, a =>
             a.Codigo == "FK_SEM_INDICE_COBERTURA" &&
-            a.Severidade == "medium"));
+            a.Severidade == "medium");
         Assert.Contains("Child table: PEDIDOS (CLIENTE_ID)", achado.Descricao);
         Assert.Contains("Parent table: CLIENTES (ID)", achado.Descricao);
         Assert.Contains("Create an index on child table PEDIDOS using FK columns (CLIENTE_ID)", achado.Recomendacao);
@@ -219,9 +219,9 @@ public class AnalisadorDdlSchemaTests
 
         var resultado = AnalisadorDdlSchema.Analisar(snapshot);
 
-        var achado = Assert.Single(resultado.Achados.Where(a =>
+        var achado = Assert.Single(resultado.Achados, a =>
             a.Codigo == "INDICE_DUPLICADO" &&
-            a.Severidade == "low"));
+            a.Severidade == "low");
         Assert.Contains("Signature: NON-UNIQUE, ASC, (DATA)", achado.Descricao);
     }
 
@@ -269,9 +269,9 @@ public class AnalisadorDdlSchemaTests
 
         var resultado = AnalisadorDdlSchema.Analisar(snapshot);
 
-        var achado = Assert.Single(resultado.Achados.Where(a =>
+        var achado = Assert.Single(resultado.Achados, a =>
             a.Codigo == "INDICE_REDUNDANTE_PREFIXO" &&
-            a.Severidade == "medium"));
+            a.Severidade == "medium");
         Assert.Contains("IDX_MOV_DATA (NON-UNIQUE, ASC, (DATA))", achado.Descricao);
         Assert.Contains("IDX_MOV_DATA_TIPO (NON-UNIQUE, ASC, (DATA, TIPO))", achado.Descricao);
         Assert.Contains("prefix (DATA)", achado.Descricao);

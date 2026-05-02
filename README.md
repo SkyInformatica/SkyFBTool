@@ -197,6 +197,33 @@ Rules:
 dotnet test SkyFBTool.Tests\SkyFBTool.Tests.csproj -p:RestoreSources=https://api.nuget.org/v3/index.json
 ```
 
+### What Tests Guarantee Today
+
+- Export:
+  - safe/valid `SELECT` composition (`table`, `columns`, `filter`, `query-file`);
+  - SQL generation consistency (`INSERT`/`UPSERT`, BLOB formats, newline escaping, `commit-every`);
+  - charset and legacy behavior coverage (`UTF8`, `WIN1252`, `ISO8859_1`, `NONE` + legacy mode);
+  - computed/read-only column exclusion and export/import round-trip scenarios.
+- Import / SQL execution:
+  - streaming parser behavior (`SET TERM`, comments, string literals);
+  - fail-fast vs `--continue-on-error` behavior and execution logging;
+  - batch input flow, parameter validation, and core progress/commit behavior.
+- DDL workflows:
+  - `ddl-extract` snapshot/DDL generation for core objects;
+  - `ddl-diff` structural change detection and SQL suggestion behavior;
+  - `ddl-analyze` structural validations, severity override, and summary composition;
+  - operational checks (`MON$`) core thresholds and batch summary aggregation.
+- Infra and CLI:
+  - charset detection/resolution utilities, output file split behavior;
+  - CLI option validation and contextual error classification.
+
+### Coverage Gaps and Next Priorities
+
+- `MON$` operational resilience across Firebird versions/permissions edge cases.
+- `ddl-diff` complex dependency ordering and larger real-world schema combinations.
+- Import/export stress scenarios under very large datasets and intermittent failures.
+- Batch mixed-result flows (partial failures, highly heterogeneous databases).
+
 Integration tests:
 
 ```powershell
