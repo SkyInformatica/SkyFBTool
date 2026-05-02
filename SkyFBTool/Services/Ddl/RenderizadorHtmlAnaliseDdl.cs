@@ -58,7 +58,6 @@ public static class RenderizadorHtmlAnaliseDdl
             PctLabel = "%",
             CodigoLabel = M(idioma, "Code", "Código"),
             PrioridadeLabel = M(idioma, "Priority", "Prioridade"),
-            ScoreRiscoLabel = M(idioma, "Risk score", "Score de risco"),
             IndiceRiscoLabel = M(idioma, "Risk index", "Índice de risco"),
             EscopoLabel = M(idioma, "Scope", "Escopo"),
             DescricaoLabel = M(idioma, "Description", "Descrição"),
@@ -87,8 +86,6 @@ public static class RenderizadorHtmlAnaliseDdl
             {
                 SeveridadeValor = a.Severidade,
                 SeveridadeRotulo = H(SeveridadeRotulo(a.Severidade, idioma)),
-                Prioridade = H(a.Prioridade),
-                ScoreRisco = a.ScoreRisco,
                 Codigo = H(a.Codigo),
                 Escopo = H(a.Escopo),
                 Descricao = H(a.Descricao),
@@ -351,7 +348,6 @@ public static class RenderizadorHtmlAnaliseDdl
         public string PctLabel { get; init; } = "%";
         public string CodigoLabel { get; init; } = string.Empty;
         public string PrioridadeLabel { get; init; } = string.Empty;
-        public string ScoreRiscoLabel { get; init; } = string.Empty;
         public string IndiceRiscoLabel { get; init; } = string.Empty;
         public string EscopoLabel { get; init; } = string.Empty;
         public string DescricaoLabel { get; init; } = string.Empty;
@@ -412,8 +408,6 @@ public static class RenderizadorHtmlAnaliseDdl
     {
         public string SeveridadeValor { get; init; } = string.Empty;
         public string SeveridadeRotulo { get; init; } = string.Empty;
-        public string Prioridade { get; init; } = string.Empty;
-        public int ScoreRisco { get; init; }
         public string Codigo { get; init; } = string.Empty;
         public string Escopo { get; init; } = string.Empty;
         public string Descricao { get; init; } = string.Empty;
