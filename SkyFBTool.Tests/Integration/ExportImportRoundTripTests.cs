@@ -4,6 +4,7 @@ using SkyFBTool.Core;
 using SkyFBTool.Infra;
 using SkyFBTool.Services.Export;
 using SkyFBTool.Services.Import;
+using System.Text;
 using Xunit;
 
 namespace SkyFBTool.Tests.Integration;
@@ -359,6 +360,117 @@ public class ExportImportRoundTripTests
 
             int totalLinhas = await ContarLinhasAsync(arquivoBanco, "UTF8", tabela);
             Assert.Equal(2, totalLinhas);
+
+            string[] arquivosLog = Directory.GetFiles(
+                pastaTemp,
+                "*_import_log_*.log",
+                SearchOption.TopDirectoryOnly);
+            Assert.NotEmpty(arquivosLog);
+            string textoLog = await File.ReadAllTextAsync(arquivosLog.OrderByDescending(a => a).First());
+            Assert.Contains("Erro ao executar SQL", textoLog);
+        }
+        finally
+        {
+            TentarExcluirDiretorio(pastaTemp);
+        }
+    }
+
+    [Fact]
+    public async Task Import_GrandeVolume_ComFalhaNoMeio_ContinuaERegistraErro()
+    {
+        if (!IntegracaoHabilitada())
+            return;
+
+        string pastaTemp = CriarPastaTemp();
+        string arquivoBanco = Path.Combine(pastaTemp, "import_volume.fdb");
+        string arquivoSql = Path.Combine(pastaTemp, "import_volume.sql");
+        const string tabela = "TESTE_IMPORT_VOLUME";
+
+        try
+        {
+            await CriarBancoAsync(arquivoBanco, "UTF8");
+            await CriarTabelaVaziaAsync(arquivoBanco, "UTF8", tabela);
+
+            var conteudo = new StringBuilder();
+            conteudo.AppendLine("SET SQL DIALECT 3;");
+            conteudo.AppendLine("SET NAMES UTF8;");
+
+            for (int i = 1; i <= 400; i++)
+            {
+                conteudo.AppendLine($"INSERT INTO {tabela} (ID, NOME) VALUES ({i}, 'antes_{i}');");
+            }
+
+            conteudo.AppendLine($"INSERT INTO {tabela} (ID, COLUNA_INVALIDA) VALUES (9999, 'erro');");
+
+            for (int i = 401; i <= 800; i++)
+            {
+                conteudo.AppendLine($"INSERT INTO {tabela} (ID, NOME) VALUES ({i}, 'depois_{i}');");
+            }
+
+            conteudo.AppendLine("COMMIT;");
+
+            await File.WriteAllTextAsync(arquivoSql, conteudo.ToString(), CharsetSql.ResolverEncodingLeituraSql("UTF8"));
+
+            using var _cwd = new WorkingDirectoryScope(pastaTemp);
+            var opcoesImportacao = CriarOpcoesImportacao(arquivoBanco, arquivoSql, continuarEmCasoDeErro: true);
+            await ImportadorSql.ImportarAsync(opcoesImportacao);
+
+            int totalLinhas = await ContarLinhasAsync(arquivoBanco, "UTF8", tabela);
+            Assert.Equal(800, totalLinhas);
+
+            string[] arquivosLog = Directory.GetFiles(
+                pastaTemp,
+                "*_import_log_*.log",
+                SearchOption.TopDirectoryOnly);
+            Assert.NotEmpty(arquivosLog);
+
+            string textoLog = await File.ReadAllTextAsync(arquivosLog.OrderByDescending(a => a).First());
+            Assert.Contains("Erro ao executar SQL", textoLog);
+        }
+        finally
+        {
+            TentarExcluirDiretorio(pastaTemp);
+        }
+    }
+
+    [Fact]
+    public async Task Import_GrandeVolume_ComFalhaIntermitenteNoMeio_ContinuaERegistraErro()
+    {
+        if (!IntegracaoHabilitada())
+            return;
+
+        string pastaTemp = CriarPastaTemp();
+        string arquivoBanco = Path.Combine(pastaTemp, "import_volume_intermitente.fdb");
+        string arquivoSql = Path.Combine(pastaTemp, "import_volume_intermitente.sql");
+        const string tabela = "TESTE_IMPORT_VOLUME";
+
+        try
+        {
+            await CriarBancoAsync(arquivoBanco, "UTF8");
+            await CriarTabelaVaziaAsync(arquivoBanco, "UTF8", tabela);
+
+            var sb = new StringBuilder();
+            sb.AppendLine("SET SQL DIALECT 3;");
+            sb.AppendLine("SET NAMES UTF8;");
+            for (int i = 1; i <= 300; i++)
+            {
+                sb.AppendLine($"INSERT INTO {tabela} (ID, NOME) VALUES ({i}, 'antes_{i}');");
+            }
+            sb.AppendLine($"INSERT INTO {tabela} (ID, COLUNA_INVALIDA) VALUES (9999, 'erro');");
+            for (int i = 301; i <= 600; i++)
+            {
+                sb.AppendLine($"INSERT INTO {tabela} (ID, NOME) VALUES ({i}, 'depois_{i}');");
+            }
+            sb.AppendLine("COMMIT;");
+
+            await File.WriteAllTextAsync(arquivoSql, sb.ToString(), CharsetSql.ResolverEncodingLeituraSql("UTF8"));
+
+            using var _cwd = new WorkingDirectoryScope(pastaTemp);
+            var opcoesImportacao = CriarOpcoesImportacao(arquivoBanco, arquivoSql, continuarEmCasoDeErro: true);
+            await ImportadorSql.ImportarAsync(opcoesImportacao);
+
+            int totalLinhas = await ContarLinhasAsync(arquivoBanco, "UTF8", tabela);
+            Assert.Equal(600, totalLinhas);
 
             string[] arquivosLog = Directory.GetFiles(
                 pastaTemp,
