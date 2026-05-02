@@ -8,6 +8,7 @@ public static class ExportadorTabelaFirebird
 {
     private const long CheckpointUnidades = 50_000;
     private static readonly TimeSpan IntervaloCheckpoint = TimeSpan.FromSeconds(30);
+    private const int MaxTentativasEscrita = 3;
 
     public static async Task ExportarAsync(OpcoesExportacao opcoes, IDestinoArquivo destino)
     {
@@ -136,7 +137,7 @@ public static class ExportadorTabelaFirebird
             }
             try
             {
-                await destino.EscreverLinhaAsync(insert);
+                await EscreverLinhaComRetryAsync(destino, insert);
             }
             catch (Exception ex)
             {
@@ -151,7 +152,7 @@ public static class ExportadorTabelaFirebird
             if (opcoes.CommitACada > 0 &&
                 totalLinhas % opcoes.CommitACada == 0)
             {
-                await destino.EscreverLinhaAsync("COMMIT;");
+                await EscreverLinhaComRetryAsync(destino, "COMMIT;");
             }
 
             AtualizarProgresso(
@@ -167,7 +168,7 @@ public static class ExportadorTabelaFirebird
 
         if (totalLinhas > 0 && opcoes.CommitACada > 0)
         {
-            await destino.EscreverLinhaAsync("COMMIT;");
+            await EscreverLinhaComRetryAsync(destino, "COMMIT;");
         }
 
         if (modoDinamico && opcoes.ProgressoACada > 0)
@@ -235,6 +236,45 @@ public static class ExportadorTabelaFirebird
     private static string FormatarDuracao(TimeSpan tempo)
     {
         return $"{(int)tempo.TotalHours:00}:{tempo.Minutes:00}:{tempo.Seconds:00}.{tempo.Milliseconds:000}";
+    }
+
+    private static async Task EscreverLinhaComRetryAsync(IDestinoArquivo destino, string linha)
+    {
+        Exception? ultimoErro = null;
+
+        for (int tentativa = 1; tentativa <= MaxTentativasEscrita; tentativa++)
+        {
+            try
+            {
+                await destino.EscreverLinhaAsync(linha);
+                return;
+            }
+            catch (Exception ex) when (EhFalhaTransienteEscrita(ex) && tentativa < MaxTentativasEscrita)
+            {
+                ultimoErro = ex;
+                await Task.Delay(TimeSpan.FromMilliseconds(100 * tentativa));
+            }
+            catch (Exception ex)
+            {
+                ultimoErro = ex;
+                break;
+            }
+        }
+
+        throw ultimoErro ?? new InvalidOperationException("Falha ao escrever linha no arquivo de destino.");
+    }
+
+    internal static bool EhFalhaTransienteEscrita(Exception ex)
+    {
+        if (ex is IOException || ex is TimeoutException)
+            return true;
+
+        string mensagem = ex.Message?.ToLowerInvariant() ?? string.Empty;
+        return mensagem.Contains("being used by another process") ||
+               mensagem.Contains("used by another process") ||
+               mensagem.Contains("process cannot access the file") ||
+               mensagem.Contains("temporarily unavailable") ||
+               mensagem.Contains("resource temporarily unavailable");
     }
 
     private static async Task<IReadOnlyList<string>> ObterColunasGravaveisOrdenadasAsync(FbConnection conexao, string tabela)
