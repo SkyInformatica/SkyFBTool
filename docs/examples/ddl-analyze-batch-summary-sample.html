@@ -1,4 +1,4 @@
-<!doctype html>
+﻿<!doctype html>
 <html lang="pt-BR">
 <head>
   <meta charset="utf-8" />
@@ -25,13 +25,13 @@
 <body>
   <h1>Resumo da Análise DDL em Lote (Exemplo)</h1>
   <div class="meta">
-    <div><strong>Gerado em (UTC):</strong> 2026-05-02 14:10:00</div>
+    <div><strong>Gerado em (UTC):</strong> 2026-05-02 18:41:18</div>
   </div>
   <div class="kpi">
-    <div class="pill"><strong>Bases:</strong> 3</div>
+    <div class="pill"><strong>Bases:</strong> 4</div>
     <div class="pill"><strong>Bases com achados:</strong> 3</div>
     <div class="pill"><strong>Bases com achados críticos:</strong> 1</div>
-    <div class="pill"><strong>Total de achados:</strong> 42</div>
+    <div class="pill"><strong>Total de achados:</strong> 20</div>
   </div>
 
   <div class="card">
@@ -51,36 +51,10 @@
           </tr>
         </thead>
         <tbody>
-          <tr>
-            <td>financeiro_matriz</td>
-            <td>3</td>
-            <td>6</td>
-            <td>7</td>
-            <td>3</td>
-            <td>19</td>
-            <td><span class="severity-pill critical">Crítico</span></td>
-            <td>FK_SEM_INDICE_COBERTURA (5), INDICE_REDUNDANTE_PREFIXO (4), OPERACIONAL_GAP_OIT_OAT_ACIMA_DO_ESPERADO (2)</td>
-          </tr>
-          <tr>
-            <td>financeiro_filial_a</td>
-            <td>1</td>
-            <td>4</td>
-            <td>6</td>
-            <td>3</td>
-            <td>14</td>
-            <td><span class="severity-pill high">Alto</span></td>
-            <td>FK_SEM_INDICE_COBERTURA (4), INDICE_DUPLICADO (3), OPERACIONAL_TRANSACAO_ATIVA_LONGA (1)</td>
-          </tr>
-          <tr>
-            <td>financeiro_filial_b</td>
-            <td>0</td>
-            <td>2</td>
-            <td>5</td>
-            <td>2</td>
-            <td>9</td>
-            <td><span class="severity-pill medium">Médio</span></td>
-            <td>INDICE_REDUNDANTE_PREFIXO (3), FK_SEM_INDICE_COBERTURA (2), OPERACIONAL_GAP_OAT_OST_ACIMA_DO_ESPERADO (1)</td>
-          </tr>
+<tr><td>ddl-analyze-sample-rich</td><td>6</td><td>6</td><td>2</td><td>2</td><td>16</td><td><span class="severity-pill critical">Crítico</span></td><td>TABELA_SEM_PK (3), INDICE_REDUNDANTE_PREFIXO (2), FK_CARDINALIDADE_INVALIDA (1)</td></tr>
+<tr><td>ddl-analyze-sample</td><td>0</td><td>2</td><td>0</td><td>1</td><td>3</td><td><span class="severity-pill high">Alto</span></td><td>TABELA_SEM_PK (2), INDICE_DUPLICADO (1)</td></tr>
+<tr><td>ddl-analyze-from-diff-target</td><td>0</td><td>0</td><td>0</td><td>1</td><td>1</td><td><span class="severity-pill low">Baixo</span></td><td>INDICE_DUPLICADO (1)</td></tr>
+<tr><td>ddl-analyze-from-diff-source</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td><span class="severity-pill low">Baixo</span></td><td></td></tr>
         </tbody>
       </table>
     </div>
@@ -98,15 +72,22 @@
           </tr>
         </thead>
         <tbody>
-          <tr><td>FK_SEM_INDICE_COBERTURA</td><td>11</td><td>26.19</td></tr>
-          <tr><td>INDICE_REDUNDANTE_PREFIXO</td><td>8</td><td>19.05</td></tr>
-          <tr><td>INDICE_DUPLICADO</td><td>6</td><td>14.29</td></tr>
-          <tr><td>OPERACIONAL_GAP_OIT_OAT_ACIMA_DO_ESPERADO</td><td>3</td><td>7.14</td></tr>
-          <tr><td>OPERACIONAL_TRANSACAO_ATIVA_LONGA</td><td>2</td><td>4.76</td></tr>
+<tr><td>TABELA_SEM_PK</td><td>5</td><td>25</td></tr>
+<tr><td>INDICE_DUPLICADO</td><td>3</td><td>15</td></tr>
+<tr><td>INDICE_REDUNDANTE_PREFIXO</td><td>2</td><td>10</td></tr>
+<tr><td>FK_CARDINALIDADE_INVALIDA</td><td>1</td><td>5</td></tr>
+<tr><td>FK_COLUNA_LOCAL_INEXISTENTE</td><td>1</td><td>5</td></tr>
+<tr><td>FK_COLUNA_REFERENCIA_INEXISTENTE</td><td>1</td><td>5</td></tr>
+<tr><td>FK_DUPLICADA</td><td>1</td><td>5</td></tr>
+<tr><td>FK_TABELA_REFERENCIA_INEXISTENTE</td><td>1</td><td>5</td></tr>
+<tr><td>INDICE_COLUNA_INEXISTENTE</td><td>1</td><td>5</td></tr>
+<tr><td>INDICE_SEM_COLUNAS</td><td>1</td><td>5</td></tr>
+<tr><td>PK_REFERENCIA_COLUNA_INEXISTENTE</td><td>1</td><td>5</td></tr>
+<tr><td>TABELA_SEM_COLUNAS</td><td>1</td><td>5</td></tr>
+<tr><td>TIPO_DESCONHECIDO</td><td>1</td><td>5</td></tr>
         </tbody>
       </table>
     </div>
   </div>
 </body>
 </html>
-

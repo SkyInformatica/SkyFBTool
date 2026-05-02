@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Relatorio DDL Diff</title>
+  <title>Relatório DDL Diff</title>
   <style>
     @page { size: A4; margin: 12mm; }
     body { font-family: Segoe UI, Arial, sans-serif; margin: 20px; color: #1f2937; }
@@ -48,11 +48,11 @@
   </style>
 </head>
 <body>
-  <h1>Relatorio DDL Diff</h1>
+  <h1>Relatório DDL Diff</h1>
   <div class="meta">
     <div><strong>Origem:</strong> ddl-diff-sample-source.sql</div>
     <div><strong>Alvo:</strong> ddl-diff-sample-target.sql</div>
-    <div><strong>Gerado em (UTC):</strong> 2026-05-02 16:11:38</div>
+    <div><strong>Gerado em (UTC):</strong> 2026-05-02 18:46:01</div>
   </div>
   <div class="kpi">
     <div class="pill"><strong>Comandos SQL gerados:</strong> 25</div>
@@ -118,8 +118,31 @@
             <div class="table-wrap">
               <table><thead><tr><th>#</th><th>Item</th><th>Ações</th></tr></thead><tbody>
                 
-                    <tr data-text="ALTER TABLE &quot;CLIENTES&quot; ADD &quot;ATIVO&quot; SMALLINT DEFAULT 1;">
+                    <tr data-text="CREATE TABLE &quot;PRODUTOS&quot; (
+    &quot;ID&quot; INTEGER NOT NULL,
+    &quot;NOME&quot; VARCHAR(120) NOT NULL,
+    &quot;PRECO&quot; NUMERIC(15,2) NOT NULL,
+    &quot;ATIVO&quot; SMALLINT DEFAULT 1
+);">
                       <td>1</td>
+                      <td class="sql-line">CREATE TABLE &quot;PRODUTOS&quot; (
+    &quot;ID&quot; INTEGER NOT NULL,
+    &quot;NOME&quot; VARCHAR(120) NOT NULL,
+    &quot;PRECO&quot; NUMERIC(15,2) NOT NULL,
+    &quot;ATIVO&quot; SMALLINT DEFAULT 1
+);</td>
+                      <td class="line-actions">
+                        <button type="button" class="btn copy-line" data-cmd="CREATE TABLE &quot;PRODUTOS&quot; (
+    &quot;ID&quot; INTEGER NOT NULL,
+    &quot;NOME&quot; VARCHAR(120) NOT NULL,
+    &quot;PRECO&quot; NUMERIC(15,2) NOT NULL,
+    &quot;ATIVO&quot; SMALLINT DEFAULT 1
+);">Copiar linha</button>
+                      </td>
+                    </tr>
+                    
+                    <tr data-text="ALTER TABLE &quot;CLIENTES&quot; ADD &quot;ATIVO&quot; SMALLINT DEFAULT 1;">
+                      <td>2</td>
                       <td class="sql-line">ALTER TABLE &quot;CLIENTES&quot; ADD &quot;ATIVO&quot; SMALLINT DEFAULT 1;</td>
                       <td class="line-actions">
                         <button type="button" class="btn copy-line" data-cmd="ALTER TABLE &quot;CLIENTES&quot; ADD &quot;ATIVO&quot; SMALLINT DEFAULT 1;">Copiar linha</button>
@@ -127,7 +150,7 @@
                     </tr>
                     
                     <tr data-text="ALTER TABLE &quot;CLIENTES&quot; ADD &quot;DATA_CADASTRO&quot; TIMESTAMP DEFAULT CURRENT_TIMESTAMP;">
-                      <td>2</td>
+                      <td>3</td>
                       <td class="sql-line">ALTER TABLE &quot;CLIENTES&quot; ADD &quot;DATA_CADASTRO&quot; TIMESTAMP DEFAULT CURRENT_TIMESTAMP;</td>
                       <td class="line-actions">
                         <button type="button" class="btn copy-line" data-cmd="ALTER TABLE &quot;CLIENTES&quot; ADD &quot;DATA_CADASTRO&quot; TIMESTAMP DEFAULT CURRENT_TIMESTAMP;">Copiar linha</button>
@@ -135,71 +158,23 @@
                     </tr>
                     
                     <tr data-text="ALTER TABLE &quot;CLIENTES&quot; ADD &quot;EMAIL&quot; VARCHAR(120);">
-                      <td>3</td>
+                      <td>4</td>
                       <td class="sql-line">ALTER TABLE &quot;CLIENTES&quot; ADD &quot;EMAIL&quot; VARCHAR(120);</td>
                       <td class="line-actions">
                         <button type="button" class="btn copy-line" data-cmd="ALTER TABLE &quot;CLIENTES&quot; ADD &quot;EMAIL&quot; VARCHAR(120);">Copiar linha</button>
                       </td>
                     </tr>
                     
-                    <tr data-text="ALTER TABLE &quot;CLIENTES&quot; ALTER COLUMN &quot;NOME&quot; TYPE VARCHAR(120);">
-                      <td>4</td>
-                      <td class="sql-line">ALTER TABLE &quot;CLIENTES&quot; ALTER COLUMN &quot;NOME&quot; TYPE VARCHAR(120);</td>
-                      <td class="line-actions">
-                        <button type="button" class="btn copy-line" data-cmd="ALTER TABLE &quot;CLIENTES&quot; ALTER COLUMN &quot;NOME&quot; TYPE VARCHAR(120);">Copiar linha</button>
-                      </td>
-                    </tr>
-                    
-                    <tr data-text="CREATE INDEX &quot;IX_CLIENTES_NOME&quot; ON &quot;CLIENTES&quot; (&quot;NOME&quot;);">
-                      <td>5</td>
-                      <td class="sql-line">CREATE INDEX &quot;IX_CLIENTES_NOME&quot; ON &quot;CLIENTES&quot; (&quot;NOME&quot;);</td>
-                      <td class="line-actions">
-                        <button type="button" class="btn copy-line" data-cmd="CREATE INDEX &quot;IX_CLIENTES_NOME&quot; ON &quot;CLIENTES&quot; (&quot;NOME&quot;);">Copiar linha</button>
-                      </td>
-                    </tr>
-                    
-                    <tr data-text="CREATE UNIQUE INDEX &quot;UX_CLIENTES_EMAIL&quot; ON &quot;CLIENTES&quot; (&quot;EMAIL&quot;);">
-                      <td>6</td>
-                      <td class="sql-line">CREATE UNIQUE INDEX &quot;UX_CLIENTES_EMAIL&quot; ON &quot;CLIENTES&quot; (&quot;EMAIL&quot;);</td>
-                      <td class="line-actions">
-                        <button type="button" class="btn copy-line" data-cmd="CREATE UNIQUE INDEX &quot;UX_CLIENTES_EMAIL&quot; ON &quot;CLIENTES&quot; (&quot;EMAIL&quot;);">Copiar linha</button>
-                      </td>
-                    </tr>
-                    
-                    <tr data-text="ALTER TABLE &quot;ITENS_PEDIDO&quot; ALTER COLUMN &quot;PEDIDO_ID&quot; SET NOT NULL;">
-                      <td>7</td>
-                      <td class="sql-line">ALTER TABLE &quot;ITENS_PEDIDO&quot; ALTER COLUMN &quot;PEDIDO_ID&quot; SET NOT NULL;</td>
-                      <td class="line-actions">
-                        <button type="button" class="btn copy-line" data-cmd="ALTER TABLE &quot;ITENS_PEDIDO&quot; ALTER COLUMN &quot;PEDIDO_ID&quot; SET NOT NULL;">Copiar linha</button>
-                      </td>
-                    </tr>
-                    
                     <tr data-text="ALTER TABLE &quot;ITENS_PEDIDO&quot; ADD &quot;PRODUTO_ID&quot; INTEGER NOT NULL;">
-                      <td>8</td>
+                      <td>5</td>
                       <td class="sql-line">ALTER TABLE &quot;ITENS_PEDIDO&quot; ADD &quot;PRODUTO_ID&quot; INTEGER NOT NULL;</td>
                       <td class="line-actions">
                         <button type="button" class="btn copy-line" data-cmd="ALTER TABLE &quot;ITENS_PEDIDO&quot; ADD &quot;PRODUTO_ID&quot; INTEGER NOT NULL;">Copiar linha</button>
                       </td>
                     </tr>
                     
-                    <tr data-text="ALTER TABLE &quot;ITENS_PEDIDO&quot; ALTER COLUMN &quot;QUANTIDADE&quot; TYPE NUMERIC(15,3);">
-                      <td>9</td>
-                      <td class="sql-line">ALTER TABLE &quot;ITENS_PEDIDO&quot; ALTER COLUMN &quot;QUANTIDADE&quot; TYPE NUMERIC(15,3);</td>
-                      <td class="line-actions">
-                        <button type="button" class="btn copy-line" data-cmd="ALTER TABLE &quot;ITENS_PEDIDO&quot; ALTER COLUMN &quot;QUANTIDADE&quot; TYPE NUMERIC(15,3);">Copiar linha</button>
-                      </td>
-                    </tr>
-                    
-                    <tr data-text="ALTER TABLE &quot;ITENS_PEDIDO&quot; ALTER COLUMN &quot;QUANTIDADE&quot; SET NOT NULL;">
-                      <td>10</td>
-                      <td class="sql-line">ALTER TABLE &quot;ITENS_PEDIDO&quot; ALTER COLUMN &quot;QUANTIDADE&quot; SET NOT NULL;</td>
-                      <td class="line-actions">
-                        <button type="button" class="btn copy-line" data-cmd="ALTER TABLE &quot;ITENS_PEDIDO&quot; ALTER COLUMN &quot;QUANTIDADE&quot; SET NOT NULL;">Copiar linha</button>
-                      </td>
-                    </tr>
-                    
                     <tr data-text="ALTER TABLE &quot;ITENS_PEDIDO&quot; ADD &quot;VALOR_TOTAL&quot; NUMERIC(15,2) NOT NULL;">
-                      <td>11</td>
+                      <td>6</td>
                       <td class="sql-line">ALTER TABLE &quot;ITENS_PEDIDO&quot; ADD &quot;VALOR_TOTAL&quot; NUMERIC(15,2) NOT NULL;</td>
                       <td class="line-actions">
                         <button type="button" class="btn copy-line" data-cmd="ALTER TABLE &quot;ITENS_PEDIDO&quot; ADD &quot;VALOR_TOTAL&quot; NUMERIC(15,2) NOT NULL;">Copiar linha</button>
@@ -207,55 +182,15 @@
                     </tr>
                     
                     <tr data-text="ALTER TABLE &quot;ITENS_PEDIDO&quot; ADD &quot;VALOR_UNITARIO&quot; NUMERIC(15,2) NOT NULL;">
-                      <td>12</td>
+                      <td>7</td>
                       <td class="sql-line">ALTER TABLE &quot;ITENS_PEDIDO&quot; ADD &quot;VALOR_UNITARIO&quot; NUMERIC(15,2) NOT NULL;</td>
                       <td class="line-actions">
                         <button type="button" class="btn copy-line" data-cmd="ALTER TABLE &quot;ITENS_PEDIDO&quot; ADD &quot;VALOR_UNITARIO&quot; NUMERIC(15,2) NOT NULL;">Copiar linha</button>
                       </td>
                     </tr>
                     
-                    <tr data-text="ALTER TABLE &quot;ITENS_PEDIDO&quot; ADD CONSTRAINT &quot;FK_ITENS_PEDIDO_PEDIDO&quot; FOREIGN KEY (&quot;PEDIDO_ID&quot;) REFERENCES &quot;PEDIDOS&quot; (&quot;ID&quot;) ON DELETE CASCADE;">
-                      <td>13</td>
-                      <td class="sql-line">ALTER TABLE &quot;ITENS_PEDIDO&quot; ADD CONSTRAINT &quot;FK_ITENS_PEDIDO_PEDIDO&quot; FOREIGN KEY (&quot;PEDIDO_ID&quot;) REFERENCES &quot;PEDIDOS&quot; (&quot;ID&quot;) ON DELETE CASCADE;</td>
-                      <td class="line-actions">
-                        <button type="button" class="btn copy-line" data-cmd="ALTER TABLE &quot;ITENS_PEDIDO&quot; ADD CONSTRAINT &quot;FK_ITENS_PEDIDO_PEDIDO&quot; FOREIGN KEY (&quot;PEDIDO_ID&quot;) REFERENCES &quot;PEDIDOS&quot; (&quot;ID&quot;) ON DELETE CASCADE;">Copiar linha</button>
-                      </td>
-                    </tr>
-                    
-                    <tr data-text="CREATE INDEX &quot;IX_ITENS_PEDIDO_PEDIDO&quot; ON &quot;ITENS_PEDIDO&quot; (&quot;PEDIDO_ID&quot;);">
-                      <td>14</td>
-                      <td class="sql-line">CREATE INDEX &quot;IX_ITENS_PEDIDO_PEDIDO&quot; ON &quot;ITENS_PEDIDO&quot; (&quot;PEDIDO_ID&quot;);</td>
-                      <td class="line-actions">
-                        <button type="button" class="btn copy-line" data-cmd="CREATE INDEX &quot;IX_ITENS_PEDIDO_PEDIDO&quot; ON &quot;ITENS_PEDIDO&quot; (&quot;PEDIDO_ID&quot;);">Copiar linha</button>
-                      </td>
-                    </tr>
-                    
-                    <tr data-text="CREATE INDEX &quot;IX_ITENS_PEDIDO_PRODUTO&quot; ON &quot;ITENS_PEDIDO&quot; (&quot;PRODUTO_ID&quot;);">
-                      <td>15</td>
-                      <td class="sql-line">CREATE INDEX &quot;IX_ITENS_PEDIDO_PRODUTO&quot; ON &quot;ITENS_PEDIDO&quot; (&quot;PRODUTO_ID&quot;);</td>
-                      <td class="line-actions">
-                        <button type="button" class="btn copy-line" data-cmd="CREATE INDEX &quot;IX_ITENS_PEDIDO_PRODUTO&quot; ON &quot;ITENS_PEDIDO&quot; (&quot;PRODUTO_ID&quot;);">Copiar linha</button>
-                      </td>
-                    </tr>
-                    
-                    <tr data-text="ALTER TABLE &quot;PEDIDOS&quot; ALTER COLUMN &quot;CLIENTE_ID&quot; SET NOT NULL;">
-                      <td>16</td>
-                      <td class="sql-line">ALTER TABLE &quot;PEDIDOS&quot; ALTER COLUMN &quot;CLIENTE_ID&quot; SET NOT NULL;</td>
-                      <td class="line-actions">
-                        <button type="button" class="btn copy-line" data-cmd="ALTER TABLE &quot;PEDIDOS&quot; ALTER COLUMN &quot;CLIENTE_ID&quot; SET NOT NULL;">Copiar linha</button>
-                      </td>
-                    </tr>
-                    
-                    <tr data-text="ALTER TABLE &quot;PEDIDOS&quot; ALTER COLUMN &quot;DATA_EMISSAO&quot; SET NOT NULL;">
-                      <td>17</td>
-                      <td class="sql-line">ALTER TABLE &quot;PEDIDOS&quot; ALTER COLUMN &quot;DATA_EMISSAO&quot; SET NOT NULL;</td>
-                      <td class="line-actions">
-                        <button type="button" class="btn copy-line" data-cmd="ALTER TABLE &quot;PEDIDOS&quot; ALTER COLUMN &quot;DATA_EMISSAO&quot; SET NOT NULL;">Copiar linha</button>
-                      </td>
-                    </tr>
-                    
                     <tr data-text="ALTER TABLE &quot;PEDIDOS&quot; ADD &quot;STATUS&quot; VARCHAR(20) DEFAULT &#39;ABERTO&#39;;">
-                      <td>18</td>
+                      <td>8</td>
                       <td class="sql-line">ALTER TABLE &quot;PEDIDOS&quot; ADD &quot;STATUS&quot; VARCHAR(20) DEFAULT &#39;ABERTO&#39;;</td>
                       <td class="line-actions">
                         <button type="button" class="btn copy-line" data-cmd="ALTER TABLE &quot;PEDIDOS&quot; ADD &quot;STATUS&quot; VARCHAR(20) DEFAULT &#39;ABERTO&#39;;">Copiar linha</button>
@@ -263,18 +198,98 @@
                     </tr>
                     
                     <tr data-text="ALTER TABLE &quot;PEDIDOS&quot; ADD &quot;VALOR_TOTAL&quot; NUMERIC(15,2) DEFAULT 0;">
-                      <td>19</td>
+                      <td>9</td>
                       <td class="sql-line">ALTER TABLE &quot;PEDIDOS&quot; ADD &quot;VALOR_TOTAL&quot; NUMERIC(15,2) DEFAULT 0;</td>
                       <td class="line-actions">
                         <button type="button" class="btn copy-line" data-cmd="ALTER TABLE &quot;PEDIDOS&quot; ADD &quot;VALOR_TOTAL&quot; NUMERIC(15,2) DEFAULT 0;">Copiar linha</button>
                       </td>
                     </tr>
                     
-                    <tr data-text="ALTER TABLE &quot;PEDIDOS&quot; ADD CONSTRAINT &quot;FK_PEDIDOS_CLIENTE&quot; FOREIGN KEY (&quot;CLIENTE_ID&quot;) REFERENCES &quot;CLIENTES&quot; (&quot;ID&quot;);">
-                      <td>20</td>
-                      <td class="sql-line">ALTER TABLE &quot;PEDIDOS&quot; ADD CONSTRAINT &quot;FK_PEDIDOS_CLIENTE&quot; FOREIGN KEY (&quot;CLIENTE_ID&quot;) REFERENCES &quot;CLIENTES&quot; (&quot;ID&quot;);</td>
+                    <tr data-text="ALTER TABLE &quot;CLIENTES&quot; ALTER COLUMN &quot;NOME&quot; TYPE VARCHAR(120);">
+                      <td>10</td>
+                      <td class="sql-line">ALTER TABLE &quot;CLIENTES&quot; ALTER COLUMN &quot;NOME&quot; TYPE VARCHAR(120);</td>
                       <td class="line-actions">
-                        <button type="button" class="btn copy-line" data-cmd="ALTER TABLE &quot;PEDIDOS&quot; ADD CONSTRAINT &quot;FK_PEDIDOS_CLIENTE&quot; FOREIGN KEY (&quot;CLIENTE_ID&quot;) REFERENCES &quot;CLIENTES&quot; (&quot;ID&quot;);">Copiar linha</button>
+                        <button type="button" class="btn copy-line" data-cmd="ALTER TABLE &quot;CLIENTES&quot; ALTER COLUMN &quot;NOME&quot; TYPE VARCHAR(120);">Copiar linha</button>
+                      </td>
+                    </tr>
+                    
+                    <tr data-text="ALTER TABLE &quot;ITENS_PEDIDO&quot; ALTER COLUMN &quot;PEDIDO_ID&quot; SET NOT NULL;">
+                      <td>11</td>
+                      <td class="sql-line">ALTER TABLE &quot;ITENS_PEDIDO&quot; ALTER COLUMN &quot;PEDIDO_ID&quot; SET NOT NULL;</td>
+                      <td class="line-actions">
+                        <button type="button" class="btn copy-line" data-cmd="ALTER TABLE &quot;ITENS_PEDIDO&quot; ALTER COLUMN &quot;PEDIDO_ID&quot; SET NOT NULL;">Copiar linha</button>
+                      </td>
+                    </tr>
+                    
+                    <tr data-text="ALTER TABLE &quot;ITENS_PEDIDO&quot; ALTER COLUMN &quot;QUANTIDADE&quot; TYPE NUMERIC(15,3);">
+                      <td>12</td>
+                      <td class="sql-line">ALTER TABLE &quot;ITENS_PEDIDO&quot; ALTER COLUMN &quot;QUANTIDADE&quot; TYPE NUMERIC(15,3);</td>
+                      <td class="line-actions">
+                        <button type="button" class="btn copy-line" data-cmd="ALTER TABLE &quot;ITENS_PEDIDO&quot; ALTER COLUMN &quot;QUANTIDADE&quot; TYPE NUMERIC(15,3);">Copiar linha</button>
+                      </td>
+                    </tr>
+                    
+                    <tr data-text="ALTER TABLE &quot;ITENS_PEDIDO&quot; ALTER COLUMN &quot;QUANTIDADE&quot; SET NOT NULL;">
+                      <td>13</td>
+                      <td class="sql-line">ALTER TABLE &quot;ITENS_PEDIDO&quot; ALTER COLUMN &quot;QUANTIDADE&quot; SET NOT NULL;</td>
+                      <td class="line-actions">
+                        <button type="button" class="btn copy-line" data-cmd="ALTER TABLE &quot;ITENS_PEDIDO&quot; ALTER COLUMN &quot;QUANTIDADE&quot; SET NOT NULL;">Copiar linha</button>
+                      </td>
+                    </tr>
+                    
+                    <tr data-text="ALTER TABLE &quot;PEDIDOS&quot; ALTER COLUMN &quot;CLIENTE_ID&quot; SET NOT NULL;">
+                      <td>14</td>
+                      <td class="sql-line">ALTER TABLE &quot;PEDIDOS&quot; ALTER COLUMN &quot;CLIENTE_ID&quot; SET NOT NULL;</td>
+                      <td class="line-actions">
+                        <button type="button" class="btn copy-line" data-cmd="ALTER TABLE &quot;PEDIDOS&quot; ALTER COLUMN &quot;CLIENTE_ID&quot; SET NOT NULL;">Copiar linha</button>
+                      </td>
+                    </tr>
+                    
+                    <tr data-text="ALTER TABLE &quot;PEDIDOS&quot; ALTER COLUMN &quot;DATA_EMISSAO&quot; SET NOT NULL;">
+                      <td>15</td>
+                      <td class="sql-line">ALTER TABLE &quot;PEDIDOS&quot; ALTER COLUMN &quot;DATA_EMISSAO&quot; SET NOT NULL;</td>
+                      <td class="line-actions">
+                        <button type="button" class="btn copy-line" data-cmd="ALTER TABLE &quot;PEDIDOS&quot; ALTER COLUMN &quot;DATA_EMISSAO&quot; SET NOT NULL;">Copiar linha</button>
+                      </td>
+                    </tr>
+                    
+                    <tr data-text="ALTER TABLE &quot;PRODUTOS&quot; ADD CONSTRAINT &quot;PK_PRODUTOS&quot; PRIMARY KEY (&quot;ID&quot;);">
+                      <td>16</td>
+                      <td class="sql-line">ALTER TABLE &quot;PRODUTOS&quot; ADD CONSTRAINT &quot;PK_PRODUTOS&quot; PRIMARY KEY (&quot;ID&quot;);</td>
+                      <td class="line-actions">
+                        <button type="button" class="btn copy-line" data-cmd="ALTER TABLE &quot;PRODUTOS&quot; ADD CONSTRAINT &quot;PK_PRODUTOS&quot; PRIMARY KEY (&quot;ID&quot;);">Copiar linha</button>
+                      </td>
+                    </tr>
+                    
+                    <tr data-text="CREATE INDEX &quot;IX_CLIENTES_NOME&quot; ON &quot;CLIENTES&quot; (&quot;NOME&quot;);">
+                      <td>17</td>
+                      <td class="sql-line">CREATE INDEX &quot;IX_CLIENTES_NOME&quot; ON &quot;CLIENTES&quot; (&quot;NOME&quot;);</td>
+                      <td class="line-actions">
+                        <button type="button" class="btn copy-line" data-cmd="CREATE INDEX &quot;IX_CLIENTES_NOME&quot; ON &quot;CLIENTES&quot; (&quot;NOME&quot;);">Copiar linha</button>
+                      </td>
+                    </tr>
+                    
+                    <tr data-text="CREATE UNIQUE INDEX &quot;UX_CLIENTES_EMAIL&quot; ON &quot;CLIENTES&quot; (&quot;EMAIL&quot;);">
+                      <td>18</td>
+                      <td class="sql-line">CREATE UNIQUE INDEX &quot;UX_CLIENTES_EMAIL&quot; ON &quot;CLIENTES&quot; (&quot;EMAIL&quot;);</td>
+                      <td class="line-actions">
+                        <button type="button" class="btn copy-line" data-cmd="CREATE UNIQUE INDEX &quot;UX_CLIENTES_EMAIL&quot; ON &quot;CLIENTES&quot; (&quot;EMAIL&quot;);">Copiar linha</button>
+                      </td>
+                    </tr>
+                    
+                    <tr data-text="CREATE INDEX &quot;IX_ITENS_PEDIDO_PEDIDO&quot; ON &quot;ITENS_PEDIDO&quot; (&quot;PEDIDO_ID&quot;);">
+                      <td>19</td>
+                      <td class="sql-line">CREATE INDEX &quot;IX_ITENS_PEDIDO_PEDIDO&quot; ON &quot;ITENS_PEDIDO&quot; (&quot;PEDIDO_ID&quot;);</td>
+                      <td class="line-actions">
+                        <button type="button" class="btn copy-line" data-cmd="CREATE INDEX &quot;IX_ITENS_PEDIDO_PEDIDO&quot; ON &quot;ITENS_PEDIDO&quot; (&quot;PEDIDO_ID&quot;);">Copiar linha</button>
+                      </td>
+                    </tr>
+                    
+                    <tr data-text="CREATE INDEX &quot;IX_ITENS_PEDIDO_PRODUTO&quot; ON &quot;ITENS_PEDIDO&quot; (&quot;PRODUTO_ID&quot;);">
+                      <td>20</td>
+                      <td class="sql-line">CREATE INDEX &quot;IX_ITENS_PEDIDO_PRODUTO&quot; ON &quot;ITENS_PEDIDO&quot; (&quot;PRODUTO_ID&quot;);</td>
+                      <td class="line-actions">
+                        <button type="button" class="btn copy-line" data-cmd="CREATE INDEX &quot;IX_ITENS_PEDIDO_PRODUTO&quot; ON &quot;ITENS_PEDIDO&quot; (&quot;PRODUTO_ID&quot;);">Copiar linha</button>
                       </td>
                     </tr>
                     
@@ -294,42 +309,27 @@
                       </td>
                     </tr>
                     
-                    <tr data-text="CREATE TABLE &quot;PRODUTOS&quot; (
-    &quot;ID&quot; INTEGER NOT NULL,
-    &quot;NOME&quot; VARCHAR(120) NOT NULL,
-    &quot;PRECO&quot; NUMERIC(15,2) NOT NULL,
-    &quot;ATIVO&quot; SMALLINT DEFAULT 1
-);">
-                      <td>23</td>
-                      <td class="sql-line">CREATE TABLE &quot;PRODUTOS&quot; (
-    &quot;ID&quot; INTEGER NOT NULL,
-    &quot;NOME&quot; VARCHAR(120) NOT NULL,
-    &quot;PRECO&quot; NUMERIC(15,2) NOT NULL,
-    &quot;ATIVO&quot; SMALLINT DEFAULT 1
-);</td>
-                      <td class="line-actions">
-                        <button type="button" class="btn copy-line" data-cmd="CREATE TABLE &quot;PRODUTOS&quot; (
-    &quot;ID&quot; INTEGER NOT NULL,
-    &quot;NOME&quot; VARCHAR(120) NOT NULL,
-    &quot;PRECO&quot; NUMERIC(15,2) NOT NULL,
-    &quot;ATIVO&quot; SMALLINT DEFAULT 1
-);">Copiar linha</button>
-                      </td>
-                    </tr>
-                    
-                    <tr data-text="ALTER TABLE &quot;PRODUTOS&quot; ADD CONSTRAINT &quot;PK_PRODUTOS&quot; PRIMARY KEY (&quot;ID&quot;);">
-                      <td>24</td>
-                      <td class="sql-line">ALTER TABLE &quot;PRODUTOS&quot; ADD CONSTRAINT &quot;PK_PRODUTOS&quot; PRIMARY KEY (&quot;ID&quot;);</td>
-                      <td class="line-actions">
-                        <button type="button" class="btn copy-line" data-cmd="ALTER TABLE &quot;PRODUTOS&quot; ADD CONSTRAINT &quot;PK_PRODUTOS&quot; PRIMARY KEY (&quot;ID&quot;);">Copiar linha</button>
-                      </td>
-                    </tr>
-                    
                     <tr data-text="CREATE UNIQUE INDEX &quot;UX_PRODUTOS_NOME&quot; ON &quot;PRODUTOS&quot; (&quot;NOME&quot;);">
-                      <td>25</td>
+                      <td>23</td>
                       <td class="sql-line">CREATE UNIQUE INDEX &quot;UX_PRODUTOS_NOME&quot; ON &quot;PRODUTOS&quot; (&quot;NOME&quot;);</td>
                       <td class="line-actions">
                         <button type="button" class="btn copy-line" data-cmd="CREATE UNIQUE INDEX &quot;UX_PRODUTOS_NOME&quot; ON &quot;PRODUTOS&quot; (&quot;NOME&quot;);">Copiar linha</button>
+                      </td>
+                    </tr>
+                    
+                    <tr data-text="ALTER TABLE &quot;ITENS_PEDIDO&quot; ADD CONSTRAINT &quot;FK_ITENS_PEDIDO_PEDIDO&quot; FOREIGN KEY (&quot;PEDIDO_ID&quot;) REFERENCES &quot;PEDIDOS&quot; (&quot;ID&quot;) ON DELETE CASCADE;">
+                      <td>24</td>
+                      <td class="sql-line">ALTER TABLE &quot;ITENS_PEDIDO&quot; ADD CONSTRAINT &quot;FK_ITENS_PEDIDO_PEDIDO&quot; FOREIGN KEY (&quot;PEDIDO_ID&quot;) REFERENCES &quot;PEDIDOS&quot; (&quot;ID&quot;) ON DELETE CASCADE;</td>
+                      <td class="line-actions">
+                        <button type="button" class="btn copy-line" data-cmd="ALTER TABLE &quot;ITENS_PEDIDO&quot; ADD CONSTRAINT &quot;FK_ITENS_PEDIDO_PEDIDO&quot; FOREIGN KEY (&quot;PEDIDO_ID&quot;) REFERENCES &quot;PEDIDOS&quot; (&quot;ID&quot;) ON DELETE CASCADE;">Copiar linha</button>
+                      </td>
+                    </tr>
+                    
+                    <tr data-text="ALTER TABLE &quot;PEDIDOS&quot; ADD CONSTRAINT &quot;FK_PEDIDOS_CLIENTE&quot; FOREIGN KEY (&quot;CLIENTE_ID&quot;) REFERENCES &quot;CLIENTES&quot; (&quot;ID&quot;);">
+                      <td>25</td>
+                      <td class="sql-line">ALTER TABLE &quot;PEDIDOS&quot; ADD CONSTRAINT &quot;FK_PEDIDOS_CLIENTE&quot; FOREIGN KEY (&quot;CLIENTE_ID&quot;) REFERENCES &quot;CLIENTES&quot; (&quot;ID&quot;);</td>
+                      <td class="line-actions">
+                        <button type="button" class="btn copy-line" data-cmd="ALTER TABLE &quot;PEDIDOS&quot; ADD CONSTRAINT &quot;FK_PEDIDOS_CLIENTE&quot; FOREIGN KEY (&quot;CLIENTE_ID&quot;) REFERENCES &quot;CLIENTES&quot; (&quot;ID&quot;);">Copiar linha</button>
                       </td>
                     </tr>
                     

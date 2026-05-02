@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>AnÃ¡lise de Risco DDL</title>
+  <title>Análise de Risco DDL</title>
   <style>
     @page { size: A4; margin: 12mm; }
     body { font-family: Segoe UI, Arial, sans-serif; margin: 20px; color: #1f2937; }
@@ -63,52 +63,52 @@
   </style>
 </head>
 <body>
-  <h1>AnÃ¡lise de Risco DDL</h1>
+  <h1>Análise de Risco DDL</h1>
   <div class="meta">
     <div><strong>Origem:</strong> <span title="D:\Projetos\SkyFBTool\docs\examples\ddl-analyze-sample-rich-input.sql">ddl-analyze-sample-rich-input.sql</span></div>
     
-    <div><strong>Gerado em (UTC):</strong> 2026-05-02 16:20:47</div>
+    <div><strong>Gerado em (UTC):</strong> 2026-05-02 18:39:02</div>
     
     <div><strong>Análise operacional (MON$):</strong> n&#227;o aplic&#225;vel</div>
-    <div><strong>AnÃ¡lise de volume:</strong> n&#195;&#163;o aplic&#195;&#161;vel</div>
+    <div><strong>Análise de volume:</strong> n&#227;o aplic&#225;vel</div>
   </div>
   <div class="kpi">
     <div class="pill"><strong>Total de achados:</strong> 16</div>
-    <div class="pill"><strong>CrÃ­ticos:</strong> 6</div>
+    <div class="pill"><strong>Críticos:</strong> 6</div>
     <div class="pill"><strong>Altos:</strong> 6</div>
-    <div class="pill"><strong>MÃ©dios:</strong> 2</div>
+    <div class="pill"><strong>Médios:</strong> 2</div>
     <div class="pill"><strong>Baixos:</strong> 2</div>
   </div>
   <div class="card criteria">
-    <h2>CritÃ©rios de severidade</h2>
+    <h2>Critérios de severidade</h2>
     <div class="criteria-grid">
       <table><thead><tr>
-        <th>NÃ­vel</th>
+        <th>Nível</th>
         <th>Quando se aplica</th>
         <th>Impacto esperado</th>
       </tr></thead><tbody>
         
                 <tr>
-                  <td><span class="severity-pill critical">cr&#195;&#173;tico</span></td>
-                  <td>Metadado estrutural quebrado: colunas ausentes ou inv&#195;&#161;lidas em PK/FK, constraints vazias ou refer&#195;&#170;ncias imposs&#195;&#173;veis.</td>
-                  <td>Alta chance de falha funcional, sintomas de corrup&#195;&#167;&#195;&#163;o ou impossibilidade de sincronismo seguro sem reparo manual.</td>
+                  <td><span class="severity-pill critical">cr&#237;tico</span></td>
+                  <td>Metadado estrutural quebrado: colunas ausentes ou inv&#225;lidas em PK/FK, constraints vazias ou refer&#234;ncias imposs&#237;veis.</td>
+                  <td>Alta chance de falha funcional, sintomas de corrup&#231;&#227;o ou impossibilidade de sincronismo seguro sem reparo manual.</td>
                 </tr>
                 
                 <tr>
                   <td><span class="severity-pill high">alto</span></td>
-                  <td>Inconsist&#195;&#170;ncia de alto risco que pode quebrar integridade ou performance em carga.</td>
-                  <td>Risco relevante em produ&#195;&#167;&#195;&#163;o; corrigir antes de migra&#195;&#167;&#195;&#163;o ou importa&#195;&#167;&#195;&#163;o/exporta&#195;&#167;&#195;&#163;o intensa.</td>
+                  <td>Inconsist&#234;ncia de alto risco que pode quebrar integridade ou performance em carga.</td>
+                  <td>Risco relevante em produ&#231;&#227;o; corrigir antes de migra&#231;&#227;o ou importa&#231;&#227;o/exporta&#231;&#227;o intensa.</td>
                 </tr>
                 
                 <tr>
-                  <td><span class="severity-pill medium">m&#195;&#169;dio</span></td>
-                  <td>Lacuna importante de qualidade ou performance, normalmente sem corrup&#195;&#167;&#195;&#163;o imediata.</td>
-                  <td>Pode degradar vaz&#195;&#163;o e aumentar risco de lock/conten&#195;&#167;&#195;&#163;o ao longo do tempo.</td>
+                  <td><span class="severity-pill medium">m&#233;dio</span></td>
+                  <td>Lacuna importante de qualidade ou performance, normalmente sem corrup&#231;&#227;o imediata.</td>
+                  <td>Pode degradar vaz&#227;o e aumentar risco de lock/conten&#231;&#227;o ao longo do tempo.</td>
                 </tr>
                 
                 <tr>
                   <td><span class="severity-pill low">baixo</span></td>
-                  <td>Padr&#195;&#163;o consultivo ou smell de modelagem com menor risco imediato.</td>
+                  <td>Padr&#227;o consultivo ou smell de modelagem com menor risco imediato.</td>
                   <td>Recomendado para endurecimento e manutenibilidade; pode ser planejado.</td>
                 </tr>
                 
@@ -116,10 +116,10 @@
       <div class="legend">
         <strong>Legenda de prioridade:</strong>
         <ul class="legend-list">
-          <li class="legend-item"><span class="legend-badge p0">P0</span><span>P0: aÃ§Ã£o imediata (risco crÃ­tico).</span></li>
-          <li class="legend-item"><span class="legend-badge p1">P1</span><span>P1: alta prioridade (correÃ§Ã£o de curto prazo).</span></li>
+          <li class="legend-item"><span class="legend-badge p0">P0</span><span>P0: ação imediata (risco crítico).</span></li>
+          <li class="legend-item"><span class="legend-badge p1">P1</span><span>P1: alta prioridade (correção de curto prazo).</span></li>
           <li class="legend-item"><span class="legend-badge p2">P2</span><span>P2: prioridade planejada (programar e acompanhar).</span></li>
-          <li class="legend-item"><span class="legend-badge p3">P3</span><span>P3: otimizaÃ§Ã£o/backlog (menor urgÃªncia).</span></li>
+          <li class="legend-item"><span class="legend-badge p3">P3</span><span>P3: otimização/backlog (menor urgência).</span></li>
         </ul>
       </div>
     </div>
@@ -129,7 +129,7 @@
       <h2>Resumo por tipo de achado</h2>
       <div class="summary-scroll">
       <table><thead><tr>
-        <th>CÃ³digo</th><th>Qtde</th><th>%</th>
+        <th>Código</th><th>Qtde</th><th>%</th>
       </tr></thead><tbody>
         
                 <tr><td>TABELA_SEM_PK</td><td>3</td><td>18,75</td></tr>
@@ -149,10 +149,10 @@
       </div>
     </div>
     <div class="card">
-      <h2>Tabelas priorizadas para correÃ§Ã£o</h2>
+      <h2>Tabelas priorizadas para correção</h2>
       <div class="summary-scroll">
       <table><thead><tr>
-        <th>Escopo</th><th>Prioridade</th><th>Ãndice de risco</th><th>Qtde</th>
+        <th>Escopo</th><th>Prioridade</th><th>Índice de risco</th><th>Qtde</th>
       </tr></thead><tbody>
         
                 <tr>
@@ -207,24 +207,24 @@
   
     <h2>Filtros</h2>
     <div class="toolbar">
-      <label>Severidade <select id="f-sev"><option value="">Todos</option><option value="critical">cr&#195;&#173;tico</option><option value="high">alto</option><option value="medium">m&#195;&#169;dio</option><option value="low">baixo</option></select></label>
-      <label>CÃ³digo <select id="f-code"><option value="">Todos</option><option value="TABELA_SEM_PK">TABELA_SEM_PK</option><option value="INDICE_REDUNDANTE_PREFIXO">INDICE_REDUNDANTE_PREFIXO</option><option value="FK_CARDINALIDADE_INVALIDA">FK_CARDINALIDADE_INVALIDA</option><option value="FK_COLUNA_LOCAL_INEXISTENTE">FK_COLUNA_LOCAL_INEXISTENTE</option><option value="FK_COLUNA_REFERENCIA_INEXISTENTE">FK_COLUNA_REFERENCIA_INEXISTENTE</option><option value="FK_DUPLICADA">FK_DUPLICADA</option><option value="FK_TABELA_REFERENCIA_INEXISTENTE">FK_TABELA_REFERENCIA_INEXISTENTE</option><option value="INDICE_COLUNA_INEXISTENTE">INDICE_COLUNA_INEXISTENTE</option><option value="INDICE_DUPLICADO">INDICE_DUPLICADO</option><option value="INDICE_SEM_COLUNAS">INDICE_SEM_COLUNAS</option><option value="PK_REFERENCIA_COLUNA_INEXISTENTE">PK_REFERENCIA_COLUNA_INEXISTENTE</option><option value="TABELA_SEM_COLUNAS">TABELA_SEM_COLUNAS</option><option value="TIPO_DESCONHECIDO">TIPO_DESCONHECIDO</option></select></label>
-      <label>Busca <input id="f-q" type="text" placeholder="tabela, cÃ³digo ou texto..." /></label>
+      <label>Severidade <select id="f-sev"><option value="">Todos</option><option value="critical">cr&#237;tico</option><option value="high">alto</option><option value="medium">m&#233;dio</option><option value="low">baixo</option></select></label>
+      <label>Código <select id="f-code"><option value="">Todos</option><option value="TABELA_SEM_PK">TABELA_SEM_PK</option><option value="INDICE_REDUNDANTE_PREFIXO">INDICE_REDUNDANTE_PREFIXO</option><option value="FK_CARDINALIDADE_INVALIDA">FK_CARDINALIDADE_INVALIDA</option><option value="FK_COLUNA_LOCAL_INEXISTENTE">FK_COLUNA_LOCAL_INEXISTENTE</option><option value="FK_COLUNA_REFERENCIA_INEXISTENTE">FK_COLUNA_REFERENCIA_INEXISTENTE</option><option value="FK_DUPLICADA">FK_DUPLICADA</option><option value="FK_TABELA_REFERENCIA_INEXISTENTE">FK_TABELA_REFERENCIA_INEXISTENTE</option><option value="INDICE_COLUNA_INEXISTENTE">INDICE_COLUNA_INEXISTENTE</option><option value="INDICE_DUPLICADO">INDICE_DUPLICADO</option><option value="INDICE_SEM_COLUNAS">INDICE_SEM_COLUNAS</option><option value="PK_REFERENCIA_COLUNA_INEXISTENTE">PK_REFERENCIA_COLUNA_INEXISTENTE</option><option value="TABELA_SEM_COLUNAS">TABELA_SEM_COLUNAS</option><option value="TIPO_DESCONHECIDO">TIPO_DESCONHECIDO</option></select></label>
+      <label>Busca <input id="f-q" type="text" placeholder="tabela, código ou texto..." /></label>
       <span class="count" id="f-count">Exibindo 0 de 16</span>
     </div>
     <div class="table-wrap">
     <table id="achados">
       <thead><tr>
         <th>Severidade</th>
-        <th>CÃ³digo</th>
+        <th>Código</th>
         <th>Escopo</th>
-        <th>DescriÃ§Ã£o</th>
-        <th>RecomendaÃ§Ã£o</th>
+        <th>Descrição</th>
+        <th>Recomendação</th>
       </tr></thead>
       <tbody>
         
             <tr data-sev="critical" data-code="FK_CARDINALIDADE_INVALIDA" data-text="pedidos.fk_pedidos_card fk_cardinalidade_invalida fk fk_pedidos_card possui cardinalidade diferente entre colunas locais e de refer&#234;ncia. recrie a fk preservando cardinalidade equivalente.">
-              <td><span class="severity-pill critical">cr&#195;&#173;tico</span></td>
+              <td><span class="severity-pill critical">cr&#237;tico</span></td>
               <td>FK_CARDINALIDADE_INVALIDA</td>
               <td>PEDIDOS.FK_PEDIDOS_CARD</td>
               <td>FK FK_PEDIDOS_CARD possui cardinalidade diferente entre colunas locais e de refer&#234;ncia.</td>
@@ -232,7 +232,7 @@
             </tr>
             
             <tr data-sev="critical" data-code="FK_COLUNA_LOCAL_INEXISTENTE" data-text="pedidos.fk_pedidos_local_missing fk_coluna_local_inexistente fk fk_pedidos_local_missing referencia coluna local inexistente cliente_inexistente. valide os campos da rela&#231;&#227;o e recrie a fk.">
-              <td><span class="severity-pill critical">cr&#195;&#173;tico</span></td>
+              <td><span class="severity-pill critical">cr&#237;tico</span></td>
               <td>FK_COLUNA_LOCAL_INEXISTENTE</td>
               <td>PEDIDOS.FK_PEDIDOS_LOCAL_MISSING</td>
               <td>FK FK_PEDIDOS_LOCAL_MISSING referencia coluna local inexistente CLIENTE_INEXISTENTE.</td>
@@ -240,7 +240,7 @@
             </tr>
             
             <tr data-sev="critical" data-code="FK_COLUNA_REFERENCIA_INEXISTENTE" data-text="pedidos.fk_pedidos_ref_column_missing fk_coluna_referencia_inexistente fk fk_pedidos_ref_column_missing aponta para coluna referenciada inexistente id_x. recrie a fk ap&#243;s validar a defini&#231;&#227;o da chave referenciada.">
-              <td><span class="severity-pill critical">cr&#195;&#173;tico</span></td>
+              <td><span class="severity-pill critical">cr&#237;tico</span></td>
               <td>FK_COLUNA_REFERENCIA_INEXISTENTE</td>
               <td>PEDIDOS.FK_PEDIDOS_REF_COLUMN_MISSING</td>
               <td>FK FK_PEDIDOS_REF_COLUMN_MISSING aponta para coluna referenciada inexistente ID_X.</td>
@@ -248,7 +248,7 @@
             </tr>
             
             <tr data-sev="critical" data-code="FK_TABELA_REFERENCIA_INEXISTENTE" data-text="pedidos.fk_pedidos_ref_table_missing fk_tabela_referencia_inexistente fk fk_pedidos_ref_table_missing aponta para tabela inexistente clientes_x. valide ordem de depend&#234;ncia e integridade de metadados da tabela referenciada.">
-              <td><span class="severity-pill critical">cr&#195;&#173;tico</span></td>
+              <td><span class="severity-pill critical">cr&#237;tico</span></td>
               <td>FK_TABELA_REFERENCIA_INEXISTENTE</td>
               <td>PEDIDOS.FK_PEDIDOS_REF_TABLE_MISSING</td>
               <td>FK FK_PEDIDOS_REF_TABLE_MISSING aponta para tabela inexistente CLIENTES_X.</td>
@@ -256,7 +256,7 @@
             </tr>
             
             <tr data-sev="critical" data-code="PK_REFERENCIA_COLUNA_INEXISTENTE" data-text="pedidos pk_referencia_coluna_inexistente pk pk_pedidos referencia coluna inexistente id_coluna_inexistente. recrie a pk e valide o cat&#225;logo de campos da rela&#231;&#227;o.">
-              <td><span class="severity-pill critical">cr&#195;&#173;tico</span></td>
+              <td><span class="severity-pill critical">cr&#237;tico</span></td>
               <td>PK_REFERENCIA_COLUNA_INEXISTENTE</td>
               <td>PEDIDOS</td>
               <td>PK PK_PEDIDOS referencia coluna inexistente ID_COLUNA_INEXISTENTE.</td>
@@ -264,7 +264,7 @@
             </tr>
             
             <tr data-sev="critical" data-code="TABELA_SEM_COLUNAS" data-text="log_eventos tabela_sem_colunas tabela log_eventos n&#227;o possui colunas. reextraia o metadado e valide esta tabela diretamente nos cat&#225;logos do firebird.">
-              <td><span class="severity-pill critical">cr&#195;&#173;tico</span></td>
+              <td><span class="severity-pill critical">cr&#237;tico</span></td>
               <td>TABELA_SEM_COLUNAS</td>
               <td>LOG_EVENTOS</td>
               <td>Tabela LOG_EVENTOS n&#227;o possui colunas.</td>
@@ -320,7 +320,7 @@
             </tr>
             
             <tr data-sev="medium" data-code="INDICE_REDUNDANTE_PREFIXO" data-text="pedidos indice_redundante_prefixo &#237;ndice ind_pedidos_cliente_a (non-unique, asc, (cliente_id)) pode ser redundante porque ind_pedidos_cliente_valor (non-unique, asc, (cliente_id, valor)) j&#225; cobre seu prefixo (cliente_id). valide planos de execu&#231;&#227;o e mantenha apenas o &#237;ndice com melhor seletividade/cobertura.">
-              <td><span class="severity-pill medium">m&#195;&#169;dio</span></td>
+              <td><span class="severity-pill medium">m&#233;dio</span></td>
               <td>INDICE_REDUNDANTE_PREFIXO</td>
               <td>PEDIDOS</td>
               <td>&#205;ndice IND_PEDIDOS_CLIENTE_A (NON-UNIQUE, ASC, (CLIENTE_ID)) pode ser redundante porque IND_PEDIDOS_CLIENTE_VALOR (NON-UNIQUE, ASC, (CLIENTE_ID, VALOR)) j&#225; cobre seu prefixo (CLIENTE_ID).</td>
@@ -328,7 +328,7 @@
             </tr>
             
             <tr data-sev="medium" data-code="INDICE_REDUNDANTE_PREFIXO" data-text="pedidos indice_redundante_prefixo &#237;ndice ind_pedidos_cliente_b (non-unique, asc, (cliente_id)) pode ser redundante porque ind_pedidos_cliente_valor (non-unique, asc, (cliente_id, valor)) j&#225; cobre seu prefixo (cliente_id). valide planos de execu&#231;&#227;o e mantenha apenas o &#237;ndice com melhor seletividade/cobertura.">
-              <td><span class="severity-pill medium">m&#195;&#169;dio</span></td>
+              <td><span class="severity-pill medium">m&#233;dio</span></td>
               <td>INDICE_REDUNDANTE_PREFIXO</td>
               <td>PEDIDOS</td>
               <td>&#205;ndice IND_PEDIDOS_CLIENTE_B (NON-UNIQUE, ASC, (CLIENTE_ID)) pode ser redundante porque IND_PEDIDOS_CLIENTE_VALOR (NON-UNIQUE, ASC, (CLIENTE_ID, VALOR)) j&#225; cobre seu prefixo (CLIENTE_ID).</td>
