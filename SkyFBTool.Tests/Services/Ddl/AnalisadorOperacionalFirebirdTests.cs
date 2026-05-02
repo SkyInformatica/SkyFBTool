@@ -87,4 +87,20 @@ public class AnalisadorOperacionalFirebirdTests
         var achados = AnalisadorOperacionalFirebird.Avaliar(metricas, IdiomaSaida.English);
         Assert.Empty(achados);
     }
+
+    [Fact]
+    public void Renderizar_StatusOperacionalIndisponivel_DeveExporIndicacaoNoHtml()
+    {
+        var resultado = new ResultadoAnaliseDdl
+        {
+            Origem = "origem.fdb",
+            StatusAnaliseOperacional = "unavailable",
+            ErroAnaliseOperacional = "permission_denied: no permission for SELECT access to MON$DATABASE"
+        };
+
+        string html = RenderizadorHtmlAnaliseDdl.Renderizar(resultado, IdiomaSaida.PortugueseBrazil);
+
+        Assert.Contains("indispon&#237;vel", html);
+        Assert.Contains("permission_denied", html);
+    }
 }

@@ -711,7 +711,10 @@ public static class AnalisadorDdlSchema
         }
         catch (Exception ex)
         {
-            resultado.StatusAnaliseOperacional = "failed";
+            string classeFalha = AnalisadorOperacionalFirebird.ClassificarFalhaOperacional(ex);
+            resultado.StatusAnaliseOperacional = classeFalha is "permission_denied" or "metadata_incompatible"
+                ? "unavailable"
+                : "failed";
             resultado.ErroAnaliseOperacional = AnalisadorOperacionalFirebird.FormatarErroColetaOperacional(ex);
             resultado.AchadosGeradosAnaliseOperacional = 0;
         }

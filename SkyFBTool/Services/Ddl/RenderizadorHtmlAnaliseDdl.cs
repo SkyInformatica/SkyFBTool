@@ -265,6 +265,7 @@ public static class RenderizadorHtmlAnaliseDdl
         return resultado.StatusAnaliseOperacional switch
         {
             "executed" => TextoLocalizado.Obter(idioma, $"executed ({resultado.AchadosGeradosAnaliseOperacional} findings)", $"executada ({resultado.AchadosGeradosAnaliseOperacional} achados)"),
+            "unavailable" => TextoLocalizado.Obter(idioma, "unavailable", "indisponível"),
             "failed" => TextoLocalizado.Obter(idioma, "failed", "falhou"),
             "pending" => TextoLocalizado.Obter(idioma, "pending", "pendente"),
             _ => TextoLocalizado.Obter(idioma, "not applicable", "não aplicável")
@@ -274,7 +275,8 @@ public static class RenderizadorHtmlAnaliseDdl
     private static string FormatarResumoAnaliseOperacional(ResultadoAnaliseDdl resultado, IdiomaSaida idioma)
     {
         string status = FormatarStatusAnaliseOperacional(resultado, idioma);
-        if (resultado.StatusAnaliseOperacional == "failed" && !string.IsNullOrWhiteSpace(resultado.ErroAnaliseOperacional))
+        if ((resultado.StatusAnaliseOperacional == "failed" || resultado.StatusAnaliseOperacional == "unavailable")
+            && !string.IsNullOrWhiteSpace(resultado.ErroAnaliseOperacional))
             return $"{status}. {resultado.ErroAnaliseOperacional}";
 
         return status;
