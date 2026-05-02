@@ -1,4 +1,4 @@
-namespace SkyFBTool.Services.Export;
+﻿namespace SkyFBTool.Services.Export;
 
 public static class ValidadorInsertSql
 {
@@ -21,13 +21,13 @@ public static class ValidadorInsertSql
         int indiceAbreColunas = insertSql.IndexOf('(');
         if (indiceAbreColunas < 0)
         {
-            erro = "NÃ£o foi possÃ­vel localizar a lista de colunas do INSERT.";
+            erro = "Não foi possível localizar a lista de colunas do INSERT.";
             return false;
         }
 
         if (!TryFindMatchingParen(insertSql, indiceAbreColunas, out int indiceFechaColunas))
         {
-            erro = "NÃ£o foi possÃ­vel localizar o fechamento da lista de colunas do INSERT.";
+            erro = "Não foi possível localizar o fechamento da lista de colunas do INSERT.";
             return false;
         }
 
@@ -36,20 +36,20 @@ public static class ValidadorInsertSql
 
         if (!TryIndexOfValuesKeyword(insertSql, out int indiceValues))
         {
-            erro = "NÃ£o foi possÃ­vel localizar a clÃ¡usula VALUES do INSERT.";
+            erro = "Não foi possível localizar a cláusula VALUES do INSERT.";
             return false;
         }
 
         int indiceAbreValores = insertSql.IndexOf('(', indiceValues);
         if (indiceAbreValores < 0)
         {
-            erro = "NÃ£o foi possÃ­vel localizar a lista de valores do INSERT.";
+            erro = "Não foi possível localizar a lista de valores do INSERT.";
             return false;
         }
 
         if (!TryFindMatchingParen(insertSql, indiceAbreValores, out int indiceFechaValores))
         {
-            erro = "NÃ£o foi possÃ­vel localizar o fechamento da lista de valores do INSERT.";
+            erro = "Não foi possível localizar o fechamento da lista de valores do INSERT.";
             return false;
         }
 

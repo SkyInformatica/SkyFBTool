@@ -1,4 +1,4 @@
-using Scriban;
+﻿using Scriban;
 
 namespace SkyFBTool.Services.Ddl;
 
@@ -22,27 +22,27 @@ public static class RenderizadorHtmlAnaliseDdl
         return new ModeloRelatorio
         {
             Lang = idioma == IdiomaSaida.PortugueseBrazil ? "pt-BR" : "en",
-            Titulo = M(idioma, "DDL Risk Analysis", "AnÃ¡lise de Risco DDL"),
+            Titulo = M(idioma, "DDL Risk Analysis", "Análise de Risco DDL"),
             OrigemLabel = M(idioma, "Source", "Origem"),
             OrigemExibicao = H(origemExibicao),
             OrigemTooltip = H(resultado.Origem),
-            DescriptionLabel = M(idioma, "Description", "DescriÃ§Ã£o"),
+            DescriptionLabel = M(idioma, "Description", "Descrição"),
             Description = H(resultado.Description),
             HasDescription = !string.IsNullOrWhiteSpace(resultado.Description),
             GeradoEmLabel = M(idioma, "Generated at (UTC)", "Gerado em (UTC)"),
             GeradoEm = resultado.GeradoEmUtc.ToString("yyyy-MM-dd HH:mm:ss"),
-            UltimaManutencaoLabel = M(idioma, "Last maintenance (estimated, UTC)", "Ãšltima manutenÃ§Ã£o (estimada, UTC)"),
+            UltimaManutencaoLabel = M(idioma, "Last maintenance (estimated, UTC)", "Última manutenção (estimada, UTC)"),
             UltimaManutencao = resultado.DataUltimaManutencaoUtc?.ToString("yyyy-MM-dd HH:mm:ss") ?? string.Empty,
             FonteUltimaManutencao = H(resultado.FonteDataUltimaManutencao),
             TemUltimaManutencao = resultado.DataUltimaManutencaoUtc is not null,
             AnaliseOperacionalLabel = M(idioma, "Operational analysis (MON$)", "Análise operacional (MON$)"),
             AnaliseOperacionalResumo = H(FormatarResumoAnaliseOperacional(resultado, idioma)),
-            AnaliseVolumeLabel = M(idioma, "Volume analysis", "AnÃ¡lise de volume"),
+            AnaliseVolumeLabel = M(idioma, "Volume analysis", "Análise de volume"),
             AnaliseVolumeResumo = H(FormatarResumoAnaliseVolume(resultado, idioma)),
             TotalLabel = M(idioma, "Total findings", "Total de achados"),
-            CriticosLabel = M(idioma, "Critical", "CrÃ­ticos"),
+            CriticosLabel = M(idioma, "Critical", "Críticos"),
             AltosLabel = M(idioma, "High", "Altos"),
-            MediosLabel = M(idioma, "Medium", "MÃ©dios"),
+            MediosLabel = M(idioma, "Medium", "Médios"),
             BaixosLabel = M(idioma, "Low", "Baixos"),
             TotalAchados = resultado.TotalAchados,
             TotalCriticos = resultado.TotalCriticos,
@@ -50,30 +50,30 @@ public static class RenderizadorHtmlAnaliseDdl
             TotalMedios = resultado.TotalMedios,
             TotalBaixos = resultado.TotalBaixos,
             ResumoCodigoLabel = M(idioma, "Summary by finding type", "Resumo por tipo de achado"),
-            ResumoTabelaLabel = M(idioma, "Tables prioritized for remediation", "Tabelas priorizadas para correÃ§Ã£o"),
+            ResumoTabelaLabel = M(idioma, "Tables prioritized for remediation", "Tabelas priorizadas para correção"),
             LegendaPrioridadeLabel = M(idioma, "Priority legend", "Legenda de prioridade"),
-            LegendaPrioridadeP0 = M(idioma, "P0: immediate action (critical risk).", "P0: aÃ§Ã£o imediata (risco crÃ­tico)."),
-            LegendaPrioridadeP1 = M(idioma, "P1: high priority (short-term remediation).", "P1: alta prioridade (correÃ§Ã£o de curto prazo)."),
+            LegendaPrioridadeP0 = M(idioma, "P0: immediate action (critical risk).", "P0: ação imediata (risco crítico)."),
+            LegendaPrioridadeP1 = M(idioma, "P1: high priority (short-term remediation).", "P1: alta prioridade (correção de curto prazo)."),
             LegendaPrioridadeP2 = M(idioma, "P2: planned priority (schedule and monitor).", "P2: prioridade planejada (programar e acompanhar)."),
-            LegendaPrioridadeP3 = M(idioma, "P3: optimization/backlog (lower urgency).", "P3: otimizaÃ§Ã£o/backlog (menor urgÃªncia)."),
+            LegendaPrioridadeP3 = M(idioma, "P3: optimization/backlog (lower urgency).", "P3: otimização/backlog (menor urgência)."),
             QtdLabel = M(idioma, "Count", "Qtde"),
             PctLabel = "%",
-            CodigoLabel = M(idioma, "Code", "CÃ³digo"),
+            CodigoLabel = M(idioma, "Code", "Código"),
             PrioridadeLabel = M(idioma, "Priority", "Prioridade"),
-            IndiceRiscoLabel = M(idioma, "Risk index", "Ãndice de risco"),
+            IndiceRiscoLabel = M(idioma, "Risk index", "Índice de risco"),
             EscopoLabel = M(idioma, "Scope", "Escopo"),
-            DescricaoLabel = M(idioma, "Description", "DescriÃ§Ã£o"),
-            RecomendacaoLabel = M(idioma, "Recommendation", "RecomendaÃ§Ã£o"),
+            DescricaoLabel = M(idioma, "Description", "Descrição"),
+            RecomendacaoLabel = M(idioma, "Recommendation", "Recomendação"),
             SemAchadosLabel = M(idioma, "No findings.", "Sem achados."),
             FiltrosLabel = M(idioma, "Filters", "Filtros"),
             SeveridadeLabel = M(idioma, "Severity", "Severidade"),
-            CriteriosSeveridadeLabel = M(idioma, "Severity criteria", "CritÃ©rios de severidade"),
-            CriterioNivelLabel = M(idioma, "Level", "NÃ­vel"),
+            CriteriosSeveridadeLabel = M(idioma, "Severity criteria", "Critérios de severidade"),
+            CriterioNivelLabel = M(idioma, "Level", "Nível"),
             CriterioQuandoLabel = M(idioma, "When it applies", "Quando se aplica"),
             CriterioImpactoLabel = M(idioma, "Expected impact", "Impacto esperado"),
             TodosLabel = M(idioma, "All", "Todos"),
             BuscaLabel = M(idioma, "Search", "Busca"),
-            BuscaPlaceholder = M(idioma, "table, code or text...", "tabela, cÃ³digo ou texto..."),
+            BuscaPlaceholder = M(idioma, "table, code or text...", "tabela, código ou texto..."),
             MostrandoLabel = M(idioma, "Showing", "Exibindo"),
             DeLabel = M(idioma, "of", "de"),
             MostrandoJs = Js(M(idioma, "Showing", "Exibindo")),
@@ -119,11 +119,11 @@ public static class RenderizadorHtmlAnaliseDdl
                 Quando = H(M(
                     idioma,
                     "Broken structural metadata: missing or invalid columns in PK/FK, empty constraints, or impossible references.",
-                    "Metadado estrutural quebrado: colunas ausentes ou invÃ¡lidas em PK/FK, constraints vazias ou referÃªncias impossÃ­veis.")),
+                    "Metadado estrutural quebrado: colunas ausentes ou inválidas em PK/FK, constraints vazias ou referências impossíveis.")),
                 Impacto = H(M(
                     idioma,
                     "High chance of functional failure, corruption symptoms, or impossible safe sync without manual repair.",
-                    "Alta chance de falha funcional, sintomas de corrupÃ§Ã£o ou impossibilidade de sincronismo seguro sem reparo manual."))
+                    "Alta chance de falha funcional, sintomas de corrupção ou impossibilidade de sincronismo seguro sem reparo manual."))
             },
             new()
             {
@@ -132,11 +132,11 @@ public static class RenderizadorHtmlAnaliseDdl
                 Quando = H(M(
                     idioma,
                     "High-risk inconsistency that can break integrity or performance under load.",
-                    "InconsistÃªncia de alto risco que pode quebrar integridade ou performance em carga.")),
+                    "Inconsistência de alto risco que pode quebrar integridade ou performance em carga.")),
                 Impacto = H(M(
                     idioma,
                     "Relevant production risk; fix before migration or intensive import/export.",
-                    "Risco relevante em produÃ§Ã£o; corrigir antes de migraÃ§Ã£o ou importaÃ§Ã£o/exportaÃ§Ã£o intensa."))
+                    "Risco relevante em produção; corrigir antes de migração ou importação/exportação intensa."))
             },
             new()
             {
@@ -145,11 +145,11 @@ public static class RenderizadorHtmlAnaliseDdl
                 Quando = H(M(
                     idioma,
                     "Important quality or performance gap, usually without immediate corruption.",
-                    "Lacuna importante de qualidade ou performance, normalmente sem corrupÃ§Ã£o imediata.")),
+                    "Lacuna importante de qualidade ou performance, normalmente sem corrupção imediata.")),
                 Impacto = H(M(
                     idioma,
                     "Can degrade throughput and increase lock/contention risk over time.",
-                    "Pode degradar vazÃ£o e aumentar risco de lock/contenÃ§Ã£o ao longo do tempo."))
+                    "Pode degradar vazão e aumentar risco de lock/contenção ao longo do tempo."))
             },
             new()
             {
@@ -158,7 +158,7 @@ public static class RenderizadorHtmlAnaliseDdl
                 Quando = H(M(
                     idioma,
                     "Advisory pattern or modeling smell with lower immediate risk.",
-                    "PadrÃ£o consultivo ou smell de modelagem com menor risco imediato.")),
+                    "Padrão consultivo ou smell de modelagem com menor risco imediato.")),
                 Impacto = H(M(
                     idioma,
                     "Recommended for hardening and maintainability; can be planned.",
@@ -249,9 +249,9 @@ public static class RenderizadorHtmlAnaliseDdl
 
         return severidade switch
         {
-            "critical" => "crÃ­tico",
+            "critical" => "crítico",
             "high" => "alto",
-            "medium" => "mÃ©dio",
+            "medium" => "médio",
             "low" => "baixo",
             _ => severidade
         };
@@ -300,7 +300,7 @@ public static class RenderizadorHtmlAnaliseDdl
             "disabled" => M(idioma, "disabled", "desabilitada"),
             "failed" => M(idioma, "failed", "falhou"),
             "pending" => M(idioma, "pending", "pendente"),
-            _ => M(idioma, "not applicable", "nÃ£o aplicÃ¡vel")
+            _ => M(idioma, "not applicable", "não aplicável")
         };
     }
 
@@ -318,13 +318,13 @@ public static class RenderizadorHtmlAnaliseDdl
         using var stream = typeof(RenderizadorHtmlAnaliseDdl).Assembly
             .GetManifestResourceStream("SkyFBTool.Services.Ddl.Templates.DdlAnalyzeReport.scriban");
         if (stream is null)
-            throw new InvalidOperationException("Template de relatÃ³rio DDL nÃ£o encontrado.");
+            throw new InvalidOperationException("Template de relatório DDL não encontrado.");
 
         using var reader = new StreamReader(stream);
         string conteudo = reader.ReadToEnd();
         var template = Template.Parse(conteudo);
         if (template.HasErrors)
-            throw new InvalidOperationException("Template de relatÃ³rio DDL invÃ¡lido.");
+            throw new InvalidOperationException("Template de relatório DDL inválido.");
 
         return template;
     }

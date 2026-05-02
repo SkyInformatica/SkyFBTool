@@ -1,4 +1,4 @@
-using Scriban;
+﻿using Scriban;
 
 namespace SkyFBTool.Services.Ddl;
 
@@ -13,7 +13,7 @@ public static class RenderizadorHtmlDiffDdl
         var modelo = new ModeloRelatorio
         {
             Lang = idioma == IdiomaSaida.PortugueseBrazil ? "pt-BR" : "en",
-            Titulo = M(idioma, "DDL Diff Report", "Relatorio DDL Diff"),
+            Titulo = M(idioma, "DDL Diff Report", "Relatório DDL Diff"),
             OrigemLabel = M(idioma, "Source", "Origem"),
             AlvoLabel = M(idioma, "Target", "Alvo"),
             OrigemArquivo = H(Path.GetFileName(origemJson)),
@@ -73,13 +73,13 @@ public static class RenderizadorHtmlDiffDdl
         using var stream = typeof(RenderizadorHtmlDiffDdl).Assembly
             .GetManifestResourceStream("SkyFBTool.Services.Ddl.Templates.DdlDiffReport.scriban");
         if (stream is null)
-            throw new InvalidOperationException("Template de relatorio DDL Diff nao encontrado.");
+            throw new InvalidOperationException("Template de relatório DDL Diff não encontrado.");
 
         using var reader = new StreamReader(stream);
         string conteudo = reader.ReadToEnd();
         var template = Template.Parse(conteudo);
         if (template.HasErrors)
-            throw new InvalidOperationException("Template de relatorio DDL Diff invalido.");
+            throw new InvalidOperationException("Template de relatório DDL Diff inválido.");
 
         return template;
     }
@@ -131,3 +131,4 @@ public static class RenderizadorHtmlDiffDdl
         public List<string> Avisos { get; init; } = [];
     }
 }
+

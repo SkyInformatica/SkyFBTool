@@ -1,4 +1,4 @@
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using System.Text;
 using FirebirdSql.Data.FirebirdClient;
 using SkyFBTool.Core;
@@ -14,26 +14,26 @@ public static class ImportadorSql
     public static async Task<ResultadoImportacaoSql> ImportarAsync(OpcoesImportacao opcoes)
     {
         if (string.IsNullOrWhiteSpace(opcoes.ArquivoEntrada))
-            throw new ArgumentException("Arquivo SQL nÃ£o informado (--input).");
+            throw new ArgumentException("Arquivo SQL não informado (--input).");
 
         if (!File.Exists(opcoes.ArquivoEntrada))
-            throw new FileNotFoundException($"Arquivo SQL nÃ£o encontrado: {opcoes.ArquivoEntrada}");
+            throw new FileNotFoundException($"Arquivo SQL não encontrado: {opcoes.ArquivoEntrada}");
 
-        Console.WriteLine($"Iniciando importaÃ§Ã£o do arquivo '{opcoes.ArquivoEntrada}'...\n");
+        Console.WriteLine($"Iniciando importação do arquivo '{opcoes.ArquivoEntrada}'...\n");
 
         var inicioExecucao = DateTime.UtcNow;
         string caminhoLog = ResolverCaminhoLogImportacao(opcoes.ArquivoEntrada);
         await File.WriteAllTextAsync(
             caminhoLog,
-            $"Log de importaÃ§Ã£o{Environment.NewLine}" +
+            $"Log de importação{Environment.NewLine}" +
             $"Arquivo SQL: {opcoes.ArquivoEntrada}{Environment.NewLine}" +
-            $"InÃ­cio (UTC): {inicioExecucao:yyyy-MM-dd HH:mm:ss}{Environment.NewLine}{Environment.NewLine}");
-        Console.WriteLine($"Log da importaÃ§Ã£o: {caminhoLog}");
+            $"Início (UTC): {inicioExecucao:yyyy-MM-dd HH:mm:ss}{Environment.NewLine}{Environment.NewLine}");
+        Console.WriteLine($"Log da importação: {caminhoLog}");
 
         string charsetArquivo = CharsetSql.DetectarCharsetSetNames(opcoes.ArquivoEntrada);
         Encoding encodingArquivo = CharsetSql.ResolverEncodingLeituraSql(charsetArquivo);
 
-        Console.WriteLine($"Charset detectado para conexÃ£o: {charsetArquivo}\n");
+        Console.WriteLine($"Charset detectado para conexão: {charsetArquivo}\n");
 
         var csb = new FbConnectionStringBuilder
         {
@@ -340,24 +340,24 @@ public static class ImportadorSql
         var duracao = fimExecucao - inicioExecucao;
 
         Console.WriteLine();
-        Console.WriteLine("ImportaÃ§Ã£o concluÃ­da.");
+        Console.WriteLine("Importação concluída.");
         Console.WriteLine($"Total de linhas processadas : {totalLinhasProcessadas:N0}");
         Console.WriteLine($"Total de comandos executados: {totalComandos:N0}");
-        Console.WriteLine($"Tempo total de execuÃ§Ã£o     : {FormatarDuracao(duracao)}");
+        Console.WriteLine($"Tempo total de execução     : {FormatarDuracao(duracao)}");
 
         double cps = totalComandos / duracao.TotalSeconds;
-        Console.WriteLine($"Velocidade mÃ©dia            : {cps:N2} comandos/segundo");
+        Console.WriteLine($"Velocidade média            : {cps:N2} comandos/segundo");
 
         if (totalErros > 0)
         {
             await File.AppendAllTextAsync(
                 caminhoLog,
-                $"ImportaÃ§Ã£o concluÃ­da com erros.{Environment.NewLine}" +
+                $"Importação concluída com erros.{Environment.NewLine}" +
                 $"Fim (UTC): {DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}{Environment.NewLine}" +
                 $"Total de erros: {totalErros}{Environment.NewLine}");
 
             Console.ForegroundColor = ConsoleColor.Yellow;
-            Console.WriteLine("\nAviso: ocorreram erros durante a importaÃ§Ã£o.");
+            Console.WriteLine("\nAviso: ocorreram erros durante a importação.");
             Console.WriteLine($"Consulte o arquivo: {caminhoLog}");
             Console.ResetColor();
         }
@@ -365,7 +365,7 @@ public static class ImportadorSql
         {
             await File.AppendAllTextAsync(
                 caminhoLog,
-                $"ImportaÃ§Ã£o concluÃ­da sem erros.{Environment.NewLine}" +
+                $"Importação concluída sem erros.{Environment.NewLine}" +
                 $"Fim (UTC): {DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}{Environment.NewLine}");
         }
 

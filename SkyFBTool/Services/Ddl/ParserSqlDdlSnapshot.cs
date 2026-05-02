@@ -1,4 +1,4 @@
-using System.Text;
+﻿using System.Text;
 using System.Text.RegularExpressions;
 
 namespace SkyFBTool.Services.Ddl;
@@ -8,7 +8,7 @@ internal static class ParserSqlDdlSnapshot
     public static async Task<SnapshotSchema> LerArquivoSqlAsync(string arquivoSql)
     {
         if (!File.Exists(arquivoSql))
-            throw new FileNotFoundException($"Arquivo SQL nao encontrado: {arquivoSql}");
+            throw new FileNotFoundException($"Arquivo SQL não encontrado: {arquivoSql}");
 
         var snapshot = new SnapshotSchema();
         var tabelas = new Dictionary<string, TabelaSchema>(StringComparer.OrdinalIgnoreCase);
@@ -640,3 +640,4 @@ internal static class ParserSqlDdlSnapshot
 
     private const string PadraoIdentificador = "(?:\"(?:\"\"|[^\"])+\"|[A-Za-z_][A-Za-z0-9_$]*)";
 }
+

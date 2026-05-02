@@ -32,7 +32,7 @@ public static class ConstrutorConsultaFirebird
     public static string MontarSelectComColunas(OpcoesExportacao opcoes, IReadOnlyList<string> colunas)
     {
         if (colunas is null || colunas.Count == 0)
-            throw new ArgumentException("Nenhuma coluna vÃ¡lida foi informada para exportaÃ§Ã£o.");
+            throw new ArgumentException("Nenhuma coluna válida foi informada para exportação.");
 
         if (!string.IsNullOrWhiteSpace(opcoes.ConsultaSqlCompleta))
             return ValidarSelectCompleto(opcoes.ConsultaSqlCompleta);
@@ -59,7 +59,7 @@ public static class ConstrutorConsultaFirebird
             texto = texto[..^1].TrimEnd();
 
         if (!texto.StartsWith("SELECT", StringComparison.OrdinalIgnoreCase))
-            throw new ArgumentException("Consulta SQL invÃ¡lida: o arquivo deve conter um SELECT.");
+            throw new ArgumentException("Consulta SQL inválida: o arquivo deve conter um SELECT.");
 
         return texto;
     }
@@ -67,15 +67,15 @@ public static class ConstrutorConsultaFirebird
     private static string ValidarNomeTabela(string? nomeTabela)
     {
         if (string.IsNullOrWhiteSpace(nomeTabela))
-            throw new ArgumentException("Tabela nÃ£o informada (--table).");
+            throw new ArgumentException("Tabela não informada (--table).");
 
         string nome = nomeTabela.Trim();
 
         if (ContemTokenPerigoso(nome))
-            throw new ArgumentException("Nome de tabela invÃ¡lido: contÃ©m tokens SQL nÃ£o permitidos.");
+            throw new ArgumentException("Nome de tabela inválido: contém tokens SQL não permitidos.");
 
         if (!RegexTabelaSimples.IsMatch(nome) && !RegexTabelaComAspas.IsMatch(nome))
-            throw new ArgumentException("Nome de tabela invÃ¡lido: use identificador simples ou entre aspas.");
+            throw new ArgumentException("Nome de tabela inválido: use identificador simples ou entre aspas.");
 
         return nome;
     }
@@ -89,10 +89,10 @@ public static class ConstrutorConsultaFirebird
         where = RemoverPrefixoWhere(where);
 
         if (string.IsNullOrWhiteSpace(where))
-            throw new ArgumentException("CondiÃ§Ã£o WHERE invÃ¡lida: vazia.");
+            throw new ArgumentException("Condição WHERE inválida: vazia.");
 
         if (ContemTokenPerigoso(where))
-            throw new ArgumentException("CondiÃ§Ã£o WHERE invÃ¡lida: contÃ©m tokens SQL nÃ£o permitidos.");
+            throw new ArgumentException("Condição WHERE inválida: contém tokens SQL não permitidos.");
 
         return where;
     }
@@ -123,7 +123,7 @@ public static class ConstrutorConsultaFirebird
     {
         string nome = (nomeColuna ?? string.Empty).Trim();
         if (string.IsNullOrWhiteSpace(nome))
-            throw new ArgumentException("Nome de coluna invÃ¡lido: vazio.");
+            throw new ArgumentException("Nome de coluna inválido: vazio.");
 
         return $"\"{nome.Replace("\"", "\"\"")}\"";
     }
