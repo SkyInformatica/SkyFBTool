@@ -1,0 +1,21 @@
+{
+  "Origem": "D:\\Projetos\\SkyFBTool\\docs\\examples\\ddl-diff-sample-target.sql",
+  "Description": "",
+  "GeradoEmUtc": "2026-05-01T11:56:16.8885681Z",
+  "DataUltimaManutencaoUtc": null,
+  "FonteDataUltimaManutencao": "",
+  "AnaliseVolumeHabilitada": true,
+  "StatusAnaliseVolume": "not_applicable",
+  "ErroAnaliseVolume": "",
+  "TabelasLidasAnaliseVolume": 0,
+  "AchadosGeradosAnaliseVolume": 0,
+  "TotalTabelas": 4,
+  "TotalAchados": 0,
+  "TotalCriticos": 0,
+  "TotalAltos": 0,
+  "TotalMedios": 0,
+  "TotalBaixos": 0,
+  "Achados": [],
+  "ResumoPorCodigo": [],
+  "ResumoPorTabela": []
+}

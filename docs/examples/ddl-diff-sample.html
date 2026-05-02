@@ -1,0 +1,204 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Relatorio DDL Diff</title>
+  <style>
+    body { font-family: Segoe UI, Arial, sans-serif; margin: 20px; color: #1f2937; }
+    h1, h2 { margin: 0 0 12px 0; }
+    .meta { margin-bottom: 14px; font-size: 14px; }
+    .kpi { display: flex; gap: 10px; flex-wrap: wrap; margin: 10px 0 18px; }
+    .pill { border: 1px solid #d1d5db; border-radius: 12px; padding: 8px 10px; background: #f9fafb; font-size: 13px; }
+    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 8px 0 16px; }
+    .card { border: 1px solid #e5e7eb; border-radius: 10px; background: #fff; padding: 10px; }
+    .table-wrap { max-height: 58vh; overflow: auto; border: 1px solid #e5e7eb; border-radius: 8px; margin-top: 8px; }
+    table { width: 100%; border-collapse: collapse; }
+    th, td { border-bottom: 1px solid #eef2f7; padding: 8px; text-align: left; vertical-align: top; font-size: 13px; }
+    th { position: sticky; top: 0; background: #f3f4f6; z-index: 1; }
+    .section { margin-top: 14px; }
+    .muted { color: #6b7280; }
+    @media (max-width: 900px) { .grid { grid-template-columns: 1fr; } body { margin: 12px; } }
+  </style>
+</head>
+<body>
+  <h1>Relatorio DDL Diff</h1>
+  <div class="meta">
+    <div><strong>Origem:</strong> ddl-diff-sample-source.sql</div>
+    <div><strong>Alvo:</strong> ddl-diff-sample-target.sql</div>
+    <div><strong>Gerado em (UTC):</strong> 2026-05-01 11:56:16</div>
+  </div>
+  <div class="kpi">
+    <div class="pill"><strong>Comandos SQL gerados:</strong> 25</div>
+    <div class="pill"><strong>Itens criados:</strong> 17</div>
+    <div class="pill"><strong>Itens alterados:</strong> 6</div>
+    <div class="pill"><strong>Itens somente no alvo:</strong> 6</div>
+    <div class="pill"><strong>Avisos:</strong> 0</div>
+  </div>
+
+  <div class="grid">
+    <div class="card">
+      <h2>Comandos SQL gerados</h2>
+      
+            <div class="table-wrap">
+              <table><thead><tr><th>#</th><th>Item</th></tr></thead><tbody>
+                
+                    <tr><td>1</td><td>ALTER TABLE &quot;CLIENTES&quot; ADD &quot;ATIVO&quot; SMALLINT DEFAULT 1;</td></tr>
+                    
+                    <tr><td>2</td><td>ALTER TABLE &quot;CLIENTES&quot; ADD &quot;DATA_CADASTRO&quot; TIMESTAMP DEFAULT CURRENT_TIMESTAMP;</td></tr>
+                    
+                    <tr><td>3</td><td>ALTER TABLE &quot;CLIENTES&quot; ADD &quot;EMAIL&quot; VARCHAR(120);</td></tr>
+                    
+                    <tr><td>4</td><td>ALTER TABLE &quot;CLIENTES&quot; ALTER COLUMN &quot;NOME&quot; TYPE VARCHAR(120);</td></tr>
+                    
+                    <tr><td>5</td><td>CREATE INDEX &quot;IX_CLIENTES_NOME&quot; ON &quot;CLIENTES&quot; (&quot;NOME&quot;);</td></tr>
+                    
+                    <tr><td>6</td><td>CREATE UNIQUE INDEX &quot;UX_CLIENTES_EMAIL&quot; ON &quot;CLIENTES&quot; (&quot;EMAIL&quot;);</td></tr>
+                    
+                    <tr><td>7</td><td>ALTER TABLE &quot;ITENS_PEDIDO&quot; ALTER COLUMN &quot;PEDIDO_ID&quot; SET NOT NULL;</td></tr>
+                    
+                    <tr><td>8</td><td>ALTER TABLE &quot;ITENS_PEDIDO&quot; ADD &quot;PRODUTO_ID&quot; INTEGER NOT NULL;</td></tr>
+                    
+                    <tr><td>9</td><td>ALTER TABLE &quot;ITENS_PEDIDO&quot; ALTER COLUMN &quot;QUANTIDADE&quot; TYPE NUMERIC(15,3);</td></tr>
+                    
+                    <tr><td>10</td><td>ALTER TABLE &quot;ITENS_PEDIDO&quot; ALTER COLUMN &quot;QUANTIDADE&quot; SET NOT NULL;</td></tr>
+                    
+                    <tr><td>11</td><td>ALTER TABLE &quot;ITENS_PEDIDO&quot; ADD &quot;VALOR_TOTAL&quot; NUMERIC(15,2) NOT NULL;</td></tr>
+                    
+                    <tr><td>12</td><td>ALTER TABLE &quot;ITENS_PEDIDO&quot; ADD &quot;VALOR_UNITARIO&quot; NUMERIC(15,2) NOT NULL;</td></tr>
+                    
+                    <tr><td>13</td><td>ALTER TABLE &quot;ITENS_PEDIDO&quot; ADD CONSTRAINT &quot;FK_ITENS_PEDIDO_PEDIDO&quot; FOREIGN KEY (&quot;PEDIDO_ID&quot;) REFERENCES &quot;PEDIDOS&quot; (&quot;ID&quot;) ON DELETE CASCADE;</td></tr>
+                    
+                    <tr><td>14</td><td>CREATE INDEX &quot;IX_ITENS_PEDIDO_PEDIDO&quot; ON &quot;ITENS_PEDIDO&quot; (&quot;PEDIDO_ID&quot;);</td></tr>
+                    
+                    <tr><td>15</td><td>CREATE INDEX &quot;IX_ITENS_PEDIDO_PRODUTO&quot; ON &quot;ITENS_PEDIDO&quot; (&quot;PRODUTO_ID&quot;);</td></tr>
+                    
+                    <tr><td>16</td><td>ALTER TABLE &quot;PEDIDOS&quot; ALTER COLUMN &quot;CLIENTE_ID&quot; SET NOT NULL;</td></tr>
+                    
+                    <tr><td>17</td><td>ALTER TABLE &quot;PEDIDOS&quot; ALTER COLUMN &quot;DATA_EMISSAO&quot; SET NOT NULL;</td></tr>
+                    
+                    <tr><td>18</td><td>ALTER TABLE &quot;PEDIDOS&quot; ADD &quot;STATUS&quot; VARCHAR(20) DEFAULT &#39;ABERTO&#39;;</td></tr>
+                    
+                    <tr><td>19</td><td>ALTER TABLE &quot;PEDIDOS&quot; ADD &quot;VALOR_TOTAL&quot; NUMERIC(15,2) DEFAULT 0;</td></tr>
+                    
+                    <tr><td>20</td><td>ALTER TABLE &quot;PEDIDOS&quot; ADD CONSTRAINT &quot;FK_PEDIDOS_CLIENTE&quot; FOREIGN KEY (&quot;CLIENTE_ID&quot;) REFERENCES &quot;CLIENTES&quot; (&quot;ID&quot;);</td></tr>
+                    
+                    <tr><td>21</td><td>CREATE INDEX &quot;IX_PEDIDOS_CLIENTE&quot; ON &quot;PEDIDOS&quot; (&quot;CLIENTE_ID&quot;);</td></tr>
+                    
+                    <tr><td>22</td><td>CREATE INDEX &quot;IX_PEDIDOS_DATA_STATUS&quot; ON &quot;PEDIDOS&quot; (&quot;DATA_EMISSAO&quot;, &quot;STATUS&quot;);</td></tr>
+                    
+                    <tr><td>23</td><td>CREATE TABLE &quot;PRODUTOS&quot; (
+    &quot;ID&quot; INTEGER NOT NULL,
+    &quot;NOME&quot; VARCHAR(120) NOT NULL,
+    &quot;PRECO&quot; NUMERIC(15,2) NOT NULL,
+    &quot;ATIVO&quot; SMALLINT DEFAULT 1
+);</td></tr>
+                    
+                    <tr><td>24</td><td>ALTER TABLE &quot;PRODUTOS&quot; ADD CONSTRAINT &quot;PK_PRODUTOS&quot; PRIMARY KEY (&quot;ID&quot;);</td></tr>
+                    
+                    <tr><td>25</td><td>CREATE UNIQUE INDEX &quot;UX_PRODUTOS_NOME&quot; ON &quot;PRODUTOS&quot; (&quot;NOME&quot;);</td></tr>
+                    
+              </tbody></table>
+            </div>
+            
+    </div>
+    <div class="card">
+      <h2>Avisos</h2>
+      
+            <div class="muted">Nenhum</div>
+            
+    </div>
+  </div>
+
+  <div class="section">
+    <h2>Itens criados</h2>
+    
+        <div class="table-wrap">
+          <table><thead><tr><th>#</th><th>Item</th></tr></thead><tbody>
+            
+                <tr><td>1</td><td>Coluna ausente no alvo: CLIENTES.ATIVO</td></tr>
+                
+                <tr><td>2</td><td>Coluna ausente no alvo: CLIENTES.DATA_CADASTRO</td></tr>
+                
+                <tr><td>3</td><td>Coluna ausente no alvo: CLIENTES.EMAIL</td></tr>
+                
+                <tr><td>4</td><td>Indice ausente no alvo: CLIENTES.IX_CLIENTES_NOME</td></tr>
+                
+                <tr><td>5</td><td>Indice ausente no alvo: CLIENTES.UX_CLIENTES_EMAIL</td></tr>
+                
+                <tr><td>6</td><td>Coluna ausente no alvo: ITENS_PEDIDO.PRODUTO_ID</td></tr>
+                
+                <tr><td>7</td><td>Coluna ausente no alvo: ITENS_PEDIDO.VALOR_TOTAL</td></tr>
+                
+                <tr><td>8</td><td>Coluna ausente no alvo: ITENS_PEDIDO.VALOR_UNITARIO</td></tr>
+                
+                <tr><td>9</td><td>FK ausente no alvo: ITENS_PEDIDO.FK_ITENS_PEDIDO_PEDIDO</td></tr>
+                
+                <tr><td>10</td><td>Indice ausente no alvo: ITENS_PEDIDO.IX_ITENS_PEDIDO_PEDIDO</td></tr>
+                
+                <tr><td>11</td><td>Indice ausente no alvo: ITENS_PEDIDO.IX_ITENS_PEDIDO_PRODUTO</td></tr>
+                
+                <tr><td>12</td><td>Coluna ausente no alvo: PEDIDOS.STATUS</td></tr>
+                
+                <tr><td>13</td><td>Coluna ausente no alvo: PEDIDOS.VALOR_TOTAL</td></tr>
+                
+                <tr><td>14</td><td>FK ausente no alvo: PEDIDOS.FK_PEDIDOS_CLIENTE</td></tr>
+                
+                <tr><td>15</td><td>Indice ausente no alvo: PEDIDOS.IX_PEDIDOS_CLIENTE</td></tr>
+                
+                <tr><td>16</td><td>Indice ausente no alvo: PEDIDOS.IX_PEDIDOS_DATA_STATUS</td></tr>
+                
+                <tr><td>17</td><td>Tabela ausente no alvo: PRODUTOS</td></tr>
+                
+          </tbody></table>
+        </div>
+        
+  </div>
+
+  <div class="section">
+    <h2>Itens alterados</h2>
+    
+        <div class="table-wrap">
+          <table><thead><tr><th>#</th><th>Item</th></tr></thead><tbody>
+            
+                <tr><td>1</td><td>Tipo diferente: CLIENTES.NOME (VARCHAR(80) -&gt; VARCHAR(120))</td></tr>
+                
+                <tr><td>2</td><td>Nulidade diferente: ITENS_PEDIDO.PEDIDO_ID (alvo: NULL -&gt; origem: NOT NULL)</td></tr>
+                
+                <tr><td>3</td><td>Tipo diferente: ITENS_PEDIDO.QUANTIDADE (NUMERIC(15,2) -&gt; NUMERIC(15,3))</td></tr>
+                
+                <tr><td>4</td><td>Nulidade diferente: ITENS_PEDIDO.QUANTIDADE (alvo: NULL -&gt; origem: NOT NULL)</td></tr>
+                
+                <tr><td>5</td><td>Nulidade diferente: PEDIDOS.CLIENTE_ID (alvo: NULL -&gt; origem: NOT NULL)</td></tr>
+                
+                <tr><td>6</td><td>Nulidade diferente: PEDIDOS.DATA_EMISSAO (alvo: NULL -&gt; origem: NOT NULL)</td></tr>
+                
+          </tbody></table>
+        </div>
+        
+  </div>
+
+  <div class="section">
+    <h2>Itens somente no alvo</h2>
+    
+        <div class="table-wrap">
+          <table><thead><tr><th>#</th><th>Item</th></tr></thead><tbody>
+            
+                <tr><td>1</td><td>Coluna existe apenas no alvo: CLIENTES.TIPO</td></tr>
+                
+                <tr><td>2</td><td>Indice existe apenas no alvo: CLIENTES.IX_CLIENTES_TIPO</td></tr>
+                
+                <tr><td>3</td><td>Indice existe apenas no alvo: ITENS_PEDIDO.IX_ITENS_PEDIDO_QTD</td></tr>
+                
+                <tr><td>4</td><td>Coluna existe apenas no alvo: PEDIDOS.OBSERVACAO</td></tr>
+                
+                <tr><td>5</td><td>Indice existe apenas no alvo: PEDIDOS.IX_PEDIDOS_DATA</td></tr>
+                
+                <tr><td>6</td><td>Tabela existe apenas no alvo: PAGAMENTOS</td></tr>
+                
+          </tbody></table>
+        </div>
+        
+  </div>
+</body>
+</html>

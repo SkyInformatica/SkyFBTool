@@ -32,6 +32,15 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "pt-BR", "pt-BR", "{96D61037
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "examples", "examples", "{4724E81D-E562-4D42-AFEB-744180606EB8}"
 	ProjectSection(SolutionItems) = preProject
+		docs\examples\ddl-analyze-from-diff-source.html = docs\examples\ddl-analyze-from-diff-source.html
+		docs\examples\ddl-analyze-from-diff-source.json = docs\examples\ddl-analyze-from-diff-source.json
+		docs\examples\ddl-analyze-from-diff-target.html = docs\examples\ddl-analyze-from-diff-target.html
+		docs\examples\ddl-analyze-from-diff-target.json = docs\examples\ddl-analyze-from-diff-target.json
+		docs\examples\ddl-diff-sample-source.sql = docs\examples\ddl-diff-sample-source.sql
+		docs\examples\ddl-diff-sample-target.sql = docs\examples\ddl-diff-sample-target.sql
+		docs\examples\ddl-diff-sample.html = docs\examples\ddl-diff-sample.html
+		docs\examples\ddl-diff-sample.json = docs\examples\ddl-diff-sample.json
+		docs\examples\ddl-diff-sample.sql = docs\examples\ddl-diff-sample.sql
 		docs\examples\ddl-analyze-sample-input.sql = docs\examples\ddl-analyze-sample-input.sql
 		docs\examples\ddl-analyze-sample-rich-input.sql = docs\examples\ddl-analyze-sample-rich-input.sql
 		docs\examples\ddl-analyze-sample-rich.html = docs\examples\ddl-analyze-sample-rich.html
