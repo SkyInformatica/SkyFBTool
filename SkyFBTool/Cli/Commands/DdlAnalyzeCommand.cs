@@ -71,7 +71,7 @@ public static class DdlAnalyzeCommand
                     }
                     else
                     {
-                        throw new ArgumentException(M(
+                        throw new ArgumentException(CliText.Texto(
                             idioma,
                             "Invalid value for --volume-analysis. Use on or off.",
                             "Valor inválido para --volume-analysis. Use on ou off."));
@@ -89,21 +89,21 @@ public static class DdlAnalyzeCommand
                     }
                     else
                     {
-                        throw new ArgumentException(M(
+                        throw new ArgumentException(CliText.Texto(
                             idioma,
                             "Invalid value for --volume-count-exact. Use on or off.",
                             "Valor inválido para --volume-count-exact. Use on ou off."));
                     }
                     break;
                 default:
-                    throw new ArgumentException(M(
+                    throw new ArgumentException(CliText.Texto(
                         idioma,
                         $"Unknown option: --{chave}",
                         $"Opção desconhecida: --{chave}"));
             }
         }
 
-        Console.WriteLine(M(idioma, "Starting DDL analysis...", "Iniciando análise de DDL..."));
+        Console.WriteLine(CliText.Texto(idioma, "Starting DDL analysis...", "Iniciando análise de DDL..."));
         ValidarModoEntrada(op, idioma);
         var bancos = ResolverBancosParaAnalise(op.DatabasesBatch, idioma);
 
@@ -112,13 +112,13 @@ public static class DdlAnalyzeCommand
             var (arquivoJson, arquivoHtml) = await AnalisadorDdlSchema.AnalisarAsync(op);
 
             Console.WriteLine();
-            Console.WriteLine(M(idioma, "Analysis finished.", "Análise concluída."));
-            Console.WriteLine($"{M(idioma, "Analysis JSON", "Análise JSON")}: {arquivoJson}");
-            Console.WriteLine($"{M(idioma, "Report", "Relatório")}     : {arquivoHtml}");
+            Console.WriteLine(CliText.Texto(idioma, "Analysis finished.", "Análise concluída."));
+            Console.WriteLine($"{CliText.Texto(idioma, "Analysis JSON", "Análise JSON")}: {arquivoJson}");
+            Console.WriteLine($"{CliText.Texto(idioma, "Report", "Relatório")}     : {arquivoHtml}");
             return;
         }
 
-        Console.WriteLine(M(
+        Console.WriteLine(CliText.Texto(
             idioma,
             $"Database wildcard resolved to {bancos.Count} file(s).",
             $"Wildcard de banco resolveu para {bancos.Count} arquivo(s)."));
@@ -138,18 +138,18 @@ public static class DdlAnalyzeCommand
             });
 
             Console.WriteLine();
-            Console.WriteLine($"{M(idioma, "Database", "Banco")}     : {banco}");
-            Console.WriteLine($"{M(idioma, "Analysis JSON", "Análise JSON")}: {arquivoJson}");
-            Console.WriteLine($"{M(idioma, "Report", "Relatório")}     : {arquivoHtml}");
+            Console.WriteLine($"{CliText.Texto(idioma, "Database", "Banco")}     : {banco}");
+            Console.WriteLine($"{CliText.Texto(idioma, "Analysis JSON", "Análise JSON")}: {arquivoJson}");
+            Console.WriteLine($"{CliText.Texto(idioma, "Report", "Relatório")}     : {arquivoHtml}");
         }
 
         var (arquivoResumoJson, arquivoResumoHtml) =
             await GeradorResumoAnaliseDdlLote.GerarAsync(entradasResumo, op.Saida, idioma);
 
         Console.WriteLine();
-        Console.WriteLine(M(idioma, "Batch analysis finished.", "Análise em lote concluída."));
-        Console.WriteLine($"{M(idioma, "Batch summary JSON", "Resumo do lote JSON")}: {arquivoResumoJson}");
-        Console.WriteLine($"{M(idioma, "Batch summary report", "Relatório resumo do lote")}: {arquivoResumoHtml}");
+        Console.WriteLine(CliText.Texto(idioma, "Batch analysis finished.", "Análise em lote concluída."));
+        Console.WriteLine($"{CliText.Texto(idioma, "Batch summary JSON", "Resumo do lote JSON")}: {arquivoResumoJson}");
+        Console.WriteLine($"{CliText.Texto(idioma, "Batch summary report", "Relatório resumo do lote")}: {arquivoResumoHtml}");
     }
 
     private static OpcoesDdlAnalise ClonarParaBanco(OpcoesDdlAnalise baseOp, string banco)
@@ -178,43 +178,21 @@ public static class DdlAnalyzeCommand
         if (string.IsNullOrWhiteSpace(databasesBatch))
             return [];
 
-        if (!ContemWildcard(databasesBatch))
+        if (!CliBatchPatternResolver.ContemWildcard(databasesBatch))
         {
-            throw new ArgumentException(M(
+            throw new ArgumentException(CliText.Texto(
                 idioma,
                 "Invalid value for --databases-batch. Use a wildcard pattern (for example: C:\\data\\*.fdb).",
                 "Valor inválido para --databases-batch. Use um padrão wildcard (exemplo: C:\\dados\\*.fdb)."));
         }
 
-        string caminho = databasesBatch.Trim().Trim('"');
-        string diretorio = Path.GetDirectoryName(caminho) ?? Directory.GetCurrentDirectory();
-        string padrao = Path.GetFileName(caminho);
-
-        if (string.IsNullOrWhiteSpace(padrao))
-            throw new ArgumentException(M(idioma, "Invalid database wildcard pattern.", "Padrão wildcard de banco inválido."));
-
-        if (!Directory.Exists(diretorio))
-        {
-            throw new DirectoryNotFoundException(M(
-                idioma,
-                $"Database directory not found: {diretorio}",
-                $"Diretório de bancos não encontrado: {diretorio}"));
-        }
-
-        var arquivos = Directory
-            .GetFiles(diretorio, padrao)
-            .OrderBy(f => f, StringComparer.OrdinalIgnoreCase)
-            .ToList();
-
-        if (arquivos.Count == 0)
-        {
-            throw new FileNotFoundException(M(
-                idioma,
-                $"No database file matches pattern: {databasesBatch}",
-                $"Nenhum banco corresponde ao padrão: {databasesBatch}"));
-        }
-
-        return arquivos;
+        return CliBatchPatternResolver.ResolverArquivos(
+            databasesBatch,
+            idioma,
+            "Database directory not found",
+            "Diretório de bancos não encontrado",
+            "No database file matches pattern",
+            "Nenhum banco corresponde ao padrão");
     }
 
     private static void ValidarModoEntrada(OpcoesDdlAnalise op, IdiomaSaida idioma)
@@ -226,7 +204,7 @@ public static class DdlAnalyzeCommand
         int total = (temArquivo ? 1 : 0) + (temBanco ? 1 : 0) + (temLote ? 1 : 0);
         if (total == 0)
         {
-            throw new ArgumentException(M(
+            throw new ArgumentException(CliText.Texto(
                 idioma,
                 "Provide one input source: --input/--source, --database, or --databases-batch.",
                 "Informe uma origem de entrada: --input/--source, --database ou --databases-batch."));
@@ -234,24 +212,19 @@ public static class DdlAnalyzeCommand
 
         if (total > 1)
         {
-            throw new ArgumentException(M(
+            throw new ArgumentException(CliText.Texto(
                 idioma,
                 "Do not combine --input/--source, --database, and --databases-batch. Choose only one source.",
                 "Não combine --input/--source, --database e --databases-batch. Escolha apenas uma origem."));
         }
 
-        if (temBanco && ContemWildcard(op.Database))
+        if (temBanco && CliBatchPatternResolver.ContemWildcard(op.Database))
         {
-            throw new ArgumentException(M(
+            throw new ArgumentException(CliText.Texto(
                 idioma,
                 "Wildcard in --database is not allowed. Use --databases-batch for batch mode.",
                 "Wildcard em --database não é permitido. Use --databases-batch para modo em lote."));
         }
-    }
-
-    private static bool ContemWildcard(string valor)
-    {
-        return valor.Contains('*') || valor.Contains('?');
     }
 
     private static string? ResolverSaidaPorBanco(string? saidaBase, string banco)
@@ -285,8 +258,4 @@ public static class DdlAnalyzeCommand
         return nome;
     }
 
-    private static string M(IdiomaSaida idioma, string english, string portuguese)
-    {
-        return idioma == IdiomaSaida.PortugueseBrazil ? portuguese : english;
-    }
 }

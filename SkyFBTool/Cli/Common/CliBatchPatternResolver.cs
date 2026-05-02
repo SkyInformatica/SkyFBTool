@@ -17,7 +17,7 @@ public static class CliBatchPatternResolver
         string padrao = Path.GetFileName(caminho);
 
         if (string.IsNullOrWhiteSpace(padrao))
-            throw new ArgumentException(CliText.Texto(idioma, "Invalid batch pattern.", "Padrao de lote invalido."));
+            throw new ArgumentException(CliText.Texto(idioma, "Invalid batch pattern.", "Padrão de lote inválido."));
 
         if (!Directory.Exists(diretorio))
             throw new DirectoryNotFoundException(CliText.Texto(idioma, diretorioInexistenteEnglish, diretorioInexistentePortuguese) + $": {diretorio}");

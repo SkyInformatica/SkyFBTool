@@ -39,24 +39,19 @@ public static class DdlExtractCommand
                     op.Charset = CliArgumentParser.LerValorOpcao(args, ref i, chave);
                     break;
                 default:
-                    throw new ArgumentException(M(
+                    throw new ArgumentException(CliText.Texto(
                         idioma,
                         $"Unknown option: --{chave}",
-                        $"Opcao desconhecida: --{chave}"));
+                        $"Opção desconhecida: --{chave}"));
             }
         }
 
-        Console.WriteLine(M(idioma, "Starting DDL extraction...", "Iniciando extração de DDL..."));
+        Console.WriteLine(CliText.Texto(idioma, "Starting DDL extraction...", "Iniciando extração de DDL..."));
         var (arquivoSql, arquivoJson) = await ExtratorDdlFirebird.ExtrairAsync(op);
 
         Console.WriteLine();
-        Console.WriteLine(M(idioma, "Extraction finished.", "Extração concluída."));
-        Console.WriteLine($"{M(idioma, "DDL SQL", "DDL SQL")}    : {arquivoSql}");
-        Console.WriteLine($"{M(idioma, "Schema JSON", "Schema JSON")}: {arquivoJson}");
-    }
-
-    private static string M(IdiomaSaida idioma, string english, string portuguese)
-    {
-        return idioma == IdiomaSaida.PortugueseBrazil ? portuguese : english;
+        Console.WriteLine(CliText.Texto(idioma, "Extraction finished.", "Extração concluída."));
+        Console.WriteLine($"{CliText.Texto(idioma, "DDL SQL", "DDL SQL")}    : {arquivoSql}");
+        Console.WriteLine($"{CliText.Texto(idioma, "Schema JSON", "Schema JSON")}: {arquivoJson}");
     }
 }

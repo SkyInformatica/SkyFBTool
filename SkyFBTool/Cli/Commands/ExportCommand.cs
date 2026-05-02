@@ -68,7 +68,7 @@ public static class ExportCommand
                     var valorInsertMode = CliArgumentParser.LerValorOpcao(args, ref i, chave);
                     if (!Enum.TryParse<ModoInsertExportacao>(valorInsertMode, true, out var modoInsert))
                     {
-                        throw new ArgumentException(M(
+                        throw new ArgumentException(CliText.Texto(
                             idioma,
                             $"Invalid value for --insert-mode: {valorInsertMode}. Use: insert | upsert",
                             $"Valor inválido para --insert-mode: {valorInsertMode}. Use: insert | upsert"));
@@ -98,14 +98,14 @@ public static class ExportCommand
                     op.ContinuarEmCasoDeErro = true;
                     break;
                 default:
-                    throw new ArgumentException(M(
+                    throw new ArgumentException(CliText.Texto(
                         idioma,
                         $"Unknown option: --{chave}",
-                        $"Opcao desconhecida: --{chave}"));
+                        $"Opção desconhecida: --{chave}"));
             }
         }
 
-        ValidarCombinacaoOpcoesExportacao(op);
+        ValidarCombinacaoOpcoesExportacao(op, idioma);
         ExibirResumoModoExportacao(op);
 
         var arquivoSaidaInformado = op.ArquivoSaida;
@@ -113,19 +113,28 @@ public static class ExportCommand
 
         if (string.IsNullOrWhiteSpace(arquivoSaidaInformado))
         {
-            Console.WriteLine($"Arquivo de saída não informado. Usando: {op.ArquivoSaida}");
+            Console.WriteLine(CliText.Texto(
+                idioma,
+                $"Output file was not provided. Using: {op.ArquivoSaida}",
+                $"Arquivo de saída não informado. Usando: {op.ArquivoSaida}"));
         }
         else if (EhDiretorio(arquivoSaidaInformado))
         {
-            Console.WriteLine($"Diretório informado em --output. Arquivo gerado: {op.ArquivoSaida}");
+            Console.WriteLine(CliText.Texto(
+                idioma,
+                $"Directory provided in --output. Generated file: {op.ArquivoSaida}",
+                $"Diretório informado em --output. Arquivo gerado: {op.ArquivoSaida}"));
         }
 
         if (op.TamanhoMaximoArquivoMb > 0)
-            Console.WriteLine($"Divisão de arquivo ativa: {op.TamanhoMaximoArquivoMb} MB por arquivo.");
+            Console.WriteLine(CliText.Texto(
+                idioma,
+                $"File split enabled: {op.TamanhoMaximoArquivoMb} MB per file.",
+                $"Divisão de arquivo ativa: {op.TamanhoMaximoArquivoMb} MB por arquivo."));
         else
-            Console.WriteLine("Divisão de arquivo desativada.");
+            Console.WriteLine(CliText.Texto(idioma, "File split disabled.", "Divisão de arquivo desativada."));
 
-        Console.WriteLine("Iniciando exportação...");
+        Console.WriteLine(CliText.Texto(idioma, "Starting export...", "Iniciando exportação..."));
 
         var encodingSaida = ResolverEncodingSaidaExportacao(op);
         await using var destino = new DestinoArquivo(op.ArquivoSaida, op.TamanhoMaximoArquivoMb, encodingSaida);
@@ -237,18 +246,23 @@ public static class ExportCommand
         return CharsetSql.ResolverEncodingLeituraSql(charset);
     }
 
-    private static void ValidarCombinacaoOpcoesExportacao(OpcoesExportacao op)
+    private static void ValidarCombinacaoOpcoesExportacao(OpcoesExportacao op, IdiomaSaida idioma)
     {
         if (string.IsNullOrWhiteSpace(op.Tabela))
             throw new ArgumentException(
-                "Tabela nao informada (--table). " +
-                "Se estiver usando --output com barra final no PowerShell, remova a barra final ou use \\\\ no final.");
+                CliText.Texto(
+                    idioma,
+                    "Table not provided (--table). If you are using --output with a trailing backslash in PowerShell, remove the trailing slash or escape it at the end.",
+                    "Tabela nao informada (--table). Se estiver usando --output com barra final no PowerShell, remova a barra final ou use \\\\ no final."));
 
         if (!string.IsNullOrWhiteSpace(op.ConsultaSqlCompleta) &&
             !string.IsNullOrWhiteSpace(op.CondicaoWhere))
         {
             throw new ArgumentException(
-                "Nao use --query-file junto com --filter/--filter-file. Escolha apenas um modo.");
+                CliText.Texto(
+                    idioma,
+                    "Do not use --query-file together with --filter/--filter-file. Choose only one mode.",
+                    "Não use --query-file junto com --filter/--filter-file. Escolha apenas um modo."));
         }
     }
 
@@ -307,8 +321,4 @@ public static class ExportCommand
         return $"{valor:0.##} {sufixos[indice]}";
     }
 
-    private static string M(IdiomaSaida idioma, string english, string portuguese)
-    {
-        return idioma == IdiomaSaida.PortugueseBrazil ? portuguese : english;
-    }
 }

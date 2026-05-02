@@ -50,7 +50,7 @@ public static class ImportCommand
                     opBase.ContinuarEmCasoDeErro = true;
                     break;
                 default:
-                    throw new ArgumentException(M(
+                    throw new ArgumentException(CliText.Texto(
                         idioma,
                         $"Unknown option: --{chave}",
                         $"Opção desconhecida: --{chave}"));
@@ -59,7 +59,7 @@ public static class ImportCommand
 
         if (!string.IsNullOrWhiteSpace(opBase.ArquivoEntrada) && !string.IsNullOrWhiteSpace(padraoArquivosLote))
         {
-            throw new ArgumentException(M(
+            throw new ArgumentException(CliText.Texto(
                 idioma,
                 "Use only one input mode: --input/--script or --inputs-batch.",
                 "Use apenas um modo de entrada: --input/--script ou --inputs-batch."));
@@ -78,7 +78,7 @@ public static class ImportCommand
     private static async Task ExecutarLoteAsync(OpcoesImportacao opBase, string padraoArquivos, IdiomaSaida idioma)
     {
         var arquivos = ResolverArquivosBatch(padraoArquivos, idioma);
-        Console.WriteLine(M(
+        Console.WriteLine(CliText.Texto(
             idioma,
             $"Input batch resolved to {arquivos.Count} file(s).",
             $"Lote de entrada resolveu para {arquivos.Count} arquivo(s)."));
@@ -104,7 +104,7 @@ public static class ImportCommand
             try
             {
                 Console.WriteLine();
-                Console.WriteLine($"{M(idioma, "Batch file", "Arquivo do lote")}: {arquivo}");
+                Console.WriteLine($"{CliText.Texto(idioma, "Batch file", "Arquivo do lote")}: {arquivo}");
                 var resultado = await ImportadorSql.ImportarAsync(op);
                 if (resultado.HouveErros)
                     sucessoComErros++;
@@ -119,7 +119,7 @@ public static class ImportCommand
 
                 Console.WriteLine();
                 Console.ForegroundColor = ConsoleColor.Yellow;
-                Console.WriteLine(M(
+                Console.WriteLine(CliText.Texto(
                     idioma,
                     $"Failed to import file: {arquivo}",
                     $"Falha ao importar arquivo: {arquivo}"));
@@ -129,53 +129,21 @@ public static class ImportCommand
         }
 
         Console.WriteLine();
-        Console.WriteLine(M(idioma, "Batch import finished.", "Importação em lote concluída."));
-        Console.WriteLine($"{M(idioma, "Succeeded", "Sucesso")}: {sucesso}");
-        Console.WriteLine($"{M(idioma, "Succeeded with errors", "Sucesso com erros")}: {sucessoComErros}");
-        Console.WriteLine($"{M(idioma, "Failed", "Falha")}: {falha}");
-        Console.WriteLine($"{M(idioma, "Total files", "Total de arquivos")}: {arquivos.Count}");
+        Console.WriteLine(CliText.Texto(idioma, "Batch import finished.", "Importação em lote concluída."));
+        Console.WriteLine($"{CliText.Texto(idioma, "Succeeded", "Sucesso")}: {sucesso}");
+        Console.WriteLine($"{CliText.Texto(idioma, "Succeeded with errors", "Sucesso com erros")}: {sucessoComErros}");
+        Console.WriteLine($"{CliText.Texto(idioma, "Failed", "Falha")}: {falha}");
+        Console.WriteLine($"{CliText.Texto(idioma, "Total files", "Total de arquivos")}: {arquivos.Count}");
     }
 
     private static List<string> ResolverArquivosBatch(string padraoBatch, IdiomaSaida idioma)
     {
-        string caminho = padraoBatch.Trim().Trim('"');
-        string diretorio = Path.GetDirectoryName(caminho) ?? Directory.GetCurrentDirectory();
-        string padrao = Path.GetFileName(caminho);
-
-        if (string.IsNullOrWhiteSpace(padrao))
-        {
-            throw new ArgumentException(M(
-                idioma,
-                "Invalid input batch pattern.",
-                "Padrão de lote de entrada inválido."));
-        }
-
-        if (!Directory.Exists(diretorio))
-        {
-            throw new DirectoryNotFoundException(M(
-                idioma,
-                $"Input directory not found: {diretorio}",
-                $"Diretório de entrada não encontrado: {diretorio}"));
-        }
-
-        var arquivos = Directory
-            .GetFiles(diretorio, padrao)
-            .OrderBy(a => a, StringComparer.OrdinalIgnoreCase)
-            .ToList();
-
-        if (arquivos.Count == 0)
-        {
-            throw new FileNotFoundException(M(
-                idioma,
-                $"No SQL file matches pattern: {padraoBatch}",
-                $"Nenhum arquivo SQL corresponde ao padrão: {padraoBatch}"));
-        }
-
-        return arquivos;
-    }
-
-    private static string M(IdiomaSaida idioma, string english, string portuguese)
-    {
-        return idioma == IdiomaSaida.PortugueseBrazil ? portuguese : english;
+        return CliBatchPatternResolver.ResolverArquivos(
+            padraoBatch,
+            idioma,
+            "Input directory not found",
+            "Diretório de entrada não encontrado",
+            "No SQL file matches pattern",
+            "Nenhum arquivo SQL corresponde ao padrão");
     }
 }

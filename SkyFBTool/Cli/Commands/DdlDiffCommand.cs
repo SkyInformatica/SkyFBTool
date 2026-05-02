@@ -29,25 +29,20 @@ public static class DdlDiffCommand
                     op.Saida = CliArgumentParser.LerValorOpcao(args, ref i, chave);
                     break;
                 default:
-                    throw new ArgumentException(M(
+                    throw new ArgumentException(CliText.Texto(
                         idioma,
                         $"Unknown option: --{chave}",
-                        $"Opcao desconhecida: --{chave}"));
+                        $"Opção desconhecida: --{chave}"));
             }
         }
 
-        Console.WriteLine(M(idioma, "Starting DDL comparison...", "Iniciando comparacao de DDL..."));
+        Console.WriteLine(CliText.Texto(idioma, "Starting DDL comparison...", "Iniciando comparacao de DDL..."));
         var (arquivoSql, arquivoJson, arquivoHtml) = await ComparadorSchema.CompararAsync(op);
 
         Console.WriteLine();
-        Console.WriteLine(M(idioma, "Comparison finished.", "Comparacao concluida."));
-        Console.WriteLine($"{M(idioma, "Diff SQL", "Diff SQL")}   : {arquivoSql}");
-        Console.WriteLine($"{M(idioma, "Diff JSON", "Diff JSON")}  : {arquivoJson}");
-        Console.WriteLine($"{M(idioma, "Report", "Relatorio")}     : {arquivoHtml}");
-    }
-
-    private static string M(IdiomaSaida idioma, string english, string portuguese)
-    {
-        return idioma == IdiomaSaida.PortugueseBrazil ? portuguese : english;
+        Console.WriteLine(CliText.Texto(idioma, "Comparison finished.", "Comparacao concluida."));
+        Console.WriteLine($"{CliText.Texto(idioma, "Diff SQL", "Diff SQL")}   : {arquivoSql}");
+        Console.WriteLine($"{CliText.Texto(idioma, "Diff JSON", "Diff JSON")}  : {arquivoJson}");
+        Console.WriteLine($"{CliText.Texto(idioma, "Report", "Relatorio")}     : {arquivoHtml}");
     }
 }
