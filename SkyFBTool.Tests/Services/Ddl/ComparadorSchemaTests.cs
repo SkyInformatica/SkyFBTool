@@ -236,4 +236,78 @@ public class ComparadorSchemaTests
         Assert.True(indiceFkFilhoPai > indiceCreateFilho);
         Assert.True(indiceFkFilhoPai > indicePkPai);
     }
+
+    [Fact]
+    public void GerarDiff_QuandoTabelasPossuemDependenciaEmCadeia_DeveOrdenarPaisAntesDosFilhos()
+    {
+        var origem = new SnapshotSchema
+        {
+            Tabelas =
+            [
+                new TabelaSchema
+                {
+                    Nome = "X_NETO",
+                    Colunas =
+                    [
+                        new ColunaSchema { Nome = "ID", TipoSql = "INTEGER", AceitaNulo = false },
+                        new ColunaSchema { Nome = "FILHO_ID", TipoSql = "INTEGER", AceitaNulo = false }
+                    ],
+                    ChavePrimaria = new ChavePrimariaSchema { Nome = "PK_X_NETO", Colunas = ["ID"] },
+                    ChavesEstrangeiras =
+                    [
+                        new ChaveEstrangeiraSchema
+                        {
+                            Nome = "FK_X_NETO_FILHO",
+                            Colunas = ["FILHO_ID"],
+                            TabelaReferencia = "Y_FILHO",
+                            ColunasReferencia = ["ID"]
+                        }
+                    ]
+                },
+                new TabelaSchema
+                {
+                    Nome = "Y_FILHO",
+                    Colunas =
+                    [
+                        new ColunaSchema { Nome = "ID", TipoSql = "INTEGER", AceitaNulo = false },
+                        new ColunaSchema { Nome = "PAI_ID", TipoSql = "INTEGER", AceitaNulo = false }
+                    ],
+                    ChavePrimaria = new ChavePrimariaSchema { Nome = "PK_Y_FILHO", Colunas = ["ID"] },
+                    ChavesEstrangeiras =
+                    [
+                        new ChaveEstrangeiraSchema
+                        {
+                            Nome = "FK_Y_FILHO_PAI",
+                            Colunas = ["PAI_ID"],
+                            TabelaReferencia = "Z_PAI",
+                            ColunasReferencia = ["ID"]
+                        }
+                    ]
+                },
+                new TabelaSchema
+                {
+                    Nome = "Z_PAI",
+                    Colunas =
+                    [
+                        new ColunaSchema { Nome = "ID", TipoSql = "INTEGER", AceitaNulo = false }
+                    ],
+                    ChavePrimaria = new ChavePrimariaSchema { Nome = "PK_Z_PAI", Colunas = ["ID"] }
+                }
+            ]
+        };
+
+        var alvo = new SnapshotSchema();
+
+        var diff = ComparadorSchema.GerarDiff(origem, alvo);
+
+        int indiceCreatePai = diff.ComandosSql.FindIndex(sql => sql.Contains("CREATE TABLE \"Z_PAI\"", StringComparison.OrdinalIgnoreCase));
+        int indiceCreateFilho = diff.ComandosSql.FindIndex(sql => sql.Contains("CREATE TABLE \"Y_FILHO\"", StringComparison.OrdinalIgnoreCase));
+        int indiceCreateNeto = diff.ComandosSql.FindIndex(sql => sql.Contains("CREATE TABLE \"X_NETO\"", StringComparison.OrdinalIgnoreCase));
+
+        Assert.True(indiceCreatePai >= 0);
+        Assert.True(indiceCreateFilho >= 0);
+        Assert.True(indiceCreateNeto >= 0);
+        Assert.True(indiceCreatePai < indiceCreateFilho);
+        Assert.True(indiceCreateFilho < indiceCreateNeto);
+    }
 }

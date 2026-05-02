@@ -73,11 +73,11 @@ public static class ComparadorSchema
             }
         }
 
-        resultado.ComandosSql = OrdenarComandosSql(resultado.ComandosSql);
+        resultado.ComandosSql = OrdenarComandosSql(resultado.ComandosSql, CalcularProfundidadesDependencias(origem));
         return resultado;
     }
 
-    private static List<string> OrdenarComandosSql(List<string> comandos)
+    private static List<string> OrdenarComandosSql(List<string> comandos, IReadOnlyDictionary<string, int> profundidadesDependencia)
     {
         return comandos
             .Select((comando, indice) => new ComandoPlanejado
@@ -85,9 +85,11 @@ public static class ComparadorSchema
                 Sql = comando,
                 Ordem = ClassificarComandoSql(comando),
                 Tabela = ExtrairTabelaComando(comando),
+                Profundidade = ExtrairProfundidadeComando(comando, profundidadesDependencia),
                 IndiceOriginal = indice
             })
             .OrderBy(c => c.Ordem)
+            .ThenBy(c => c.Profundidade)
             .ThenBy(c => c.Tabela, StringComparer.OrdinalIgnoreCase)
             .ThenBy(c => c.IndiceOriginal)
             .Select(c => c.Sql)
@@ -175,7 +177,56 @@ public static class ComparadorSchema
         public string Sql { get; init; } = string.Empty;
         public int Ordem { get; init; }
         public string Tabela { get; init; } = string.Empty;
+        public int Profundidade { get; init; }
         public int IndiceOriginal { get; init; }
+    }
+
+    private static IReadOnlyDictionary<string, int> CalcularProfundidadesDependencias(SnapshotSchema snapshot)
+    {
+        var tabelas = snapshot.Tabelas.ToDictionary(t => t.Nome, StringComparer.OrdinalIgnoreCase);
+        var memo = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+        var pilha = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+        int Calcular(string nomeTabela)
+        {
+            if (memo.TryGetValue(nomeTabela, out int profundidade))
+                return profundidade;
+
+            if (!tabelas.TryGetValue(nomeTabela, out var tabela))
+                return 0;
+
+            if (!pilha.Add(nomeTabela))
+                return 0;
+
+            int maiorDependencia = 0;
+            foreach (var fk in tabela.ChavesEstrangeiras)
+            {
+                if (string.IsNullOrWhiteSpace(fk.TabelaReferencia))
+                    continue;
+
+                if (!tabelas.ContainsKey(fk.TabelaReferencia))
+                    continue;
+
+                maiorDependencia = Math.Max(maiorDependencia, Calcular(fk.TabelaReferencia) + 1);
+            }
+
+            pilha.Remove(nomeTabela);
+            memo[nomeTabela] = maiorDependencia;
+            return maiorDependencia;
+        }
+
+        foreach (var tabela in tabelas.Keys)
+            Calcular(tabela);
+
+        return memo;
+    }
+
+    private static int ExtrairProfundidadeComando(string comando, IReadOnlyDictionary<string, int> profundidadesDependencia)
+    {
+        string tabela = ExtrairTabelaComando(comando);
+        return string.IsNullOrWhiteSpace(tabela) || !profundidadesDependencia.TryGetValue(tabela, out int profundidade)
+            ? 0
+            : profundidade;
     }
 
     private static void CompararTabela(
