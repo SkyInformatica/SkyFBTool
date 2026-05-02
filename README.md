@@ -137,6 +137,7 @@ Notes:
 - `ddl-analyze` accepts `--description` to include contextual text in JSON and HTML report metadata.
 - `ddl-analyze` supports `--volume-analysis on|off` (default `on`) to enable/disable volume-priority analysis.
 - `ddl-analyze` uses index-based volume estimation by default and executes exact `COUNT(*)` only when `--volume-count-exact on` is explicitly set.
+- CLI runtime messages follow OS culture detection: English is the default output, and `pt-BR` is used when the system culture is Brazilian Portuguese.
 - Use `docs/examples/ddl-severity.sample.json` as the reference schema (it covers all current finding codes).
 - Reproducible `ddl-analyze` sample outputs: `docs/examples/ddl-analyze-sample*.{sql,json,html}`.
 - Accepted severity values: `critical`, `high`, `medium`, `low`.
