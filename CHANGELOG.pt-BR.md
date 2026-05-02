@@ -20,6 +20,7 @@ e o projeto adota [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - `ddl-analyze` agora emite achados operacionais de prioridade por volume (`OPERACIONAL_VOLUME_PRIORIDADE_ALTA|MEDIA|BAIXA`) usando estimativa leve por índice no modo por banco.
 - Relatório HTML de `ddl-analyze` agora inclui seção de priorização para correção por tabela (`Tabelas priorizadas para correção`) com `Prioridade` (`P0..P3`), `Índice de risco` e `Qtde`.
 - Layout do relatório `ddl-analyze` agora exibe a legenda de prioridade (`P0..P3`) ao lado dos critérios de severidade e alinha os painéis de resumo com áreas de rolagem de altura fixa.
+- `export` e `import` agora compartilham padrão de progresso no console: linha dinâmica em terminal interativo, checkpoints fixos periódicos (50 mil unidades ou 30s) e fallback em linhas fixas para saída redirecionada/CI.
 
 ### Corrigido
 - Falsos positivos de `FK_SEM_INDICE_COBERTURA` foram corrigidos ao considerar metadados do índice de suporte da FK (índice vinculado à constraint) tanto na extração por banco quanto na análise por snapshot SQL.

@@ -8,6 +8,9 @@ namespace SkyFBTool.Services.Import;
 
 public static class ImportadorSql
 {
+    private const long CheckpointUnidades = 50_000;
+    private static readonly TimeSpan IntervaloCheckpoint = TimeSpan.FromSeconds(30);
+
     public static async Task<ResultadoImportacaoSql> ImportarAsync(OpcoesImportacao opcoes)
     {
         if (string.IsNullOrWhiteSpace(opcoes.ArquivoEntrada))
@@ -56,8 +59,12 @@ public static class ImportadorSql
         long totalErros = 0;
         long comandosDesdeUltimoBatch = 0;
 
+        var cronometroTotal = Stopwatch.StartNew();
         var cronometroVelocidade = Stopwatch.StartNew();
-        long comandosDesdeUltimaMedicao = 0;
+        var ultimoCheckpointEm = DateTime.UtcNow;
+        bool modoDinamico = !Console.IsOutputRedirected;
+        long comandosUltimaMedicao = 0;
+        long unidadesUltimoCheckpoint = 0;
 
         char delimitadorAtual = ';';
         var comandoAtual = new StringBuilder();
@@ -84,27 +91,63 @@ public static class ImportadorSql
 
             if (string.IsNullOrWhiteSpace(linhaAnalise) && comandoAtual.Length == 0)
             {
-                MostrarProgresso(totalLinhasProcessadas, totalComandos, comandosDesdeUltimaMedicao, cronometroVelocidade, opcoes);
+                AtualizarProgresso(
+                    totalLinhasProcessadas,
+                    totalComandos,
+                    ref comandosUltimaMedicao,
+                    ref unidadesUltimoCheckpoint,
+                    ref ultimoCheckpointEm,
+                    cronometroTotal,
+                    cronometroVelocidade,
+                    opcoes,
+                    modoDinamico);
                 continue;
             }
 
             if (linhaAnalise.StartsWith("SET SQL DIALECT", StringComparison.OrdinalIgnoreCase)
                 && comandoAtual.Length == 0)
             {
-                MostrarProgresso(totalLinhasProcessadas, totalComandos, comandosDesdeUltimaMedicao, cronometroVelocidade, opcoes);
+                AtualizarProgresso(
+                    totalLinhasProcessadas,
+                    totalComandos,
+                    ref comandosUltimaMedicao,
+                    ref unidadesUltimoCheckpoint,
+                    ref ultimoCheckpointEm,
+                    cronometroTotal,
+                    cronometroVelocidade,
+                    opcoes,
+                    modoDinamico);
                 continue;
             }
 
             if (linhaAnalise.StartsWith("SET NAMES", StringComparison.OrdinalIgnoreCase)
                 && comandoAtual.Length == 0)
             {
-                MostrarProgresso(totalLinhasProcessadas, totalComandos, comandosDesdeUltimaMedicao, cronometroVelocidade, opcoes);
+                AtualizarProgresso(
+                    totalLinhasProcessadas,
+                    totalComandos,
+                    ref comandosUltimaMedicao,
+                    ref unidadesUltimoCheckpoint,
+                    ref ultimoCheckpointEm,
+                    cronometroTotal,
+                    cronometroVelocidade,
+                    opcoes,
+                    modoDinamico);
                 continue;
             }
 
             if (TentarProcessarSetTerm(linhaAnalise, ref delimitadorAtual) && comandoAtual.Length == 0)
             {
-                MostrarProgresso(totalLinhasProcessadas, totalComandos, comandosDesdeUltimaMedicao, cronometroVelocidade, opcoes);
+                AtualizarProgresso(
+                    totalLinhasProcessadas,
+                    totalComandos,
+                    ref comandosUltimaMedicao,
+                    ref unidadesUltimoCheckpoint,
+                    ref ultimoCheckpointEm,
+                    cronometroTotal,
+                    cronometroVelocidade,
+                    opcoes,
+                    modoDinamico);
                 continue;
             }
 
@@ -183,7 +226,7 @@ public static class ImportadorSql
                     {
                         totalComandos++;
                         comandosDesdeUltimoBatch++;
-                        comandosDesdeUltimaMedicao++;
+                        comandosUltimaMedicao++;
 
                         string? tabela = DetectarTabela.Extrair(comandoCompleto);
                         if (tabela != null)
@@ -236,7 +279,16 @@ public static class ImportadorSql
             if (!dentroComentarioBloco && !dentroComentarioLinha)
                 comandoAtual.AppendLine();
 
-            MostrarProgresso(totalLinhasProcessadas, totalComandos, comandosDesdeUltimaMedicao, cronometroVelocidade, opcoes);
+            AtualizarProgresso(
+                totalLinhasProcessadas,
+                totalComandos,
+                ref comandosUltimaMedicao,
+                ref unidadesUltimoCheckpoint,
+                ref ultimoCheckpointEm,
+                cronometroTotal,
+                cronometroVelocidade,
+                opcoes,
+                modoDinamico);
         }
 
         if (comandoAtual.Length > 0)
@@ -247,7 +299,7 @@ public static class ImportadorSql
             {
                 totalComandos++;
                 comandosDesdeUltimoBatch++;
-                comandosDesdeUltimaMedicao++;
+                comandosUltimaMedicao++;
 
                 try
                 {
@@ -280,6 +332,9 @@ public static class ImportadorSql
 
         await transacao.CommitAsync();
         await transacao.DisposeAsync();
+
+        if (modoDinamico && opcoes.ProgressoACada > 0)
+            Console.WriteLine();
 
         var fimExecucao = DateTime.UtcNow;
         var duracao = fimExecucao - inicioExecucao;
@@ -323,12 +378,16 @@ public static class ImportadorSql
         };
     }
 
-    private static void MostrarProgresso(
+    private static void AtualizarProgresso(
         long linhas,
         long comandos,
-        long comandosDesdeUltimaMedicao,
+        ref long comandosUltimaMedicao,
+        ref long unidadesUltimoCheckpoint,
+        ref DateTime ultimoCheckpointEm,
+        Stopwatch cronometroTotal,
         Stopwatch cronometroVelocidade,
-        OpcoesImportacao opcoes)
+        OpcoesImportacao opcoes,
+        bool modoDinamico)
     {
         if (opcoes.ProgressoACada <= 0)
             return;
@@ -336,13 +395,35 @@ public static class ImportadorSql
         if (linhas % opcoes.ProgressoACada == 0)
         {
             double segundos = cronometroVelocidade.Elapsed.TotalSeconds;
-            double cps = segundos > 0 ? comandosDesdeUltimaMedicao / segundos : 0;
+            double cps = segundos > 0 ? comandosUltimaMedicao / segundos : 0;
 
-            Console.Write(
-                $"\rLinhas: {linhas:N0} | Comandos: {comandos:N0} | Velocidade: {cps:N0} cmd/s");
+            string linha = $"Processado: {linhas:N0} | Comandos: {comandos:N0} | Velocidade: {cps:N0} cmd/s | Tempo: {FormatarDuracao(cronometroTotal.Elapsed)}";
+            if (modoDinamico)
+                Console.Write($"\r{linha}");
+            else
+                Console.WriteLine(linha);
 
+            comandosUltimaMedicao = 0;
             cronometroVelocidade.Restart();
         }
+
+        bool checkpointPorUnidade = (linhas - unidadesUltimoCheckpoint) >= CheckpointUnidades;
+        bool checkpointPorTempo = DateTime.UtcNow - ultimoCheckpointEm >= IntervaloCheckpoint;
+        if (!checkpointPorUnidade && !checkpointPorTempo)
+            return;
+
+        double cpsCheckpoint = cronometroTotal.Elapsed.TotalSeconds > 0
+            ? comandos / cronometroTotal.Elapsed.TotalSeconds
+            : 0;
+
+        if (modoDinamico)
+            Console.WriteLine();
+
+        Console.WriteLine(
+            $"Checkpoint: {linhas:N0} linhas | {comandos:N0} comandos | {FormatarDuracao(cronometroTotal.Elapsed)} | {cpsCheckpoint:N0} cmd/s");
+
+        unidadesUltimoCheckpoint = linhas;
+        ultimoCheckpointEm = DateTime.UtcNow;
     }
 
     private static bool TentarProcessarSetTerm(string linha, ref char delimitadorAtual)

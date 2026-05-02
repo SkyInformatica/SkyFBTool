@@ -20,6 +20,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `ddl-analyze` now emits volume-priority operational findings (`OPERACIONAL_VOLUME_PRIORIDADE_ALTA|MEDIA|BAIXA`) using lightweight index-based estimates in DB mode.
 - `ddl-analyze` HTML report now includes a table-focused remediation prioritization section (`Tables prioritized for remediation`) with `Priority` (`P0..P3`), `Risk index`, and `Count`.
 - `ddl-analyze` report layout now shows the priority legend (`P0..P3`) next to severity criteria and aligns summary panels with fixed-height scroll areas for long outputs.
+- `export` and `import` now share standardized console progress behavior: live dynamic line in interactive terminals, periodic fixed checkpoints (50k units or 30s), and CI-safe fixed-line fallback for redirected output.
 
 ### Fixed
 - False positives for `FK_SEM_INDICE_COBERTURA` were fixed by considering FK support index metadata (constraint-bound index) in both DB extraction and SQL snapshot analysis.

@@ -6,6 +6,9 @@ namespace SkyFBTool.Services.Export;
 
 public static class ExportadorTabelaFirebird
 {
+    private const long CheckpointUnidades = 50_000;
+    private static readonly TimeSpan IntervaloCheckpoint = TimeSpan.FromSeconds(30);
+
     public static async Task ExportarAsync(OpcoesExportacao opcoes, IDestinoArquivo destino)
     {
         var cronometro = System.Diagnostics.Stopwatch.StartNew();
@@ -100,10 +103,17 @@ public static class ExportadorTabelaFirebird
         System.Diagnostics.Stopwatch cronometro)
     {
         long totalLinhas = 0;
+        long totalErros = 0;
+        bool modoDinamico = !Console.IsOutputRedirected;
+        var ultimoCheckpointEm = DateTime.UtcNow;
+        long unidadesUltimoCheckpoint = 0;
+        long linhasUltimaMedicao = 0;
+        var cronometroVelocidade = System.Diagnostics.Stopwatch.StartNew();
 
         while (await leitor.ReadAsync())
         {
             totalLinhas++;
+            linhasUltimaMedicao++;
             string insert;
             try
             {
@@ -133,6 +143,7 @@ public static class ExportadorTabelaFirebird
                 if (!opcoes.ContinuarEmCasoDeErro)
                     throw;
 
+                totalErros++;
                 File.AppendAllText("erros_exportacao.log",
                     $"Erro ao escrever linha {totalLinhas}: {ex.Message}{Environment.NewLine}");
             }
@@ -143,17 +154,24 @@ public static class ExportadorTabelaFirebird
                 await destino.EscreverLinhaAsync("COMMIT;");
             }
 
-            if (opcoes.ProgressoACada > 0 &&
-                totalLinhas % opcoes.ProgressoACada == 0)
-            {
-                Console.WriteLine($"Linhas exportadas: {totalLinhas:N0}");
-            }
+            AtualizarProgresso(
+                totalLinhas,
+                ref linhasUltimaMedicao,
+                ref unidadesUltimoCheckpoint,
+                ref ultimoCheckpointEm,
+                cronometro,
+                cronometroVelocidade,
+                opcoes,
+                modoDinamico);
         }
 
         if (totalLinhas > 0 && opcoes.CommitACada > 0)
         {
             await destino.EscreverLinhaAsync("COMMIT;");
         }
+
+        if (modoDinamico && opcoes.ProgressoACada > 0)
+            Console.WriteLine();
 
         cronometro.Stop();
 
@@ -163,7 +181,60 @@ public static class ExportadorTabelaFirebird
         Console.ResetColor();
 
         Console.WriteLine($"Linhas exportadas: {totalLinhas:N0}");
+        Console.WriteLine($"Erros:             {totalErros:N0}");
         Console.WriteLine($"Tempo total:       {cronometro.Elapsed:hh\\:mm\\:ss\\.fff}");
+    }
+
+    private static void AtualizarProgresso(
+        long linhas,
+        ref long linhasUltimaMedicao,
+        ref long unidadesUltimoCheckpoint,
+        ref DateTime ultimoCheckpointEm,
+        System.Diagnostics.Stopwatch cronometroTotal,
+        System.Diagnostics.Stopwatch cronometroVelocidade,
+        OpcoesExportacao opcoes,
+        bool modoDinamico)
+    {
+        if (opcoes.ProgressoACada <= 0)
+            return;
+
+        if (linhas % opcoes.ProgressoACada == 0)
+        {
+            double segundos = cronometroVelocidade.Elapsed.TotalSeconds;
+            double lps = segundos > 0 ? linhasUltimaMedicao / segundos : 0;
+
+            string linha = $"Processado: {linhas:N0} | Comandos: {linhas:N0} | Velocidade: {lps:N0} cmd/s | Tempo: {FormatarDuracao(cronometroTotal.Elapsed)}";
+            if (modoDinamico)
+                Console.Write($"\r{linha}");
+            else
+                Console.WriteLine(linha);
+
+            linhasUltimaMedicao = 0;
+            cronometroVelocidade.Restart();
+        }
+
+        bool checkpointPorUnidade = (linhas - unidadesUltimoCheckpoint) >= CheckpointUnidades;
+        bool checkpointPorTempo = DateTime.UtcNow - ultimoCheckpointEm >= IntervaloCheckpoint;
+        if (!checkpointPorUnidade && !checkpointPorTempo)
+            return;
+
+        double cpsCheckpoint = cronometroTotal.Elapsed.TotalSeconds > 0
+            ? linhas / cronometroTotal.Elapsed.TotalSeconds
+            : 0;
+
+        if (modoDinamico)
+            Console.WriteLine();
+
+        Console.WriteLine(
+            $"Checkpoint: {linhas:N0} linhas | {linhas:N0} comandos | {FormatarDuracao(cronometroTotal.Elapsed)} | {cpsCheckpoint:N0} cmd/s");
+
+        unidadesUltimoCheckpoint = linhas;
+        ultimoCheckpointEm = DateTime.UtcNow;
+    }
+
+    private static string FormatarDuracao(TimeSpan tempo)
+    {
+        return $"{(int)tempo.TotalHours:00}:{tempo.Minutes:00}:{tempo.Seconds:00}.{tempo.Milliseconds:000}";
     }
 
     private static async Task<IReadOnlyList<string>> ObterColunasGravaveisOrdenadasAsync(FbConnection conexao, string tabela)
