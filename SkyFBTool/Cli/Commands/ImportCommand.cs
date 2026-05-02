@@ -84,6 +84,7 @@ public static class ImportCommand
             $"Lote de entrada resolveu para {arquivos.Count} arquivo(s)."));
 
         int sucesso = 0;
+        int sucessoComErros = 0;
         int falha = 0;
 
         foreach (var arquivo in arquivos)
@@ -104,8 +105,11 @@ public static class ImportCommand
             {
                 Console.WriteLine();
                 Console.WriteLine($"{M(idioma, "Batch file", "Arquivo do lote")}: {arquivo}");
-                await ImportadorSql.ImportarAsync(op);
-                sucesso++;
+                var resultado = await ImportadorSql.ImportarAsync(op);
+                if (resultado.HouveErros)
+                    sucessoComErros++;
+                else
+                    sucesso++;
             }
             catch (Exception ex)
             {
@@ -127,6 +131,7 @@ public static class ImportCommand
         Console.WriteLine();
         Console.WriteLine(M(idioma, "Batch import finished.", "Importação em lote concluída."));
         Console.WriteLine($"{M(idioma, "Succeeded", "Sucesso")}: {sucesso}");
+        Console.WriteLine($"{M(idioma, "Succeeded with errors", "Sucesso com erros")}: {sucessoComErros}");
         Console.WriteLine($"{M(idioma, "Failed", "Falha")}: {falha}");
         Console.WriteLine($"{M(idioma, "Total files", "Total de arquivos")}: {arquivos.Count}");
     }

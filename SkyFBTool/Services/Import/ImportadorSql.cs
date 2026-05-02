@@ -8,7 +8,7 @@ namespace SkyFBTool.Services.Import;
 
 public static class ImportadorSql
 {
-    public static async Task ImportarAsync(OpcoesImportacao opcoes)
+    public static async Task<ResultadoImportacaoSql> ImportarAsync(OpcoesImportacao opcoes)
     {
         if (string.IsNullOrWhiteSpace(opcoes.ArquivoEntrada))
             throw new ArgumentException("Arquivo SQL não informado (--input).");
@@ -203,6 +203,7 @@ public static class ImportadorSql
                         }
                         catch (Exception ex)
                         {
+                            totalErros++;
                             if (!opcoes.ContinuarEmCasoDeErro)
                             {
                                 throw new FalhaImportacaoSqlException(
@@ -262,6 +263,7 @@ public static class ImportadorSql
                 }
                 catch (Exception ex)
                 {
+                    totalErros++;
                     if (!opcoes.ContinuarEmCasoDeErro)
                     {
                         throw new FalhaImportacaoSqlException(
@@ -311,6 +313,14 @@ public static class ImportadorSql
                 $"Importação concluída sem erros.{Environment.NewLine}" +
                 $"Fim (UTC): {DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}{Environment.NewLine}");
         }
+
+        return new ResultadoImportacaoSql
+        {
+            Arquivo = opcoes.ArquivoEntrada,
+            TotalLinhasProcessadas = totalLinhasProcessadas,
+            TotalComandosExecutados = totalComandos,
+            TotalErros = totalErros
+        };
     }
 
     private static void MostrarProgresso(
@@ -382,4 +392,13 @@ public static class ImportadorSql
 
         return candidato;
     }
+}
+
+public sealed class ResultadoImportacaoSql
+{
+    public string Arquivo { get; set; } = string.Empty;
+    public long TotalLinhasProcessadas { get; set; }
+    public long TotalComandosExecutados { get; set; }
+    public long TotalErros { get; set; }
+    public bool HouveErros => TotalErros > 0;
 }
