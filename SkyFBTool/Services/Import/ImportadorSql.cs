@@ -11,29 +11,34 @@ public static class ImportadorSql
     private const long CheckpointUnidades = 50_000;
     private static readonly TimeSpan IntervaloCheckpoint = TimeSpan.FromSeconds(30);
 
-    public static async Task<ResultadoImportacaoSql> ImportarAsync(OpcoesImportacao opcoes)
+    public static async Task<ResultadoImportacaoSql> ImportarAsync(OpcoesImportacao opcoes, IdiomaSaida idioma = IdiomaSaida.English)
     {
         if (string.IsNullOrWhiteSpace(opcoes.ArquivoEntrada))
-            throw new ArgumentException("Arquivo SQL não informado (--input).");
+            throw new ArgumentException(TextoLocalizado.Obter(idioma, "SQL file not provided (--input).", "Arquivo SQL não informado (--input)."));
 
         if (!File.Exists(opcoes.ArquivoEntrada))
-            throw new FileNotFoundException($"Arquivo SQL não encontrado: {opcoes.ArquivoEntrada}");
+            throw new FileNotFoundException(TextoLocalizado.Obter(idioma, $"SQL file not found: {opcoes.ArquivoEntrada}", $"Arquivo SQL não encontrado: {opcoes.ArquivoEntrada}"));
 
-        Console.WriteLine($"Iniciando importação do arquivo '{opcoes.ArquivoEntrada}'...\n");
+        Console.WriteLine(TextoLocalizado.Obter(idioma, $"Starting import of file '{opcoes.ArquivoEntrada}'...\n", $"Iniciando importação do arquivo '{opcoes.ArquivoEntrada}'...\n"));
 
         var inicioExecucao = DateTime.UtcNow;
         string caminhoLog = ResolverCaminhoLogImportacao(opcoes.ArquivoEntrada);
         await File.WriteAllTextAsync(
             caminhoLog,
-            $"Log de importação{Environment.NewLine}" +
-            $"Arquivo SQL: {opcoes.ArquivoEntrada}{Environment.NewLine}" +
-            $"Início (UTC): {inicioExecucao:yyyy-MM-dd HH:mm:ss}{Environment.NewLine}{Environment.NewLine}");
-        Console.WriteLine($"Log da importação: {caminhoLog}");
+            TextoLocalizado.Obter(
+                idioma,
+                $"Import log{Environment.NewLine}" +
+                $"SQL file: {opcoes.ArquivoEntrada}{Environment.NewLine}" +
+                $"Start (UTC): {inicioExecucao:yyyy-MM-dd HH:mm:ss}{Environment.NewLine}{Environment.NewLine}",
+                $"Log de importação{Environment.NewLine}" +
+                $"Arquivo SQL: {opcoes.ArquivoEntrada}{Environment.NewLine}" +
+                $"Início (UTC): {inicioExecucao:yyyy-MM-dd HH:mm:ss}{Environment.NewLine}{Environment.NewLine}"));
+        Console.WriteLine(TextoLocalizado.Obter(idioma, $"Import log: {caminhoLog}", $"Log da importação: {caminhoLog}"));
 
         string charsetArquivo = CharsetSql.DetectarCharsetSetNames(opcoes.ArquivoEntrada);
         Encoding encodingArquivo = CharsetSql.ResolverEncodingLeituraSql(charsetArquivo);
 
-        Console.WriteLine($"Charset detectado para conexão: {charsetArquivo}\n");
+        Console.WriteLine(TextoLocalizado.Obter(idioma, $"Detected charset for connection: {charsetArquivo}\n", $"Charset detectado para conexão: {charsetArquivo}\n"));
 
         var csb = new FbConnectionStringBuilder
         {
@@ -100,7 +105,8 @@ public static class ImportadorSql
                     cronometroTotal,
                     cronometroVelocidade,
                     opcoes,
-                    modoDinamico);
+                    modoDinamico,
+                    idioma);
                 continue;
             }
 
@@ -116,7 +122,8 @@ public static class ImportadorSql
                     cronometroTotal,
                     cronometroVelocidade,
                     opcoes,
-                    modoDinamico);
+                    modoDinamico,
+                    idioma);
                 continue;
             }
 
@@ -132,11 +139,12 @@ public static class ImportadorSql
                     cronometroTotal,
                     cronometroVelocidade,
                     opcoes,
-                    modoDinamico);
+                    modoDinamico,
+                    idioma);
                 continue;
             }
 
-            if (TentarProcessarSetTerm(linhaAnalise, ref delimitadorAtual) && comandoAtual.Length == 0)
+            if (TentarProcessarSetTerm(linhaAnalise, ref delimitadorAtual, idioma) && comandoAtual.Length == 0)
             {
                 AtualizarProgresso(
                     totalLinhasProcessadas,
@@ -147,7 +155,8 @@ public static class ImportadorSql
                     cronometroTotal,
                     cronometroVelocidade,
                     opcoes,
-                    modoDinamico);
+                    modoDinamico,
+                    idioma);
                 continue;
             }
 
@@ -239,7 +248,8 @@ public static class ImportadorSql
                                 conexao,
                                 transacao,
                                 opcoes,
-                                caminhoLog);
+                                caminhoLog,
+                                idioma);
                             transacao = resultadoExecucao.Transacao!;
                             if (resultadoExecucao.HouveErro)
                                 totalErros++;
@@ -253,7 +263,8 @@ public static class ImportadorSql
                                     opcoes.ArquivoEntrada,
                                     linhaInicioComando,
                                     comandoCompleto,
-                                    ex);
+                                    ex,
+                                    idioma);
                             }
                         }
 
@@ -288,7 +299,8 @@ public static class ImportadorSql
                 cronometroTotal,
                 cronometroVelocidade,
                 opcoes,
-                modoDinamico);
+                modoDinamico,
+                idioma);
         }
 
         if (comandoAtual.Length > 0)
@@ -308,7 +320,8 @@ public static class ImportadorSql
                         conexao,
                         transacao,
                         opcoes,
-                        caminhoLog);
+                        caminhoLog,
+                        idioma);
                     transacao = resultadoExecucao.Transacao!;
                     if (resultadoExecucao.HouveErro)
                         totalErros++;
@@ -322,7 +335,8 @@ public static class ImportadorSql
                             opcoes.ArquivoEntrada,
                             linhaInicioComando,
                             comandoFinal,
-                            ex);
+                            ex,
+                            idioma);
                     }
                 }
             }
@@ -340,33 +354,40 @@ public static class ImportadorSql
         var duracao = fimExecucao - inicioExecucao;
 
         Console.WriteLine();
-        Console.WriteLine("Importação concluída.");
-        Console.WriteLine($"Total de linhas processadas : {totalLinhasProcessadas:N0}");
-        Console.WriteLine($"Total de comandos executados: {totalComandos:N0}");
-        Console.WriteLine($"Tempo total de execução     : {FormatarDuracao(duracao)}");
+        Console.WriteLine(TextoLocalizado.Obter(idioma, "Import completed.", "Importação concluída."));
+        Console.WriteLine(TextoLocalizado.Obter(idioma, $"Total lines processed : {totalLinhasProcessadas:N0}", $"Total de linhas processadas : {totalLinhasProcessadas:N0}"));
+        Console.WriteLine(TextoLocalizado.Obter(idioma, $"Total commands executed: {totalComandos:N0}", $"Total de comandos executados: {totalComandos:N0}"));
+        Console.WriteLine(TextoLocalizado.Obter(idioma, $"Total time            : {FormatarDuracao(duracao)}", $"Tempo total de execução     : {FormatarDuracao(duracao)}"));
 
         double cps = totalComandos / duracao.TotalSeconds;
-        Console.WriteLine($"Velocidade média            : {cps:N2} comandos/segundo");
+        Console.WriteLine(TextoLocalizado.Obter(idioma, $"Average speed             : {cps:N2} commands/second", $"Velocidade média            : {cps:N2} comandos/segundo"));
 
         if (totalErros > 0)
         {
             await File.AppendAllTextAsync(
                 caminhoLog,
-                $"Importação concluída com erros.{Environment.NewLine}" +
-                $"Fim (UTC): {DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}{Environment.NewLine}" +
-                $"Total de erros: {totalErros}{Environment.NewLine}");
+                TextoLocalizado.Obter(idioma,
+                    $"Import completed with errors.{Environment.NewLine}" +
+                    $"End (UTC): {DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}{Environment.NewLine}" +
+                    $"Total errors: {totalErros}{Environment.NewLine}",
+                    $"Importação concluída com erros.{Environment.NewLine}" +
+                    $"Fim (UTC): {DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}{Environment.NewLine}" +
+                    $"Total de erros: {totalErros}{Environment.NewLine}"));
 
             Console.ForegroundColor = ConsoleColor.Yellow;
-            Console.WriteLine("\nAviso: ocorreram erros durante a importação.");
-            Console.WriteLine($"Consulte o arquivo: {caminhoLog}");
+            Console.WriteLine(TextoLocalizado.Obter(idioma, "\nWarning: errors occurred during import.", "\nAviso: ocorreram erros durante a importação."));
+            Console.WriteLine(TextoLocalizado.Obter(idioma, $"Check the file: {caminhoLog}", $"Consulte o arquivo: {caminhoLog}"));
             Console.ResetColor();
         }
         else
         {
             await File.AppendAllTextAsync(
                 caminhoLog,
-                $"Importação concluída sem erros.{Environment.NewLine}" +
-                $"Fim (UTC): {DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}{Environment.NewLine}");
+                TextoLocalizado.Obter(idioma,
+                    $"Import completed without errors.{Environment.NewLine}" +
+                    $"End (UTC): {DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}{Environment.NewLine}",
+                    $"Importação concluída sem erros.{Environment.NewLine}" +
+                    $"Fim (UTC): {DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}{Environment.NewLine}"));
         }
 
         return new ResultadoImportacaoSql
@@ -387,7 +408,8 @@ public static class ImportadorSql
         Stopwatch cronometroTotal,
         Stopwatch cronometroVelocidade,
         OpcoesImportacao opcoes,
-        bool modoDinamico)
+        bool modoDinamico,
+        IdiomaSaida idioma)
     {
         if (opcoes.ProgressoACada <= 0)
             return;
@@ -397,7 +419,10 @@ public static class ImportadorSql
             double segundos = cronometroVelocidade.Elapsed.TotalSeconds;
             double cps = segundos > 0 ? comandosUltimaMedicao / segundos : 0;
 
-            string linha = $"Processado: {linhas:N0} | Comandos: {comandos:N0} | Velocidade: {cps:N0} cmd/s | Tempo: {FormatarDuracao(cronometroTotal.Elapsed)}";
+            string linha = TextoLocalizado.Obter(
+                idioma,
+                $"Processed: {linhas:N0} | Commands: {comandos:N0} | Speed: {cps:N0} cmd/s | Time: {FormatarDuracao(cronometroTotal.Elapsed)}",
+                $"Processado: {linhas:N0} | Comandos: {comandos:N0} | Velocidade: {cps:N0} cmd/s | Tempo: {FormatarDuracao(cronometroTotal.Elapsed)}");
             if (modoDinamico)
                 Console.Write($"\r{linha}");
             else
@@ -419,14 +444,16 @@ public static class ImportadorSql
         if (modoDinamico)
             Console.WriteLine();
 
-        Console.WriteLine(
-            $"Checkpoint: {linhas:N0} linhas | {comandos:N0} comandos | {FormatarDuracao(cronometroTotal.Elapsed)} | {cpsCheckpoint:N0} cmd/s");
+        Console.WriteLine(TextoLocalizado.Obter(
+            idioma,
+            $"Checkpoint: {linhas:N0} rows | {comandos:N0} commands | {FormatarDuracao(cronometroTotal.Elapsed)} | {cpsCheckpoint:N0} cmd/s",
+            $"Checkpoint: {linhas:N0} linhas | {comandos:N0} comandos | {FormatarDuracao(cronometroTotal.Elapsed)} | {cpsCheckpoint:N0} cmd/s"));
 
         unidadesUltimoCheckpoint = linhas;
         ultimoCheckpointEm = DateTime.UtcNow;
     }
 
-    private static bool TentarProcessarSetTerm(string linha, ref char delimitadorAtual)
+    private static bool TentarProcessarSetTerm(string linha, ref char delimitadorAtual, IdiomaSaida idioma)
     {
         if (!linha.StartsWith("SET TERM", StringComparison.OrdinalIgnoreCase))
             return false;
@@ -439,7 +466,10 @@ public static class ImportadorSql
         if (!string.IsNullOrWhiteSpace(token))
             delimitadorAtual = token[0];
 
-        Console.WriteLine($"[Parser] Delimitador atualizado para '{delimitadorAtual}'.");
+        Console.WriteLine(TextoLocalizado.Obter(
+            idioma,
+            $"[Parser] Delimiter updated to '{delimitadorAtual}'.",
+            $"[Parser] Delimitador atualizado para '{delimitadorAtual}'."));
         return true;
     }
 

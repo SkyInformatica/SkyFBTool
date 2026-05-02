@@ -72,7 +72,7 @@ public static class ImportCommand
         }
 
         Console.WriteLine("Iniciando importação...");
-        await ImportadorSql.ImportarAsync(opBase);
+        await ImportadorSql.ImportarAsync(opBase, idioma);
     }
 
     private static async Task ExecutarLoteAsync(OpcoesImportacao opBase, string padraoArquivos, IdiomaSaida idioma)
@@ -105,7 +105,7 @@ public static class ImportCommand
             {
                 Console.WriteLine();
                 Console.WriteLine($"{TextoLocalizado.Obter(idioma, "Batch file", "Arquivo do lote")}: {arquivo}");
-                var resultado = await ImportadorSql.ImportarAsync(op);
+                var resultado = await ImportadorSql.ImportarAsync(op, idioma);
                 if (resultado.HouveErros)
                     sucessoComErros++;
                 else

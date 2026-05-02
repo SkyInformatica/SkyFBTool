@@ -12,7 +12,8 @@ public static class ExecutorSql
         FbConnection conexao,
         FbTransaction? transacao,
         OpcoesImportacao opcoes,
-        string caminhoLogErros)
+        string caminhoLogErros,
+        IdiomaSaida idioma = IdiomaSaida.English)
     {
         if ((conexao == null) || (transacao == null))
             throw new ArgumentNullException();
@@ -49,7 +50,7 @@ public static class ExecutorSql
 
         try
         {
-            await ExecutarComRetryAsync(sql, conexao, transacao);
+            await ExecutarComRetryAsync(sql, conexao, transacao, idioma);
             return (transacao, false);
         }
         catch (Exception ex)
@@ -58,12 +59,14 @@ public static class ExecutorSql
                 throw;
 
             File.AppendAllText(caminhoLogErros,
-                $"Erro ao executar SQL: {sql}{Environment.NewLine}Erro: {ex.Message}{Environment.NewLine}{Environment.NewLine}");
+                TextoLocalizado.Obter(idioma,
+                    $"Error executing SQL: {sql}{Environment.NewLine}Error: {ex.Message}{Environment.NewLine}{Environment.NewLine}",
+                    $"Erro ao executar SQL: {sql}{Environment.NewLine}Erro: {ex.Message}{Environment.NewLine}{Environment.NewLine}"));
             return (transacao, true);
         }
     }
 
-    private static async Task ExecutarComRetryAsync(string sql, FbConnection conexao, FbTransaction transacao)
+    private static async Task ExecutarComRetryAsync(string sql, FbConnection conexao, FbTransaction transacao, IdiomaSaida idioma)
     {
         Exception? ultimoErro = null;
 
@@ -88,7 +91,10 @@ public static class ExecutorSql
             }
         }
 
-        throw ultimoErro ?? new InvalidOperationException("Falha ao executar comando SQL.");
+        throw ultimoErro ?? new InvalidOperationException(TextoLocalizado.Obter(
+            idioma,
+            "Failed to execute SQL command.",
+            "Falha ao executar comando SQL."));
     }
 
     internal static bool EhFalhaTransienteExecucao(Exception ex)
