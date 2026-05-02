@@ -181,4 +181,58 @@ public class ComparadorSchemaTests
             aviso.Contains("IDX_AVISO_A", StringComparison.OrdinalIgnoreCase) &&
             aviso.Contains("IDX_AVISO_B", StringComparison.OrdinalIgnoreCase));
     }
+
+    [Fact]
+    public void GerarDiff_QuandoTabelaComFkParaOutraNova_DeveOrdenarFkAposCriacoes()
+    {
+        var origem = new SnapshotSchema
+        {
+            Tabelas =
+            [
+                new TabelaSchema
+                {
+                    Nome = "FILHO",
+                    Colunas =
+                    [
+                        new ColunaSchema { Nome = "ID", TipoSql = "INTEGER", AceitaNulo = false },
+                        new ColunaSchema { Nome = "PAI_ID", TipoSql = "INTEGER", AceitaNulo = false }
+                    ],
+                    ChavePrimaria = new ChavePrimariaSchema { Nome = "PK_FILHO", Colunas = ["ID"] },
+                    ChavesEstrangeiras =
+                    [
+                        new ChaveEstrangeiraSchema
+                        {
+                            Nome = "FK_FILHO_PAI",
+                            Colunas = ["PAI_ID"],
+                            TabelaReferencia = "PAI",
+                            ColunasReferencia = ["ID"]
+                        }
+                    ]
+                },
+                new TabelaSchema
+                {
+                    Nome = "PAI",
+                    Colunas = [new ColunaSchema { Nome = "ID", TipoSql = "INTEGER", AceitaNulo = false }],
+                    ChavePrimaria = new ChavePrimariaSchema { Nome = "PK_PAI", Colunas = ["ID"] }
+                }
+            ]
+        };
+
+        var alvo = new SnapshotSchema();
+
+        var diff = ComparadorSchema.GerarDiff(origem, alvo);
+
+        int indiceCreatePai = diff.ComandosSql.FindIndex(sql => sql.Contains("CREATE TABLE \"PAI\"", StringComparison.OrdinalIgnoreCase));
+        int indiceCreateFilho = diff.ComandosSql.FindIndex(sql => sql.Contains("CREATE TABLE \"FILHO\"", StringComparison.OrdinalIgnoreCase));
+        int indicePkPai = diff.ComandosSql.FindIndex(sql => sql.Contains("ALTER TABLE \"PAI\" ADD CONSTRAINT \"PK_PAI\" PRIMARY KEY", StringComparison.OrdinalIgnoreCase));
+        int indiceFkFilhoPai = diff.ComandosSql.FindIndex(sql => sql.Contains("ALTER TABLE \"FILHO\" ADD CONSTRAINT \"FK_FILHO_PAI\" FOREIGN KEY", StringComparison.OrdinalIgnoreCase));
+
+        Assert.True(indiceCreatePai >= 0);
+        Assert.True(indiceCreateFilho >= 0);
+        Assert.True(indicePkPai >= 0);
+        Assert.True(indiceFkFilhoPai >= 0);
+        Assert.True(indiceFkFilhoPai > indiceCreatePai);
+        Assert.True(indiceFkFilhoPai > indiceCreateFilho);
+        Assert.True(indiceFkFilhoPai > indicePkPai);
+    }
 }

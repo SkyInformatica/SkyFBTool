@@ -75,7 +75,109 @@ public static class ComparadorSchema
             }
         }
 
+        resultado.ComandosSql = OrdenarComandosSql(resultado.ComandosSql);
         return resultado;
+    }
+
+    private static List<string> OrdenarComandosSql(List<string> comandos)
+    {
+        return comandos
+            .Select((comando, indice) => new ComandoPlanejado
+            {
+                Sql = comando,
+                Ordem = ClassificarComandoSql(comando),
+                Tabela = ExtrairTabelaComando(comando),
+                IndiceOriginal = indice
+            })
+            .OrderBy(c => c.Ordem)
+            .ThenBy(c => c.Tabela, StringComparer.OrdinalIgnoreCase)
+            .ThenBy(c => c.IndiceOriginal)
+            .Select(c => c.Sql)
+            .ToList();
+    }
+
+    private static int ClassificarComandoSql(string comando)
+    {
+        string sql = comando.TrimStart();
+
+        if (sql.StartsWith("ALTER TABLE", StringComparison.OrdinalIgnoreCase) &&
+            sql.Contains("DROP CONSTRAINT", StringComparison.OrdinalIgnoreCase))
+            return 10;
+
+        if (sql.StartsWith("CREATE TABLE", StringComparison.OrdinalIgnoreCase))
+            return 20;
+
+        if (sql.StartsWith("ALTER TABLE", StringComparison.OrdinalIgnoreCase) &&
+            sql.Contains(" ADD ", StringComparison.OrdinalIgnoreCase) &&
+            !sql.Contains("CONSTRAINT", StringComparison.OrdinalIgnoreCase))
+            return 30;
+
+        if (sql.StartsWith("ALTER TABLE", StringComparison.OrdinalIgnoreCase) &&
+            sql.Contains("ALTER COLUMN", StringComparison.OrdinalIgnoreCase))
+            return 35;
+
+        if (sql.StartsWith("ALTER TABLE", StringComparison.OrdinalIgnoreCase) &&
+            sql.Contains("ADD CONSTRAINT", StringComparison.OrdinalIgnoreCase) &&
+            sql.Contains("PRIMARY KEY", StringComparison.OrdinalIgnoreCase))
+            return 40;
+
+        if (sql.StartsWith("CREATE INDEX", StringComparison.OrdinalIgnoreCase) ||
+            sql.StartsWith("CREATE UNIQUE INDEX", StringComparison.OrdinalIgnoreCase) ||
+            sql.StartsWith("CREATE DESCENDING INDEX", StringComparison.OrdinalIgnoreCase) ||
+            sql.StartsWith("CREATE UNIQUE DESCENDING INDEX", StringComparison.OrdinalIgnoreCase))
+            return 50;
+
+        if (sql.StartsWith("ALTER TABLE", StringComparison.OrdinalIgnoreCase) &&
+            sql.Contains("ADD CONSTRAINT", StringComparison.OrdinalIgnoreCase) &&
+            sql.Contains("FOREIGN KEY", StringComparison.OrdinalIgnoreCase))
+            return 60;
+
+        return 70;
+    }
+
+    private static string ExtrairTabelaComando(string comando)
+    {
+        string sql = comando.TrimStart();
+        int inicio;
+        int fim;
+
+        if (sql.StartsWith("CREATE TABLE", StringComparison.OrdinalIgnoreCase))
+        {
+            inicio = sql.IndexOf('"');
+            if (inicio < 0) return string.Empty;
+            fim = sql.IndexOf('"', inicio + 1);
+            if (fim <= inicio) return string.Empty;
+            return sql.Substring(inicio + 1, fim - inicio - 1);
+        }
+
+        if (sql.StartsWith("ALTER TABLE", StringComparison.OrdinalIgnoreCase))
+        {
+            inicio = sql.IndexOf('"');
+            if (inicio < 0) return string.Empty;
+            fim = sql.IndexOf('"', inicio + 1);
+            if (fim <= inicio) return string.Empty;
+            return sql.Substring(inicio + 1, fim - inicio - 1);
+        }
+
+        int onIndex = sql.IndexOf(" ON ", StringComparison.OrdinalIgnoreCase);
+        if (onIndex >= 0)
+        {
+            inicio = sql.IndexOf('"', onIndex);
+            if (inicio < 0) return string.Empty;
+            fim = sql.IndexOf('"', inicio + 1);
+            if (fim <= inicio) return string.Empty;
+            return sql.Substring(inicio + 1, fim - inicio - 1);
+        }
+
+        return string.Empty;
+    }
+
+    private sealed class ComandoPlanejado
+    {
+        public string Sql { get; init; } = string.Empty;
+        public int Ordem { get; init; }
+        public string Tabela { get; init; } = string.Empty;
+        public int IndiceOriginal { get; init; }
     }
 
     private static void CompararTabela(
