@@ -7,6 +7,8 @@ Extracts Firebird schema metadata and generates two synchronized outputs:
 
 `ddl-extract` is the canonical entry point before `ddl-diff` and `ddl-analyze` when you want reproducible metadata artifacts.
 
+Today the snapshot includes tables, columns, domains, sequences/generators, primary keys, unique keys, foreign keys, and user indexes.
+
 ## When to use
 - DBA: capture current schema baseline before maintenance or migration.
 - Developer: produce versionable schema snapshots for review and CI comparisons.

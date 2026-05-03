@@ -42,6 +42,7 @@ git push origin v0.1.0
 
 - Comandos `export`, `import` e `exec-sql`
 - Comandos `ddl-extract`, `ddl-diff` e `ddl-analyze` para extração, comparação e análise de risco de schema
+- `ddl-extract` captura tabelas, colunas, domínios, sequências, PKs, constraints únicas, FKs e índices de usuário em `.sql` e `.schema.json`
 - Exportação/importação em streaming para arquivos SQL grandes
 - `--filter`, `--filter-file` e modo avançado `--query-file`
 - Remapeamento de tabela destino com `--target-table`
