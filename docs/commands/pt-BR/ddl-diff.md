@@ -8,7 +8,7 @@ Compara duas entradas de schema e gera:
 
 `ddl-diff` foi desenhado para fluxos controlados de sincronização de schema (promoções, auditorias, planejamento de migração).
 
-Hoje o diff também considera domínios, sequências/geradores, views, constraints únicas e constraints `CHECK` além de tabelas, colunas, PKs, FKs e índices de usuário.
+Hoje o diff também considera domínios, sequências/geradores, views, procedimentos, funções armazenadas, gatilhos, constraints únicas e constraints `CHECK` além de tabelas, colunas, PKs, FKs e índices de usuário.
 
 ## Quando usar
 - DBA: avaliar drift de schema e gerar SQL de ajuste revisado antes do rollout.
@@ -38,14 +38,22 @@ SkyFBTool ddl-diff --source ORIGEM --target ALVO --output PREFIXO
 ## Modelo de ordenação dos comandos
 O SQL gerado é ordenado por profundidade de dependência para reduzir erros na aplicação prática:
 1. `ALTER TABLE ... DROP CONSTRAINT`
-2. `CREATE TABLE`
-3. `ALTER TABLE ... ADD <coluna>`
-4. `ALTER TABLE ... ALTER COLUMN`
-5. `ADD CONSTRAINT ... PRIMARY KEY`
-6. `CREATE INDEX`
-7. `ADD CONSTRAINT ... FOREIGN KEY`
+2. `CREATE DOMAIN`
+3. `CREATE SEQUENCE`
+4. `CREATE PROCEDURE`
+5. `CREATE FUNCTION`
+6. `CREATE TABLE`
+7. `CREATE VIEW`
+8. `ALTER TABLE ... ADD <coluna>`
+9. `ALTER TABLE ... ALTER COLUMN`
+10. `ADD CONSTRAINT ... PRIMARY KEY`
+11. `ADD CONSTRAINT ... UNIQUE`
+12. `ADD CONSTRAINT ... CHECK`
+13. `CREATE TRIGGER`
+14. `CREATE INDEX`
+15. `ADD CONSTRAINT ... FOREIGN KEY`
 
-Essa ordenação é determinística e mantém tabelas pai antes das filhas, além de deixar FKs após tabelas base, PKs e índices.
+Essa ordenação é determinística e mantém objetos base antes dos dependentes, além de deixar FKs e triggers após a fundação do schema.
 
 ## Interpretação prática das saídas
 - `.sql`: candidato executável de ajuste (a ferramenta não aplica automaticamente).
