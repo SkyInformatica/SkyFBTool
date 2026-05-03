@@ -55,6 +55,9 @@ public static class ExtratorDdlFirebird
         var tabelas = await CarregarTabelasAsync(conexao);
         var snapshot = new SnapshotSchema();
 
+        snapshot.Dominios = await CarregarDominiosAsync(conexao);
+        snapshot.Sequencias = await CarregarSequenciasAsync(conexao);
+
         foreach (var nomeTabela in tabelas)
         {
             var tabela = new TabelaSchema
@@ -62,6 +65,7 @@ public static class ExtratorDdlFirebird
                 Nome = nomeTabela,
                 Colunas = await CarregarColunasAsync(conexao, nomeTabela),
                 ChavePrimaria = await CarregarChavePrimariaAsync(conexao, nomeTabela),
+                ChavesUnicas = await CarregarChavesUnicasAsync(conexao, nomeTabela),
                 ChavesEstrangeiras = await CarregarChavesEstrangeirasAsync(conexao, nomeTabela),
                 Indices = await CarregarIndicesAsync(conexao, nomeTabela)
             };
@@ -74,6 +78,86 @@ public static class ExtratorDdlFirebird
             .ToList();
 
         return snapshot;
+    }
+
+    private static async Task<List<DominioSchema>> CarregarDominiosAsync(FbConnection conexao)
+    {
+        const string sql = """
+                           SELECT
+                               TRIM(f.rdb$field_name) AS domain_name,
+                               f.rdb$field_type AS field_type,
+                               f.rdb$field_sub_type AS field_sub_type,
+                               f.rdb$field_length AS field_length,
+                               f.rdb$field_precision AS field_precision,
+                               f.rdb$field_scale AS field_scale,
+                               f.rdb$character_length AS char_len,
+                               COALESCE(f.rdb$null_flag, 0) AS null_flag,
+                               f.rdb$default_source AS default_source,
+                               f.rdb$validation_source AS validation_source
+                           FROM rdb$fields f
+                           WHERE COALESCE(f.rdb$system_flag, 0) = 0
+                           ORDER BY f.rdb$field_name
+                           """;
+
+        await using var cmd = new FbCommand(sql, conexao);
+        await using var reader = await cmd.ExecuteReaderAsync();
+
+        var dominios = new List<DominioSchema>();
+        while (await reader.ReadAsync())
+        {
+            int fieldType = LerInt(reader, "field_type");
+            int fieldSubtype = LerInt(reader, "field_sub_type");
+            int fieldLength = LerInt(reader, "field_length");
+            int? precision = reader.IsDBNull(reader.GetOrdinal("field_precision"))
+                ? null
+                : reader.GetInt32(reader.GetOrdinal("field_precision"));
+            int scale = LerInt(reader, "field_scale");
+            int? charLength = reader.IsDBNull(reader.GetOrdinal("char_len"))
+                ? null
+                : reader.GetInt32(reader.GetOrdinal("char_len"));
+
+            string? defaultSource = reader.IsDBNull(reader.GetOrdinal("default_source"))
+                ? null
+                : reader.GetString(reader.GetOrdinal("default_source"));
+            string? validationSource = reader.IsDBNull(reader.GetOrdinal("validation_source"))
+                ? null
+                : reader.GetString(reader.GetOrdinal("validation_source"));
+
+            dominios.Add(new DominioSchema
+            {
+                Nome = reader.GetString(reader.GetOrdinal("domain_name")),
+                TipoSql = MapearTipoSql(fieldType, fieldSubtype, fieldLength, precision, scale, charLength),
+                AceitaNulo = LerInt(reader, "null_flag") == 0,
+                DefaultSql = NormalizarDefault(defaultSource),
+                CheckSql = NormalizarExpressao(validationSource)
+            });
+        }
+
+        return dominios;
+    }
+
+    private static async Task<List<SequenciaSchema>> CarregarSequenciasAsync(FbConnection conexao)
+    {
+        const string sql = """
+                           SELECT TRIM(g.rdb$generator_name) AS generator_name
+                           FROM rdb$generators g
+                           WHERE COALESCE(g.rdb$system_flag, 0) = 0
+                           ORDER BY g.rdb$generator_name
+                           """;
+
+        await using var cmd = new FbCommand(sql, conexao);
+        await using var reader = await cmd.ExecuteReaderAsync();
+
+        var sequencias = new List<SequenciaSchema>();
+        while (await reader.ReadAsync())
+        {
+            sequencias.Add(new SequenciaSchema
+            {
+                Nome = reader.GetString(reader.GetOrdinal("generator_name"))
+            });
+        }
+
+        return sequencias;
     }
 
     private static async Task<List<string>> CarregarTabelasAsync(FbConnection conexao)
@@ -275,6 +359,44 @@ public static class ExtratorDdlFirebird
 
         return mapa.Values
             .OrderBy(f => f.Nome, StringComparer.OrdinalIgnoreCase)
+            .ToList();
+    }
+
+    private static async Task<List<ChaveUnicaSchema>> CarregarChavesUnicasAsync(FbConnection conexao, string nomeTabela)
+    {
+        const string sql = """
+                           SELECT
+                               TRIM(rc.rdb$constraint_name) AS constraint_name,
+                               TRIM(seg.rdb$field_name) AS field_name
+                           FROM rdb$relation_constraints rc
+                           JOIN rdb$index_segments seg ON seg.rdb$index_name = rc.rdb$index_name
+                           WHERE rc.rdb$relation_name = @tabela
+                             AND rc.rdb$constraint_type = 'UNIQUE'
+                           ORDER BY rc.rdb$constraint_name, seg.rdb$field_position
+                           """;
+
+        await using var cmd = new FbCommand(sql, conexao);
+        cmd.Parameters.AddWithValue("@tabela", nomeTabela);
+        await using var reader = await cmd.ExecuteReaderAsync();
+
+        var mapa = new Dictionary<string, ChaveUnicaSchema>(StringComparer.OrdinalIgnoreCase);
+        while (await reader.ReadAsync())
+        {
+            string nome = reader.GetString(reader.GetOrdinal("constraint_name"));
+            if (!mapa.TryGetValue(nome, out var unica))
+            {
+                unica = new ChaveUnicaSchema
+                {
+                    Nome = nome
+                };
+                mapa.Add(nome, unica);
+            }
+
+            unica.Colunas.Add(reader.GetString(reader.GetOrdinal("field_name")));
+        }
+
+        return mapa.Values
+            .OrderBy(u => u.Nome, StringComparer.OrdinalIgnoreCase)
             .ToList();
     }
 

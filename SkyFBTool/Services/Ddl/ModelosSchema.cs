@@ -3,6 +3,8 @@ namespace SkyFBTool.Services.Ddl;
 public class SnapshotSchema
 {
     public List<TabelaSchema> Tabelas { get; set; } = [];
+    public List<DominioSchema> Dominios { get; set; } = [];
+    public List<SequenciaSchema> Sequencias { get; set; } = [];
 }
 
 public class TabelaSchema
@@ -10,6 +12,7 @@ public class TabelaSchema
     public string Nome { get; set; } = string.Empty;
     public List<ColunaSchema> Colunas { get; set; } = [];
     public ChavePrimariaSchema? ChavePrimaria { get; set; }
+    public List<ChaveUnicaSchema> ChavesUnicas { get; set; } = [];
     public List<ChaveEstrangeiraSchema> ChavesEstrangeiras { get; set; } = [];
     public List<IndiceSchema> Indices { get; set; } = [];
 }
@@ -24,6 +27,12 @@ public class ColunaSchema
 }
 
 public class ChavePrimariaSchema
+{
+    public string Nome { get; set; } = string.Empty;
+    public List<string> Colunas { get; set; } = [];
+}
+
+public class ChaveUnicaSchema
 {
     public string Nome { get; set; } = string.Empty;
     public List<string> Colunas { get; set; } = [];
@@ -46,6 +55,20 @@ public class IndiceSchema
     public bool Unico { get; set; }
     public bool Descendente { get; set; }
     public List<string> Colunas { get; set; } = [];
+}
+
+public class DominioSchema
+{
+    public string Nome { get; set; } = string.Empty;
+    public string TipoSql { get; set; } = string.Empty;
+    public bool AceitaNulo { get; set; } = true;
+    public string? DefaultSql { get; set; }
+    public string? CheckSql { get; set; }
+}
+
+public class SequenciaSchema
+{
+    public string Nome { get; set; } = string.Empty;
 }
 
 public class ResultadoDiffSchema

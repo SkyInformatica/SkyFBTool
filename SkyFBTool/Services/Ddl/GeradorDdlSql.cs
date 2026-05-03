@@ -10,6 +10,18 @@ public static class GeradorDdlSql
         sb.AppendLine("SET SQL DIALECT 3;");
         sb.AppendLine();
 
+        foreach (var dominio in snapshot.Dominios.OrderBy(d => d.Nome, StringComparer.OrdinalIgnoreCase))
+        {
+            sb.AppendLine(GerarCreateDomain(dominio));
+            sb.AppendLine();
+        }
+
+        foreach (var sequencia in snapshot.Sequencias.OrderBy(s => s.Nome, StringComparer.OrdinalIgnoreCase))
+        {
+            sb.AppendLine(GerarCreateSequence(sequencia));
+            sb.AppendLine();
+        }
+
         foreach (var tabela in snapshot.Tabelas.OrderBy(t => t.Nome, StringComparer.OrdinalIgnoreCase))
         {
             sb.AppendLine(GerarCreateTable(tabela));
@@ -20,6 +32,9 @@ public static class GeradorDdlSql
         {
             if (tabela.ChavePrimaria is not null)
                 sb.AppendLine(GerarAddPk(tabela));
+
+            foreach (var unica in tabela.ChavesUnicas.OrderBy(u => u.Nome, StringComparer.OrdinalIgnoreCase))
+                sb.AppendLine(GerarAddUnique(tabela, unica));
 
             foreach (var fk in tabela.ChavesEstrangeiras.OrderBy(f => f.Nome, StringComparer.OrdinalIgnoreCase))
                 sb.AppendLine(GerarAddFk(tabela, fk));
@@ -37,6 +52,29 @@ public static class GeradorDdlSql
         return sb.ToString().TrimEnd() + Environment.NewLine;
     }
 
+    public static string GerarCreateDomain(DominioSchema dominio)
+    {
+        var sb = new StringBuilder();
+        sb.Append($"CREATE DOMAIN {Q(dominio.Nome)} AS {dominio.TipoSql}");
+
+        if (!string.IsNullOrWhiteSpace(dominio.DefaultSql))
+            sb.Append($" {dominio.DefaultSql}");
+
+        if (!dominio.AceitaNulo)
+            sb.Append(" NOT NULL");
+
+        if (!string.IsNullOrWhiteSpace(dominio.CheckSql))
+            sb.Append($" {dominio.CheckSql}");
+
+        sb.Append(';');
+        return sb.ToString();
+    }
+
+    public static string GerarCreateSequence(SequenciaSchema sequencia)
+    {
+        return $"CREATE SEQUENCE {Q(sequencia.Nome)};";
+    }
+
     public static string GerarCreateTable(TabelaSchema tabela)
     {
         var linhasColunas = tabela.Colunas.Select(GerarDefinicaoColuna).ToList();
@@ -48,6 +86,11 @@ public static class GeradorDdlSql
     {
         var pk = tabela.ChavePrimaria!;
         return $"ALTER TABLE {Q(tabela.Nome)} ADD CONSTRAINT {Q(pk.Nome)} PRIMARY KEY ({ListaColunas(pk.Colunas)});";
+    }
+
+    public static string GerarAddUnique(TabelaSchema tabela, ChaveUnicaSchema unica)
+    {
+        return $"ALTER TABLE {Q(tabela.Nome)} ADD CONSTRAINT {Q(unica.Nome)} UNIQUE ({ListaColunas(unica.Colunas)});";
     }
 
     public static string GerarAddFk(TabelaSchema tabela, ChaveEstrangeiraSchema fk)

@@ -44,12 +44,21 @@ public class DdlExtractIntegrationTests
             var clientes = snapshot!.Tabelas.Single(t => t.Nome == "CLIENTES");
             var pedidos = snapshot.Tabelas.Single(t => t.Nome == "PEDIDOS");
 
+            Assert.Contains(snapshot.Dominios, d => d.Nome == "DM_EMAIL" &&
+                                                    d.TipoSql.StartsWith("VARCHAR(", StringComparison.OrdinalIgnoreCase) &&
+                                                    string.Equals(d.DefaultSql, "DEFAULT 'N/A'", StringComparison.OrdinalIgnoreCase));
+            Assert.Contains(snapshot.Sequencias, s => s.Nome == "SEQ_PEDIDOS");
+
             Assert.Contains(clientes.Colunas, c => c.Nome == "ID" && c.TipoSql == "INTEGER" && !c.AceitaNulo);
             Assert.Contains(clientes.Colunas, c => c.Nome == "NOME" && c.TipoSql.StartsWith("VARCHAR(", StringComparison.OrdinalIgnoreCase));
 
             Assert.NotNull(clientes.ChavePrimaria);
             Assert.Equal("PK_CLIENTES", clientes.ChavePrimaria!.Nome);
             Assert.Equal(["ID"], clientes.ChavePrimaria.Colunas);
+
+            Assert.Single(clientes.ChavesUnicas);
+            Assert.Equal("UQ_CLIENTES_EMAIL", clientes.ChavesUnicas[0].Nome);
+            Assert.Equal(["EMAIL"], clientes.ChavesUnicas[0].Colunas);
 
             Assert.Contains(pedidos.Colunas, c => c.Nome == "VALOR_TOTAL" &&
                                                   c.TipoSql.StartsWith("NUMERIC(", StringComparison.OrdinalIgnoreCase) &&
@@ -103,7 +112,10 @@ public class DdlExtractIntegrationTests
             string sql = await File.ReadAllTextAsync(arquivoSql);
             Assert.Contains("CREATE TABLE \"CLIENTES\"", sql, StringComparison.OrdinalIgnoreCase);
             Assert.Contains("CREATE TABLE \"PEDIDOS\"", sql, StringComparison.OrdinalIgnoreCase);
+            Assert.Contains("CREATE DOMAIN \"DM_EMAIL\" AS VARCHAR(120)", sql, StringComparison.OrdinalIgnoreCase);
+            Assert.Contains("CREATE SEQUENCE \"SEQ_PEDIDOS\";", sql, StringComparison.OrdinalIgnoreCase);
             Assert.Contains("ALTER TABLE \"CLIENTES\" ADD CONSTRAINT \"PK_CLIENTES\" PRIMARY KEY (\"ID\");", sql, StringComparison.OrdinalIgnoreCase);
+            Assert.Contains("ALTER TABLE \"CLIENTES\" ADD CONSTRAINT \"UQ_CLIENTES_EMAIL\" UNIQUE (\"EMAIL\");", sql, StringComparison.OrdinalIgnoreCase);
             Assert.Contains("FOREIGN KEY (\"CLIENTE_ID\") REFERENCES \"CLIENTES\" (\"ID\")", sql, StringComparison.OrdinalIgnoreCase);
             Assert.Contains("CREATE INDEX \"IDX_PEDIDOS_CLIENTE\" ON \"PEDIDOS\" (\"CLIENTE_ID\");", sql, StringComparison.OrdinalIgnoreCase);
         }
@@ -143,10 +155,14 @@ public class DdlExtractIntegrationTests
         await conexao.OpenAsync();
 
         string sql = """
+                     CREATE DOMAIN "DM_EMAIL" AS VARCHAR(120) DEFAULT 'N/A' NOT NULL CHECK (VALUE CONTAINING '@');
+                     CREATE SEQUENCE "SEQ_PEDIDOS";
                      CREATE TABLE CLIENTES (
                        ID INTEGER NOT NULL,
                        NOME VARCHAR(120),
-                       CONSTRAINT PK_CLIENTES PRIMARY KEY (ID)
+                       EMAIL DM_EMAIL,
+                       CONSTRAINT PK_CLIENTES PRIMARY KEY (ID),
+                       CONSTRAINT UQ_CLIENTES_EMAIL UNIQUE (EMAIL)
                      );
 
                      CREATE TABLE PEDIDOS (

@@ -13,10 +13,14 @@ public class CarregadorSnapshotSchemaTests
         string arquivoSql = Path.Combine(pasta, "origem.sql");
 
         string ddl = """
+                     CREATE DOMAIN "DM_EMAIL" AS VARCHAR(120) DEFAULT 'N/A' NOT NULL CHECK (VALUE CONTAINING '@');
+                     CREATE SEQUENCE "SEQ_PEDIDOS";
                      SET SQL DIALECT 3;
                      CREATE TABLE "CLIENTES" (
                          "ID" INTEGER NOT NULL,
-                         "NOME" VARCHAR(120)
+                         "NOME" VARCHAR(120),
+                         "EMAIL" DM_EMAIL,
+                         CONSTRAINT "UQ_CLIENTES_EMAIL" UNIQUE ("EMAIL")
                      );
                      CREATE TABLE "PEDIDOS" (
                          "ID" INTEGER NOT NULL,
@@ -35,9 +39,14 @@ public class CarregadorSnapshotSchemaTests
 
         Assert.Equal(arquivoSql, origem);
         Assert.Equal(2, snapshot.Tabelas.Count);
+        Assert.Contains(snapshot.Dominios, d => d.Nome == "DM_EMAIL" &&
+                                                d.TipoSql.StartsWith("VARCHAR(", StringComparison.OrdinalIgnoreCase));
+        Assert.Contains(snapshot.Sequencias, s => s.Nome == "SEQ_PEDIDOS");
 
         var clientes = snapshot.Tabelas.Single(t => t.Nome == "CLIENTES");
         Assert.Equal("PK_CLIENTES", clientes.ChavePrimaria?.Nome);
+        Assert.Single(clientes.ChavesUnicas);
+        Assert.Equal("UQ_CLIENTES_EMAIL", clientes.ChavesUnicas[0].Nome);
         Assert.Contains(clientes.Colunas, c => c.Nome == "ID" && c.TipoSql.StartsWith("INTEGER", StringComparison.OrdinalIgnoreCase));
 
         var pedidos = snapshot.Tabelas.Single(t => t.Nome == "PEDIDOS");

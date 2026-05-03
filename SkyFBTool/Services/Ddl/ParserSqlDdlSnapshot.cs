@@ -14,7 +14,7 @@ internal static class ParserSqlDdlSnapshot
         var tabelas = new Dictionary<string, TabelaSchema>(StringComparer.OrdinalIgnoreCase);
 
         await foreach (var comando in EnumerarComandosAsync(arquivoSql))
-            ProcessarComando(comando, tabelas);
+            ProcessarComando(comando, snapshot, tabelas);
 
         snapshot.Tabelas = tabelas.Values
             .OrderBy(t => t.Nome, StringComparer.OrdinalIgnoreCase)
@@ -141,7 +141,7 @@ internal static class ParserSqlDdlSnapshot
         return true;
     }
 
-    private static void ProcessarComando(string comando, Dictionary<string, TabelaSchema> tabelas)
+    private static void ProcessarComando(string comando, SnapshotSchema snapshot, Dictionary<string, TabelaSchema> tabelas)
     {
         string limpo = comando.Trim();
         if (string.IsNullOrWhiteSpace(limpo))
@@ -152,6 +152,12 @@ internal static class ParserSqlDdlSnapshot
         {
             return;
         }
+
+        if (TentarProcessarCreateDomain(limpo, snapshot))
+            return;
+
+        if (TentarProcessarCreateSequence(limpo, snapshot))
+            return;
 
         if (TentarProcessarCreateTable(limpo, tabelas))
             return;
@@ -239,6 +245,61 @@ internal static class ParserSqlDdlSnapshot
         });
     }
 
+    private static bool TentarProcessarCreateDomain(string sql, SnapshotSchema snapshot)
+    {
+        var match = Regex.Match(
+            sql,
+            $"^CREATE\\s+DOMAIN\\s+(?<nome>{PadraoIdentificador})\\s+AS\\s+(?<def>.+)$",
+            RegexOptions.IgnoreCase | RegexOptions.Singleline | RegexOptions.CultureInvariant);
+
+        if (!match.Success)
+            return false;
+
+        string nome = DesquotarIdentificador(match.Groups["nome"].Value);
+        string definicao = match.Groups["def"].Value.Trim().TrimEnd(';').Trim();
+        if (string.IsNullOrWhiteSpace(nome) || string.IsNullOrWhiteSpace(definicao))
+            return false;
+
+        if (snapshot.Dominios.Any(d => string.Equals(d.Nome, nome, StringComparison.OrdinalIgnoreCase)))
+            return true;
+
+        snapshot.Dominios.Add(new DominioSchema
+        {
+            Nome = nome,
+            TipoSql = ExtrairTipoColuna(definicao),
+            AceitaNulo = !Regex.IsMatch(definicao, @"\bNOT\s+NULL\b", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant),
+            DefaultSql = ExtrairDefaultColuna(definicao),
+            CheckSql = ExtrairCheckSql(definicao)
+        });
+
+        return true;
+    }
+
+    private static bool TentarProcessarCreateSequence(string sql, SnapshotSchema snapshot)
+    {
+        var match = Regex.Match(
+            sql,
+            $"^CREATE\\s+(?:SEQUENCE|GENERATOR)\\s+(?<nome>{PadraoIdentificador})$",
+            RegexOptions.IgnoreCase | RegexOptions.Singleline | RegexOptions.CultureInvariant);
+
+        if (!match.Success)
+            return false;
+
+        string nome = DesquotarIdentificador(match.Groups["nome"].Value);
+        if (string.IsNullOrWhiteSpace(nome))
+            return false;
+
+        if (snapshot.Sequencias.Any(s => string.Equals(s.Nome, nome, StringComparison.OrdinalIgnoreCase)))
+            return true;
+
+        snapshot.Sequencias.Add(new SequenciaSchema
+        {
+            Nome = nome
+        });
+
+        return true;
+    }
+
     private static bool TentarProcessarConstraintInline(string texto, TabelaSchema tabela)
     {
         var pkMatch = Regex.Match(
@@ -269,6 +330,21 @@ internal static class ParserSqlDdlSnapshot
                 DesquotarIdentificador(fkMatch.Groups["ref"].Value),
                 fkMatch.Groups["refcols"].Value,
                 fkMatch.Groups["rules"].Value));
+            return true;
+        }
+
+        var uniqueMatch = Regex.Match(
+            texto,
+            $"^CONSTRAINT\\s+(?<nome>{PadraoIdentificador})\\s+UNIQUE\\s*\\((?<cols>.+)\\)$",
+            RegexOptions.IgnoreCase | RegexOptions.Singleline | RegexOptions.CultureInvariant);
+
+        if (uniqueMatch.Success)
+        {
+            tabela.ChavesUnicas.Add(new ChaveUnicaSchema
+            {
+                Nome = DesquotarIdentificador(uniqueMatch.Groups["nome"].Value),
+                Colunas = ExtrairListaColunas(uniqueMatch.Groups["cols"].Value)
+            });
             return true;
         }
 
@@ -312,6 +388,26 @@ internal static class ParserSqlDdlSnapshot
                 DesquotarIdentificador(fkMatch.Groups["ref"].Value),
                 fkMatch.Groups["refcols"].Value,
                 fkMatch.Groups["rules"].Value));
+            return true;
+        }
+
+        var uniqueMatch = Regex.Match(
+            sql,
+            $"^ALTER\\s+TABLE\\s+(?<tabela>{PadraoIdentificador})\\s+ADD\\s+CONSTRAINT\\s+(?<nome>{PadraoIdentificador})\\s+UNIQUE\\s*\\((?<cols>.+?)\\)$",
+            RegexOptions.IgnoreCase | RegexOptions.Singleline | RegexOptions.CultureInvariant);
+
+        if (uniqueMatch.Success)
+        {
+            string nomeTabela = DesquotarIdentificador(uniqueMatch.Groups["tabela"].Value);
+            var tabela = ObterOuCriarTabela(tabelas, nomeTabela);
+            string nomeUnique = DesquotarIdentificador(uniqueMatch.Groups["nome"].Value);
+
+            tabela.ChavesUnicas.RemoveAll(u => string.Equals(u.Nome, nomeUnique, StringComparison.OrdinalIgnoreCase));
+            tabela.ChavesUnicas.Add(new ChaveUnicaSchema
+            {
+                Nome = nomeUnique,
+                Colunas = ExtrairListaColunas(uniqueMatch.Groups["cols"].Value)
+            });
             return true;
         }
 
@@ -433,6 +529,15 @@ internal static class ParserSqlDdlSnapshot
         }
 
         return trecho[..corte].Trim();
+    }
+
+    private static string? ExtrairCheckSql(string definicao)
+    {
+        int idx = IndexOfIgnoreCase(definicao, "CHECK ");
+        if (idx < 0)
+            return null;
+
+        return definicao[idx..].Trim();
     }
 
     private static (string Nome, string Definicao) ExtrairNomeEPosfixo(string texto)
