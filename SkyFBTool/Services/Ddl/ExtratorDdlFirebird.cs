@@ -66,6 +66,7 @@ public static class ExtratorDdlFirebird
                 Colunas = await CarregarColunasAsync(conexao, nomeTabela),
                 ChavePrimaria = await CarregarChavePrimariaAsync(conexao, nomeTabela),
                 ChavesUnicas = await CarregarChavesUnicasAsync(conexao, nomeTabela),
+                RestricoesCheck = await CarregarChecksAsync(conexao, nomeTabela),
                 ChavesEstrangeiras = await CarregarChavesEstrangeirasAsync(conexao, nomeTabela),
                 Indices = await CarregarIndicesAsync(conexao, nomeTabela)
             };
@@ -400,6 +401,46 @@ public static class ExtratorDdlFirebird
             .ToList();
     }
 
+    private static async Task<List<RestricaoCheckSchema>> CarregarChecksAsync(FbConnection conexao, string nomeTabela)
+    {
+        const string sql = """
+                           SELECT
+                               TRIM(rc.rdb$constraint_name) AS constraint_name,
+                               TRIM(trg.rdb$trigger_source) AS trigger_source
+                           FROM rdb$relation_constraints rc
+                           JOIN rdb$check_constraints cc ON cc.rdb$constraint_name = rc.rdb$constraint_name
+                           JOIN rdb$triggers trg ON trg.rdb$trigger_name = cc.rdb$trigger_name
+                           WHERE rc.rdb$relation_name = @tabela
+                             AND rc.rdb$constraint_type = 'CHECK'
+                           ORDER BY rc.rdb$constraint_name
+                           """;
+
+        await using var cmd = new FbCommand(sql, conexao);
+        cmd.Parameters.AddWithValue("@tabela", nomeTabela);
+        await using var reader = await cmd.ExecuteReaderAsync();
+
+        var checks = new List<RestricaoCheckSchema>();
+        while (await reader.ReadAsync())
+        {
+            string nome = reader.GetString(reader.GetOrdinal("constraint_name"));
+            string? triggerSource = reader.IsDBNull(reader.GetOrdinal("trigger_source"))
+                ? null
+                : reader.GetString(reader.GetOrdinal("trigger_source"));
+
+            string? checkSql = NormalizarCheckConstraintSource(triggerSource);
+            if (string.IsNullOrWhiteSpace(checkSql))
+                continue;
+
+            checks.Add(new RestricaoCheckSchema
+            {
+                Nome = nome,
+                CheckSql = checkSql
+            });
+        }
+
+        return checks;
+    }
+
     private static async Task<List<IndiceSchema>> CarregarIndicesAsync(FbConnection conexao, string nomeTabela)
     {
         const string sql = """
@@ -502,6 +543,25 @@ public static class ExtratorDdlFirebird
             ' ',
             expressao
                 .Split(new[] { '\r', '\n', '\t', ' ' }, StringSplitOptions.RemoveEmptyEntries));
+    }
+
+    private static string? NormalizarCheckConstraintSource(string? source)
+    {
+        if (string.IsNullOrWhiteSpace(source))
+            return null;
+
+        string normalizado = NormalizarExpressao(source)!;
+        if (normalizado.StartsWith("CHECK ", StringComparison.OrdinalIgnoreCase))
+            return normalizado;
+
+        int idx = normalizado.IndexOf("CHECK", StringComparison.OrdinalIgnoreCase);
+        if (idx >= 0)
+            return normalizado[idx..].Trim();
+
+        if (normalizado.StartsWith("BEGIN", StringComparison.OrdinalIgnoreCase))
+            return null;
+
+        return $"CHECK ({normalizado})";
     }
 
     private static string MapearTipoSql(

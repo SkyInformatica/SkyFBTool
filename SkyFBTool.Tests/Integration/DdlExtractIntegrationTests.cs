@@ -59,6 +59,9 @@ public class DdlExtractIntegrationTests
             Assert.Single(clientes.ChavesUnicas);
             Assert.Equal("UQ_CLIENTES_EMAIL", clientes.ChavesUnicas[0].Nome);
             Assert.Equal(["EMAIL"], clientes.ChavesUnicas[0].Colunas);
+            Assert.Single(clientes.RestricoesCheck);
+            Assert.Equal("CHK_CLIENTES_EMAIL", clientes.RestricoesCheck[0].Nome);
+            Assert.Contains("CONTAINING", clientes.RestricoesCheck[0].CheckSql, StringComparison.OrdinalIgnoreCase);
 
             Assert.Contains(pedidos.Colunas, c => c.Nome == "VALOR_TOTAL" &&
                                                   c.TipoSql.StartsWith("NUMERIC(", StringComparison.OrdinalIgnoreCase) &&
@@ -116,6 +119,7 @@ public class DdlExtractIntegrationTests
             Assert.Contains("CREATE SEQUENCE \"SEQ_PEDIDOS\";", sql, StringComparison.OrdinalIgnoreCase);
             Assert.Contains("ALTER TABLE \"CLIENTES\" ADD CONSTRAINT \"PK_CLIENTES\" PRIMARY KEY (\"ID\");", sql, StringComparison.OrdinalIgnoreCase);
             Assert.Contains("ALTER TABLE \"CLIENTES\" ADD CONSTRAINT \"UQ_CLIENTES_EMAIL\" UNIQUE (\"EMAIL\");", sql, StringComparison.OrdinalIgnoreCase);
+            Assert.Contains("ALTER TABLE \"CLIENTES\" ADD CONSTRAINT \"CHK_CLIENTES_EMAIL\" CHECK (EMAIL CONTAINING '@');", sql, StringComparison.OrdinalIgnoreCase);
             Assert.Contains("FOREIGN KEY (\"CLIENTE_ID\") REFERENCES \"CLIENTES\" (\"ID\")", sql, StringComparison.OrdinalIgnoreCase);
             Assert.Contains("CREATE INDEX \"IDX_PEDIDOS_CLIENTE\" ON \"PEDIDOS\" (\"CLIENTE_ID\");", sql, StringComparison.OrdinalIgnoreCase);
         }
@@ -162,7 +166,8 @@ public class DdlExtractIntegrationTests
                        NOME VARCHAR(120),
                        EMAIL DM_EMAIL,
                        CONSTRAINT PK_CLIENTES PRIMARY KEY (ID),
-                       CONSTRAINT UQ_CLIENTES_EMAIL UNIQUE (EMAIL)
+                       CONSTRAINT UQ_CLIENTES_EMAIL UNIQUE (EMAIL),
+                       CONSTRAINT CHK_CLIENTES_EMAIL CHECK (EMAIL CONTAINING '@')
                      );
 
                      CREATE TABLE PEDIDOS (

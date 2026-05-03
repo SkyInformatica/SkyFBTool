@@ -20,7 +20,8 @@ public class CarregadorSnapshotSchemaTests
                          "ID" INTEGER NOT NULL,
                          "NOME" VARCHAR(120),
                          "EMAIL" DM_EMAIL,
-                         CONSTRAINT "UQ_CLIENTES_EMAIL" UNIQUE ("EMAIL")
+                         CONSTRAINT "UQ_CLIENTES_EMAIL" UNIQUE ("EMAIL"),
+                         CONSTRAINT "CHK_CLIENTES_EMAIL" CHECK ("EMAIL" CONTAINING '@')
                      );
                      CREATE TABLE "PEDIDOS" (
                          "ID" INTEGER NOT NULL,
@@ -47,6 +48,8 @@ public class CarregadorSnapshotSchemaTests
         Assert.Equal("PK_CLIENTES", clientes.ChavePrimaria?.Nome);
         Assert.Single(clientes.ChavesUnicas);
         Assert.Equal("UQ_CLIENTES_EMAIL", clientes.ChavesUnicas[0].Nome);
+        Assert.Single(clientes.RestricoesCheck);
+        Assert.Equal("CHK_CLIENTES_EMAIL", clientes.RestricoesCheck[0].Nome);
         Assert.Contains(clientes.Colunas, c => c.Nome == "ID" && c.TipoSql.StartsWith("INTEGER", StringComparison.OrdinalIgnoreCase));
 
         var pedidos = snapshot.Tabelas.Single(t => t.Nome == "PEDIDOS");

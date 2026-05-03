@@ -13,6 +13,7 @@ public class TabelaSchema
     public List<ColunaSchema> Colunas { get; set; } = [];
     public ChavePrimariaSchema? ChavePrimaria { get; set; }
     public List<ChaveUnicaSchema> ChavesUnicas { get; set; } = [];
+    public List<RestricaoCheckSchema> RestricoesCheck { get; set; } = [];
     public List<ChaveEstrangeiraSchema> ChavesEstrangeiras { get; set; } = [];
     public List<IndiceSchema> Indices { get; set; } = [];
 }
@@ -69,6 +70,12 @@ public class DominioSchema
 public class SequenciaSchema
 {
     public string Nome { get; set; } = string.Empty;
+}
+
+public class RestricaoCheckSchema
+{
+    public string Nome { get; set; } = string.Empty;
+    public string CheckSql { get; set; } = string.Empty;
 }
 
 public class ResultadoDiffSchema

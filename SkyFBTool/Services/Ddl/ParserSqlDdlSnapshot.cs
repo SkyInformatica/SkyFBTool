@@ -317,6 +317,36 @@ internal static class ParserSqlDdlSnapshot
             return true;
         }
 
+        var uniqueMatch = Regex.Match(
+            texto,
+            $"^CONSTRAINT\\s+(?<nome>{PadraoIdentificador})\\s+UNIQUE\\s*\\((?<cols>.+)\\)$",
+            RegexOptions.IgnoreCase | RegexOptions.Singleline | RegexOptions.CultureInvariant);
+
+        if (uniqueMatch.Success)
+        {
+            tabela.ChavesUnicas.Add(new ChaveUnicaSchema
+            {
+                Nome = DesquotarIdentificador(uniqueMatch.Groups["nome"].Value),
+                Colunas = ExtrairListaColunas(uniqueMatch.Groups["cols"].Value)
+            });
+            return true;
+        }
+
+        var checkMatch = Regex.Match(
+            texto,
+            $"^CONSTRAINT\\s+(?<nome>{PadraoIdentificador})\\s+(?<check>CHECK\\s*\\(.+\\))$",
+            RegexOptions.IgnoreCase | RegexOptions.Singleline | RegexOptions.CultureInvariant);
+
+        if (checkMatch.Success)
+        {
+            tabela.RestricoesCheck.Add(new RestricaoCheckSchema
+            {
+                Nome = DesquotarIdentificador(checkMatch.Groups["nome"].Value),
+                CheckSql = NormalizarCheckConstraintSource(checkMatch.Groups["check"].Value) ?? string.Empty
+            });
+            return true;
+        }
+
         var fkMatch = Regex.Match(
             texto,
             $"^CONSTRAINT\\s+(?<nome>{PadraoIdentificador})\\s+FOREIGN\\s+KEY\\s*\\((?<cols>.+?)\\)\\s+REFERENCES\\s+(?<ref>{PadraoIdentificador})\\s*\\((?<refcols>.+?)\\)(?<rules>.*)$",
@@ -330,21 +360,6 @@ internal static class ParserSqlDdlSnapshot
                 DesquotarIdentificador(fkMatch.Groups["ref"].Value),
                 fkMatch.Groups["refcols"].Value,
                 fkMatch.Groups["rules"].Value));
-            return true;
-        }
-
-        var uniqueMatch = Regex.Match(
-            texto,
-            $"^CONSTRAINT\\s+(?<nome>{PadraoIdentificador})\\s+UNIQUE\\s*\\((?<cols>.+)\\)$",
-            RegexOptions.IgnoreCase | RegexOptions.Singleline | RegexOptions.CultureInvariant);
-
-        if (uniqueMatch.Success)
-        {
-            tabela.ChavesUnicas.Add(new ChaveUnicaSchema
-            {
-                Nome = DesquotarIdentificador(uniqueMatch.Groups["nome"].Value),
-                Colunas = ExtrairListaColunas(uniqueMatch.Groups["cols"].Value)
-            });
             return true;
         }
 
@@ -407,6 +422,26 @@ internal static class ParserSqlDdlSnapshot
             {
                 Nome = nomeUnique,
                 Colunas = ExtrairListaColunas(uniqueMatch.Groups["cols"].Value)
+            });
+            return true;
+        }
+
+        var checkMatch = Regex.Match(
+            sql,
+            $"^ALTER\\s+TABLE\\s+(?<tabela>{PadraoIdentificador})\\s+ADD\\s+CONSTRAINT\\s+(?<nome>{PadraoIdentificador})\\s+(?<check>CHECK\\s*\\(.+\\))$",
+            RegexOptions.IgnoreCase | RegexOptions.Singleline | RegexOptions.CultureInvariant);
+
+        if (checkMatch.Success)
+        {
+            string nomeTabela = DesquotarIdentificador(checkMatch.Groups["tabela"].Value);
+            var tabela = ObterOuCriarTabela(tabelas, nomeTabela);
+            string nomeCheck = DesquotarIdentificador(checkMatch.Groups["nome"].Value);
+
+            tabela.RestricoesCheck.RemoveAll(c => string.Equals(c.Nome, nomeCheck, StringComparison.OrdinalIgnoreCase));
+            tabela.RestricoesCheck.Add(new RestricaoCheckSchema
+            {
+                Nome = nomeCheck,
+                CheckSql = NormalizarCheckConstraintSource(checkMatch.Groups["check"].Value) ?? string.Empty
             });
             return true;
         }
@@ -529,6 +564,18 @@ internal static class ParserSqlDdlSnapshot
         }
 
         return trecho[..corte].Trim();
+    }
+
+    private static string? NormalizarCheckConstraintSource(string? source)
+    {
+        if (string.IsNullOrWhiteSpace(source))
+            return null;
+
+        string normalizado = NormalizarEspacos(source);
+        if (normalizado.StartsWith("CHECK", StringComparison.OrdinalIgnoreCase))
+            return normalizado;
+
+        return $"CHECK ({normalizado})";
     }
 
     private static string? ExtrairCheckSql(string definicao)

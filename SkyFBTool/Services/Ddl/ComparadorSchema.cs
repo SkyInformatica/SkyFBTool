@@ -39,6 +39,13 @@ public static class ComparadorSchema
 
         var tabelasOrigem = origem.Tabelas.ToDictionary(t => t.Nome, StringComparer.OrdinalIgnoreCase);
         var tabelasAlvo = alvo.Tabelas.ToDictionary(t => t.Nome, StringComparer.OrdinalIgnoreCase);
+        var dominiosOrigem = origem.Dominios.ToDictionary(d => d.Nome, StringComparer.OrdinalIgnoreCase);
+        var dominiosAlvo = alvo.Dominios.ToDictionary(d => d.Nome, StringComparer.OrdinalIgnoreCase);
+        var sequenciasOrigem = origem.Sequencias.ToDictionary(s => s.Nome, StringComparer.OrdinalIgnoreCase);
+        var sequenciasAlvo = alvo.Sequencias.ToDictionary(s => s.Nome, StringComparer.OrdinalIgnoreCase);
+
+        CompararDominios(dominiosOrigem, dominiosAlvo, resultado, idioma);
+        CompararSequencias(sequenciasOrigem, sequenciasAlvo, resultado, idioma);
 
         foreach (var nomeTabela in tabelasOrigem.Keys.OrderBy(n => n, StringComparer.OrdinalIgnoreCase))
         {
@@ -54,6 +61,10 @@ public static class ComparadorSchema
                     resultado.ComandosSql.Add(GeradorDdlSql.GerarAddPk(tabelaOrigem));
                 foreach (var fk in tabelaOrigem.ChavesEstrangeiras)
                     resultado.ComandosSql.Add(GeradorDdlSql.GerarAddFk(tabelaOrigem, fk));
+                foreach (var unica in tabelaOrigem.ChavesUnicas)
+                    resultado.ComandosSql.Add(GeradorDdlSql.GerarAddUnique(tabelaOrigem, unica));
+                foreach (var check in tabelaOrigem.RestricoesCheck)
+                    resultado.ComandosSql.Add(GeradorDdlSql.GerarAddCheck(tabelaOrigem, check));
                 foreach (var indice in tabelaOrigem.Indices)
                     resultado.ComandosSql.Add(GeradorDdlSql.GerarCreateIndex(tabelaOrigem, indice));
 
@@ -75,6 +86,71 @@ public static class ComparadorSchema
 
         resultado.ComandosSql = OrdenarComandosSql(resultado.ComandosSql, CalcularProfundidadesDependencias(origem));
         return resultado;
+    }
+
+    private static void CompararDominios(
+        IReadOnlyDictionary<string, DominioSchema> origem,
+        IReadOnlyDictionary<string, DominioSchema> alvo,
+        ResultadoDiffSchema resultado,
+        IdiomaSaida idioma)
+    {
+        foreach (var nome in origem.Keys.OrderBy(n => n, StringComparer.OrdinalIgnoreCase))
+        {
+            var dominioOrigem = origem[nome];
+            if (!alvo.TryGetValue(nome, out var dominioAlvo))
+            {
+                resultado.ItensCriados.Add(TextoLocalizado.Obter(idioma,
+                    $"Domain missing in target: {nome}",
+                    $"Domínio ausente no alvo: {nome}"));
+                resultado.ComandosSql.Add(GeradorDdlSql.GerarCreateDomain(dominioOrigem));
+                continue;
+            }
+
+            if (DominiosEquivalentes(dominioOrigem, dominioAlvo))
+                continue;
+
+            resultado.Avisos.Add(TextoLocalizado.Obter(idioma,
+                $"Domain differs and requires manual review: {nome}",
+                $"Domínio diferente e requer revisão manual: {nome}"));
+        }
+
+        foreach (var nome in alvo.Keys.OrderBy(n => n, StringComparer.OrdinalIgnoreCase))
+        {
+            if (!origem.ContainsKey(nome))
+            {
+                resultado.ItensSomenteNoAlvo.Add(TextoLocalizado.Obter(idioma,
+                    $"Domain exists only in target: {nome}",
+                    $"Domínio existe apenas no alvo: {nome}"));
+            }
+        }
+    }
+
+    private static void CompararSequencias(
+        IReadOnlyDictionary<string, SequenciaSchema> origem,
+        IReadOnlyDictionary<string, SequenciaSchema> alvo,
+        ResultadoDiffSchema resultado,
+        IdiomaSaida idioma)
+    {
+        foreach (var nome in origem.Keys.OrderBy(n => n, StringComparer.OrdinalIgnoreCase))
+        {
+            if (alvo.ContainsKey(nome))
+                continue;
+
+            resultado.ItensCriados.Add(TextoLocalizado.Obter(idioma,
+                $"Sequence missing in target: {nome}",
+                $"Sequência ausente no alvo: {nome}"));
+            resultado.ComandosSql.Add(GeradorDdlSql.GerarCreateSequence(origem[nome]));
+        }
+
+        foreach (var nome in alvo.Keys.OrderBy(n => n, StringComparer.OrdinalIgnoreCase))
+        {
+            if (!origem.ContainsKey(nome))
+            {
+                resultado.ItensSomenteNoAlvo.Add(TextoLocalizado.Obter(idioma,
+                    $"Sequence exists only in target: {nome}",
+                    $"Sequência existe apenas no alvo: {nome}"));
+            }
+        }
     }
 
     private static List<string> OrdenarComandosSql(List<string> comandos, IReadOnlyDictionary<string, int> profundidadesDependencia)
@@ -104,6 +180,13 @@ public static class ComparadorSchema
             sql.Contains("DROP CONSTRAINT", StringComparison.OrdinalIgnoreCase))
             return 10;
 
+        if (sql.StartsWith("CREATE DOMAIN", StringComparison.OrdinalIgnoreCase))
+            return 15;
+
+        if (sql.StartsWith("CREATE SEQUENCE", StringComparison.OrdinalIgnoreCase) ||
+            sql.StartsWith("CREATE GENERATOR", StringComparison.OrdinalIgnoreCase))
+            return 16;
+
         if (sql.StartsWith("CREATE TABLE", StringComparison.OrdinalIgnoreCase))
             return 20;
 
@@ -120,6 +203,16 @@ public static class ComparadorSchema
             sql.Contains("ADD CONSTRAINT", StringComparison.OrdinalIgnoreCase) &&
             sql.Contains("PRIMARY KEY", StringComparison.OrdinalIgnoreCase))
             return 40;
+
+        if (sql.StartsWith("ALTER TABLE", StringComparison.OrdinalIgnoreCase) &&
+            sql.Contains("ADD CONSTRAINT", StringComparison.OrdinalIgnoreCase) &&
+            sql.Contains("UNIQUE", StringComparison.OrdinalIgnoreCase))
+            return 42;
+
+        if (sql.StartsWith("ALTER TABLE", StringComparison.OrdinalIgnoreCase) &&
+            sql.Contains("ADD CONSTRAINT", StringComparison.OrdinalIgnoreCase) &&
+            sql.Contains("CHECK", StringComparison.OrdinalIgnoreCase))
+            return 43;
 
         if (sql.StartsWith("CREATE INDEX", StringComparison.OrdinalIgnoreCase) ||
             sql.StartsWith("CREATE UNIQUE INDEX", StringComparison.OrdinalIgnoreCase) ||
@@ -265,6 +358,8 @@ public static class ComparadorSchema
         }
 
         CompararPk(origem, alvo, resultado, idioma);
+        CompararUniqueConstraints(origem, alvo, resultado, idioma);
+        CompararChecks(origem, alvo, resultado, idioma);
         CompararFks(origem, alvo, resultado, idioma);
         CompararIndices(origem, alvo, resultado, idioma);
     }
@@ -395,6 +490,86 @@ public static class ComparadorSchema
         }
     }
 
+    private static void CompararUniqueConstraints(
+        TabelaSchema origem,
+        TabelaSchema alvo,
+        ResultadoDiffSchema resultado,
+        IdiomaSaida idioma)
+    {
+        var origemMap = origem.ChavesUnicas.ToDictionary(u => u.Nome, StringComparer.OrdinalIgnoreCase);
+        var alvoMap = alvo.ChavesUnicas.ToDictionary(u => u.Nome, StringComparer.OrdinalIgnoreCase);
+
+        foreach (var nome in origemMap.Keys.OrderBy(n => n, StringComparer.OrdinalIgnoreCase))
+        {
+            var unicaOrigem = origemMap[nome];
+            if (!alvoMap.TryGetValue(nome, out var unicaAlvo))
+            {
+                resultado.ItensCriados.Add(TextoLocalizado.Obter(idioma,
+                    $"Unique constraint missing in target: {origem.Nome}.{nome}",
+                    $"Constraint única ausente no alvo: {origem.Nome}.{nome}"));
+                resultado.ComandosSql.Add(GeradorDdlSql.GerarAddUnique(origem, unicaOrigem));
+                continue;
+            }
+
+            if (string.Equals(AssinaturaUnique(unicaOrigem), AssinaturaUnique(unicaAlvo), StringComparison.OrdinalIgnoreCase))
+                continue;
+
+            resultado.Avisos.Add(TextoLocalizado.Obter(idioma,
+                $"Unique constraint differs and requires manual review: {origem.Nome}.{nome}",
+                $"Constraint única diferente e requer revisão manual: {origem.Nome}.{nome}"));
+        }
+
+        foreach (var nome in alvoMap.Keys.OrderBy(n => n, StringComparer.OrdinalIgnoreCase))
+        {
+            if (!origemMap.ContainsKey(nome))
+            {
+                resultado.ItensSomenteNoAlvo.Add(TextoLocalizado.Obter(idioma,
+                    $"Unique constraint exists only in target: {origem.Nome}.{nome}",
+                    $"Constraint única existe apenas no alvo: {origem.Nome}.{nome}"));
+            }
+        }
+    }
+
+    private static void CompararChecks(
+        TabelaSchema origem,
+        TabelaSchema alvo,
+        ResultadoDiffSchema resultado,
+        IdiomaSaida idioma)
+    {
+        var origemMap = origem.RestricoesCheck.ToDictionary(c => c.Nome, StringComparer.OrdinalIgnoreCase);
+        var alvoMap = alvo.RestricoesCheck.ToDictionary(c => c.Nome, StringComparer.OrdinalIgnoreCase);
+
+        foreach (var nome in origemMap.Keys.OrderBy(n => n, StringComparer.OrdinalIgnoreCase))
+        {
+            var checkOrigem = origemMap[nome];
+            if (!alvoMap.TryGetValue(nome, out var checkAlvo))
+            {
+                resultado.ItensCriados.Add(TextoLocalizado.Obter(idioma,
+                    $"Check constraint missing in target: {origem.Nome}.{nome}",
+                    $"Constraint CHECK ausente no alvo: {origem.Nome}.{nome}"));
+                resultado.ComandosSql.Add(GeradorDdlSql.GerarAddCheck(origem, checkOrigem));
+                continue;
+            }
+
+            if (string.Equals(CheckNormalizado(checkOrigem), CheckNormalizado(checkAlvo), StringComparison.OrdinalIgnoreCase))
+                continue;
+
+            resultado.Avisos.Add(TextoLocalizado.Obter(idioma,
+                $"Check constraint differs and requires manual review: {origem.Nome}.{nome}",
+                $"Constraint CHECK diferente e requer revisão manual: {origem.Nome}.{nome}"));
+        }
+
+        foreach (var nome in alvoMap.Keys.OrderBy(n => n, StringComparer.OrdinalIgnoreCase))
+        {
+            if (!origemMap.ContainsKey(nome))
+            {
+                resultado.ItensSomenteNoAlvo.Add(TextoLocalizado.Obter(idioma,
+                    $"Check constraint exists only in target: {origem.Nome}.{nome}",
+                    $"Constraint CHECK existe apenas no alvo: {origem.Nome}.{nome}"));
+            }
+        }
+    }
+
     private static void CompararIndices(
         TabelaSchema origem,
         TabelaSchema alvo,
@@ -455,6 +630,26 @@ public static class ComparadorSchema
     private static string AssinaturaIndice(IndiceSchema idx)
     {
         return $"{(idx.Unico ? "U" : "N")}|{(idx.Descendente ? "D" : "A")}|{string.Join("|", idx.Colunas).ToUpperInvariant()}";
+    }
+
+    private static string AssinaturaUnique(ChaveUnicaSchema unica)
+    {
+        return string.Join("|", unica.Colunas).ToUpperInvariant();
+    }
+
+    private static string CheckNormalizado(RestricaoCheckSchema check)
+    {
+        return string.Join(" ", check.CheckSql.Split(new[] { '\r', '\n', '\t' }, StringSplitOptions.RemoveEmptyEntries))
+            .Trim()
+            .ToUpperInvariant();
+    }
+
+    private static bool DominiosEquivalentes(DominioSchema origem, DominioSchema alvo)
+    {
+        return string.Equals(origem.TipoSql, alvo.TipoSql, StringComparison.OrdinalIgnoreCase)
+               && origem.AceitaNulo == alvo.AceitaNulo
+               && string.Equals(origem.DefaultSql, alvo.DefaultSql, StringComparison.OrdinalIgnoreCase)
+               && string.Equals(origem.CheckSql, alvo.CheckSql, StringComparison.OrdinalIgnoreCase);
     }
 
     private static Dictionary<string, T> CriarMapaPorAssinatura<T>(

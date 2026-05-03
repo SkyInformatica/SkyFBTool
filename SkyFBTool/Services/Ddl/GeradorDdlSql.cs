@@ -36,6 +36,9 @@ public static class GeradorDdlSql
             foreach (var unica in tabela.ChavesUnicas.OrderBy(u => u.Nome, StringComparer.OrdinalIgnoreCase))
                 sb.AppendLine(GerarAddUnique(tabela, unica));
 
+            foreach (var check in tabela.RestricoesCheck.OrderBy(c => c.Nome, StringComparer.OrdinalIgnoreCase))
+                sb.AppendLine(GerarAddCheck(tabela, check));
+
             foreach (var fk in tabela.ChavesEstrangeiras.OrderBy(f => f.Nome, StringComparer.OrdinalIgnoreCase))
                 sb.AppendLine(GerarAddFk(tabela, fk));
         }
@@ -91,6 +94,15 @@ public static class GeradorDdlSql
     public static string GerarAddUnique(TabelaSchema tabela, ChaveUnicaSchema unica)
     {
         return $"ALTER TABLE {Q(tabela.Nome)} ADD CONSTRAINT {Q(unica.Nome)} UNIQUE ({ListaColunas(unica.Colunas)});";
+    }
+
+    public static string GerarAddCheck(TabelaSchema tabela, RestricaoCheckSchema check)
+    {
+        string sql = check.CheckSql.Trim();
+        if (!sql.StartsWith("CHECK", StringComparison.OrdinalIgnoreCase))
+            sql = $"CHECK ({sql})";
+
+        return $"ALTER TABLE {Q(tabela.Nome)} ADD CONSTRAINT {Q(check.Nome)} {sql};";
     }
 
     public static string GerarAddFk(TabelaSchema tabela, ChaveEstrangeiraSchema fk)
