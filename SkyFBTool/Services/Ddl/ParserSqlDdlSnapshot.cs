@@ -159,6 +159,9 @@ internal static class ParserSqlDdlSnapshot
         if (TentarProcessarCreateSequence(limpo, snapshot))
             return;
 
+        if (TentarProcessarCreateView(limpo, snapshot))
+            return;
+
         if (TentarProcessarCreateTable(limpo, tabelas))
             return;
 
@@ -295,6 +298,31 @@ internal static class ParserSqlDdlSnapshot
         snapshot.Sequencias.Add(new SequenciaSchema
         {
             Nome = nome
+        });
+
+        return true;
+    }
+
+    private static bool TentarProcessarCreateView(string sql, SnapshotSchema snapshot)
+    {
+        var match = Regex.Match(
+            sql,
+            $"^CREATE\\s+(?:OR\\s+ALTER\\s+)?VIEW\\s+(?<nome>{PadraoIdentificador})(?:\\s*\\((?<cols>.*?)\\))?\\s+AS\\s+(?<body>.+)$",
+            RegexOptions.IgnoreCase | RegexOptions.Singleline | RegexOptions.CultureInvariant);
+
+        if (!match.Success)
+            return false;
+
+        string nome = DesquotarIdentificador(match.Groups["nome"].Value);
+        string corpo = match.Groups["body"].Value.Trim().TrimEnd(';').Trim();
+        if (string.IsNullOrWhiteSpace(nome) || string.IsNullOrWhiteSpace(corpo))
+            return false;
+
+        snapshot.Views.RemoveAll(v => string.Equals(v.Nome, nome, StringComparison.OrdinalIgnoreCase));
+        snapshot.Views.Add(new ViewSchema
+        {
+            Nome = nome,
+            SelectSql = NormalizarEspacos(corpo)
         });
 
         return true;

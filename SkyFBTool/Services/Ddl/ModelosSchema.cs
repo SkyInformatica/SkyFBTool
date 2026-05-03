@@ -3,6 +3,7 @@ namespace SkyFBTool.Services.Ddl;
 public class SnapshotSchema
 {
     public List<TabelaSchema> Tabelas { get; set; } = [];
+    public List<ViewSchema> Views { get; set; } = [];
     public List<DominioSchema> Dominios { get; set; } = [];
     public List<SequenciaSchema> Sequencias { get; set; } = [];
 }
@@ -70,6 +71,12 @@ public class DominioSchema
 public class SequenciaSchema
 {
     public string Nome { get; set; } = string.Empty;
+}
+
+public class ViewSchema
+{
+    public string Nome { get; set; } = string.Empty;
+    public string SelectSql { get; set; } = string.Empty;
 }
 
 public class RestricaoCheckSchema

@@ -28,6 +28,9 @@ public class CarregadorSnapshotSchemaTests
                          "CLIENTE_ID" INTEGER NOT NULL,
                          CONSTRAINT "PK_PEDIDOS" PRIMARY KEY ("ID")
                      );
+                     CREATE VIEW "VW_CLIENTES" AS
+                     SELECT "CLIENTES"."ID", "CLIENTES"."EMAIL"
+                     FROM "CLIENTES";
                      ALTER TABLE "CLIENTES" ADD CONSTRAINT "PK_CLIENTES" PRIMARY KEY ("ID");
                      ALTER TABLE "PEDIDOS" ADD CONSTRAINT "FK_PEDIDOS_CLIENTES" FOREIGN KEY ("CLIENTE_ID")
                          REFERENCES "CLIENTES" ("ID") ON UPDATE CASCADE ON DELETE RESTRICT;
@@ -43,6 +46,9 @@ public class CarregadorSnapshotSchemaTests
         Assert.Contains(snapshot.Dominios, d => d.Nome == "DM_EMAIL" &&
                                                 d.TipoSql.StartsWith("VARCHAR(", StringComparison.OrdinalIgnoreCase));
         Assert.Contains(snapshot.Sequencias, s => s.Nome == "SEQ_PEDIDOS");
+        Assert.Single(snapshot.Views);
+        Assert.Equal("VW_CLIENTES", snapshot.Views[0].Nome);
+        Assert.Contains("SELECT", snapshot.Views[0].SelectSql, StringComparison.OrdinalIgnoreCase);
 
         var clientes = snapshot.Tabelas.Single(t => t.Nome == "CLIENTES");
         Assert.Equal("PK_CLIENTES", clientes.ChavePrimaria?.Nome);

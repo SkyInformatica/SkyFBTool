@@ -57,6 +57,7 @@ public static class ExtratorDdlFirebird
 
         snapshot.Dominios = await CarregarDominiosAsync(conexao);
         snapshot.Sequencias = await CarregarSequenciasAsync(conexao);
+        snapshot.Views = await CarregarViewsAsync(conexao);
 
         foreach (var nomeTabela in tabelas)
         {
@@ -159,6 +160,42 @@ public static class ExtratorDdlFirebird
         }
 
         return sequencias;
+    }
+
+    private static async Task<List<ViewSchema>> CarregarViewsAsync(FbConnection conexao)
+    {
+        const string sql = """
+                           SELECT
+                               TRIM(r.rdb$relation_name) AS view_name,
+                               r.rdb$view_source AS view_source
+                           FROM rdb$relations r
+                           WHERE r.rdb$view_blr IS NOT NULL
+                             AND COALESCE(r.rdb$system_flag, 0) = 0
+                           ORDER BY r.rdb$relation_name
+                           """;
+
+        await using var cmd = new FbCommand(sql, conexao);
+        await using var reader = await cmd.ExecuteReaderAsync();
+
+        var views = new List<ViewSchema>();
+        while (await reader.ReadAsync())
+        {
+            string nome = reader.GetString(reader.GetOrdinal("view_name"));
+            string? source = reader.IsDBNull(reader.GetOrdinal("view_source"))
+                ? null
+                : reader.GetString(reader.GetOrdinal("view_source"));
+
+            if (string.IsNullOrWhiteSpace(source))
+                continue;
+
+            views.Add(new ViewSchema
+            {
+                Nome = nome,
+                SelectSql = NormalizarExpressao(source) ?? string.Empty
+            });
+        }
+
+        return views;
     }
 
     private static async Task<List<string>> CarregarTabelasAsync(FbConnection conexao)

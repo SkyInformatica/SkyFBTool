@@ -28,6 +28,12 @@ public static class GeradorDdlSql
             sb.AppendLine();
         }
 
+        foreach (var view in snapshot.Views.OrderBy(v => v.Nome, StringComparer.OrdinalIgnoreCase))
+        {
+            sb.AppendLine(GerarCreateView(view));
+            sb.AppendLine();
+        }
+
         foreach (var tabela in snapshot.Tabelas.OrderBy(t => t.Nome, StringComparer.OrdinalIgnoreCase))
         {
             if (tabela.ChavePrimaria is not null)
@@ -76,6 +82,11 @@ public static class GeradorDdlSql
     public static string GerarCreateSequence(SequenciaSchema sequencia)
     {
         return $"CREATE SEQUENCE {Q(sequencia.Nome)};";
+    }
+
+    public static string GerarCreateView(ViewSchema view)
+    {
+        return $"CREATE VIEW {Q(view.Nome)} AS {view.SelectSql.Trim()};";
     }
 
     public static string GerarCreateTable(TabelaSchema tabela)

@@ -43,9 +43,12 @@ public static class ComparadorSchema
         var dominiosAlvo = alvo.Dominios.ToDictionary(d => d.Nome, StringComparer.OrdinalIgnoreCase);
         var sequenciasOrigem = origem.Sequencias.ToDictionary(s => s.Nome, StringComparer.OrdinalIgnoreCase);
         var sequenciasAlvo = alvo.Sequencias.ToDictionary(s => s.Nome, StringComparer.OrdinalIgnoreCase);
+        var viewsOrigem = origem.Views.ToDictionary(v => v.Nome, StringComparer.OrdinalIgnoreCase);
+        var viewsAlvo = alvo.Views.ToDictionary(v => v.Nome, StringComparer.OrdinalIgnoreCase);
 
         CompararDominios(dominiosOrigem, dominiosAlvo, resultado, idioma);
         CompararSequencias(sequenciasOrigem, sequenciasAlvo, resultado, idioma);
+        CompararViews(viewsOrigem, viewsAlvo, resultado, idioma);
 
         foreach (var nomeTabela in tabelasOrigem.Keys.OrderBy(n => n, StringComparer.OrdinalIgnoreCase))
         {
@@ -153,6 +156,43 @@ public static class ComparadorSchema
         }
     }
 
+    private static void CompararViews(
+        IReadOnlyDictionary<string, ViewSchema> origem,
+        IReadOnlyDictionary<string, ViewSchema> alvo,
+        ResultadoDiffSchema resultado,
+        IdiomaSaida idioma)
+    {
+        foreach (var nome in origem.Keys.OrderBy(n => n, StringComparer.OrdinalIgnoreCase))
+        {
+            var viewOrigem = origem[nome];
+            if (!alvo.TryGetValue(nome, out var viewAlvo))
+            {
+                resultado.ItensCriados.Add(TextoLocalizado.Obter(idioma,
+                    $"View missing in target: {nome}",
+                    $"View ausente no alvo: {nome}"));
+                resultado.ComandosSql.Add(GeradorDdlSql.GerarCreateView(viewOrigem));
+                continue;
+            }
+
+            if (ViewsEquivalentes(viewOrigem, viewAlvo))
+                continue;
+
+            resultado.Avisos.Add(TextoLocalizado.Obter(idioma,
+                $"View differs and requires manual review: {nome}",
+                $"View diferente e requer revisÃ£o manual: {nome}"));
+        }
+
+        foreach (var nome in alvo.Keys.OrderBy(n => n, StringComparer.OrdinalIgnoreCase))
+        {
+            if (!origem.ContainsKey(nome))
+            {
+                resultado.ItensSomenteNoAlvo.Add(TextoLocalizado.Obter(idioma,
+                    $"View exists only in target: {nome}",
+                    $"View existe apenas no alvo: {nome}"));
+            }
+        }
+    }
+
     private static List<string> OrdenarComandosSql(List<string> comandos, IReadOnlyDictionary<string, int> profundidadesDependencia)
     {
         return comandos
@@ -189,6 +229,9 @@ public static class ComparadorSchema
 
         if (sql.StartsWith("CREATE TABLE", StringComparison.OrdinalIgnoreCase))
             return 20;
+
+        if (sql.StartsWith("CREATE VIEW", StringComparison.OrdinalIgnoreCase))
+            return 25;
 
         if (sql.StartsWith("ALTER TABLE", StringComparison.OrdinalIgnoreCase) &&
             sql.Contains(" ADD ", StringComparison.OrdinalIgnoreCase) &&
@@ -640,6 +683,20 @@ public static class ComparadorSchema
     private static string CheckNormalizado(RestricaoCheckSchema check)
     {
         return string.Join(" ", check.CheckSql.Split(new[] { '\r', '\n', '\t' }, StringSplitOptions.RemoveEmptyEntries))
+            .Trim()
+            .ToUpperInvariant();
+    }
+
+    private static bool ViewsEquivalentes(ViewSchema origem, ViewSchema alvo)
+    {
+        return string.Equals(ViewSqlNormalizada(origem.SelectSql), ViewSqlNormalizada(alvo.SelectSql), StringComparison.OrdinalIgnoreCase);
+    }
+
+    private static string ViewSqlNormalizada(string sql)
+    {
+        return string.Join(
+                ' ',
+                sql.Split(new[] { '\r', '\n', '\t', ' ' }, StringSplitOptions.RemoveEmptyEntries))
             .Trim()
             .ToUpperInvariant();
     }

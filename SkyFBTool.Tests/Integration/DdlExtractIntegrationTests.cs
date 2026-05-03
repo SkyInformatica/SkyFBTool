@@ -9,7 +9,7 @@ namespace SkyFBTool.Tests.Integration;
 public class DdlExtractIntegrationTests
 {
     [Fact]
-    public async Task DdlExtract_GeraSnapshotJson_ComTabelasColunasPkFkEIndice()
+    public async Task DdlExtract_GeraSnapshotJson_ComTabelasColunasPkFkIndiceDominioSequenciaEView()
     {
         if (!IntegracaoHabilitada())
             return;
@@ -48,6 +48,8 @@ public class DdlExtractIntegrationTests
                                                     d.TipoSql.StartsWith("VARCHAR(", StringComparison.OrdinalIgnoreCase) &&
                                                     string.Equals(d.DefaultSql, "DEFAULT 'N/A'", StringComparison.OrdinalIgnoreCase));
             Assert.Contains(snapshot.Sequencias, s => s.Nome == "SEQ_PEDIDOS");
+            Assert.Contains(snapshot.Views, v => v.Nome == "VW_CLIENTES" &&
+                                                 v.SelectSql.Contains("SELECT ID, EMAIL FROM CLIENTES", StringComparison.OrdinalIgnoreCase));
 
             Assert.Contains(clientes.Colunas, c => c.Nome == "ID" && c.TipoSql == "INTEGER" && !c.AceitaNulo);
             Assert.Contains(clientes.Colunas, c => c.Nome == "NOME" && c.TipoSql.StartsWith("VARCHAR(", StringComparison.OrdinalIgnoreCase));
@@ -117,6 +119,7 @@ public class DdlExtractIntegrationTests
             Assert.Contains("CREATE TABLE \"PEDIDOS\"", sql, StringComparison.OrdinalIgnoreCase);
             Assert.Contains("CREATE DOMAIN \"DM_EMAIL\" AS VARCHAR(120)", sql, StringComparison.OrdinalIgnoreCase);
             Assert.Contains("CREATE SEQUENCE \"SEQ_PEDIDOS\";", sql, StringComparison.OrdinalIgnoreCase);
+            Assert.Contains("CREATE VIEW \"VW_CLIENTES\" AS SELECT ID, EMAIL FROM CLIENTES;", sql, StringComparison.OrdinalIgnoreCase);
             Assert.Contains("ALTER TABLE \"CLIENTES\" ADD CONSTRAINT \"PK_CLIENTES\" PRIMARY KEY (\"ID\");", sql, StringComparison.OrdinalIgnoreCase);
             Assert.Contains("ALTER TABLE \"CLIENTES\" ADD CONSTRAINT \"UQ_CLIENTES_EMAIL\" UNIQUE (\"EMAIL\");", sql, StringComparison.OrdinalIgnoreCase);
             Assert.Contains("ALTER TABLE \"CLIENTES\" ADD CONSTRAINT \"CHK_CLIENTES_EMAIL\" CHECK (EMAIL CONTAINING '@');", sql, StringComparison.OrdinalIgnoreCase);
@@ -177,6 +180,10 @@ public class DdlExtractIntegrationTests
                        CONSTRAINT PK_PEDIDOS PRIMARY KEY (ID),
                        CONSTRAINT FK_PEDIDOS_CLIENTE FOREIGN KEY (CLIENTE_ID) REFERENCES CLIENTES (ID)
                      );
+
+                     CREATE VIEW VW_CLIENTES AS
+                     SELECT ID, EMAIL
+                     FROM CLIENTES;
 
                      CREATE INDEX IDX_PEDIDOS_CLIENTE ON PEDIDOS (CLIENTE_ID);
                      """;
