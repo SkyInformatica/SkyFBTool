@@ -8,7 +8,7 @@ Compares two schema inputs and generates:
 
 `ddl-diff` is designed for controlled schema synchronization workflows (promotions, audits, migration planning).
 
-Today the diff also covers domains, sequences/generators, unique constraints, and `CHECK` constraints in addition to tables, columns, PKs, FKs, and user indexes.
+Today the diff also covers domains, sequences/generators, views, unique constraints, and `CHECK` constraints in addition to tables, columns, PKs, FKs, and user indexes.
 
 ## When to use
 - DBA: assess schema drift and generate reviewed adjustment SQL before rollout.
