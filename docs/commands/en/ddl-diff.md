@@ -8,6 +8,8 @@ Compares two schema inputs and generates:
 
 `ddl-diff` is designed for controlled schema synchronization workflows (promotions, audits, migration planning).
 
+Today the diff also covers domains, sequences/generators, unique constraints, and `CHECK` constraints in addition to tables, columns, PKs, FKs, and user indexes.
+
 ## When to use
 - DBA: assess schema drift and generate reviewed adjustment SQL before rollout.
 - Developer: validate migration impact and keep source/target model alignment explicit.
@@ -53,7 +55,7 @@ This ordering is deterministic and keeps parent tables before child tables, whil
 ## Recommended workflow
 1. Generate snapshots with `ddl-extract` for both environments.
 2. Run `ddl-diff` between source and target snapshots.
-3. Review `.html` and `.sql` with DBA/dev.
+3. Review `.html` and `.sql` with DBA/dev, including domains and additional constraints when present.
 4. Apply script in staging.
 5. Re-run `ddl-diff` to confirm convergence.
 

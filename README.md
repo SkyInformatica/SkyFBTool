@@ -42,7 +42,7 @@ git push origin v0.1.0
 
 - `export`, `import`, and `exec-sql` commands
 - `ddl-extract`, `ddl-diff`, and `ddl-analyze` commands for extraction, schema comparison, and DDL risk analysis
-- `ddl-extract` captures tables, columns, domains, sequences, PKs, unique constraints, FKs, and user indexes into `.sql` and `.schema.json`
+- `ddl-extract` captures tables, columns, domains, sequences, PKs, unique constraints, CHECK constraints, FKs, and user indexes into `.sql` and `.schema.json`
 - Streaming export/import for large SQL files
 - `--filter`, `--filter-file`, and advanced `--query-file`
 - Target table remap with `--target-table`
