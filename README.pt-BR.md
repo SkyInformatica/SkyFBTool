@@ -2,7 +2,7 @@
 
 [English](./README.md) | Português (Brasil)
 
-SkyFBTool é uma CLI em .NET 8 para exportação/importação de dados Firebird (2.5 / 3.0 / 4.0 / 5.0), focada em grandes volumes, execução em streaming e segurança de charset.
+SkyFBTool é uma CLI em .NET 8 para Firebird que cobre exportação/importação de SQL, execução operacional de scripts, extração de schema, comparação de schema e análise de risco DDL para Firebird 2.5 / 3.0 / 4.0 / 5.0. É focada em grandes volumes, execução em streaming, segurança de charset e fluxos de revisão amigáveis para DBA.
 
 ## Público-alvo
 

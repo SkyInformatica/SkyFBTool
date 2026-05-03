@@ -5,7 +5,7 @@ public static class CliHelpText
     public static string ObterTextoCompleto()
     {
         return @"
-SkyFBTool - Ferramenta de Exportação/Importação Firebird
+SkyFBTool - CLI Firebird para exportação, importação, execução de scripts, extração, diff e análise DDL
 --------------------------------------------------------
 
 USO:
