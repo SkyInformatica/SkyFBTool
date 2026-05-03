@@ -15,7 +15,7 @@ SkyFBTool exec-sql --database PATH.fdb --script FILE.sql [options]
 ```
 
 ## All options
-`exec-sql` uses the same parser/options as `import`:
+`exec-sql` uses the same parsing/execution engine as `import`, but only in single-file mode:
 - `--database`: target Firebird database.
 - `--input`: input SQL file.
 - `--script`: explicit alias for `--input` (recommended for readability in maintenance context).
