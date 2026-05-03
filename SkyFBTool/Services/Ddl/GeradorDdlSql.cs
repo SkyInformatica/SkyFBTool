@@ -22,6 +22,18 @@ public static class GeradorDdlSql
             sb.AppendLine();
         }
 
+        foreach (var procedimento in snapshot.Procedimentos.OrderBy(p => p.Nome, StringComparer.OrdinalIgnoreCase))
+        {
+            sb.AppendLine(GerarBlocoFonte(procedimento.SourceSql));
+            sb.AppendLine();
+        }
+
+        foreach (var funcao in snapshot.Funcoes.OrderBy(f => f.Nome, StringComparer.OrdinalIgnoreCase))
+        {
+            sb.AppendLine(GerarBlocoFonte(funcao.SourceSql));
+            sb.AppendLine();
+        }
+
         foreach (var tabela in snapshot.Tabelas.OrderBy(t => t.Nome, StringComparer.OrdinalIgnoreCase))
         {
             sb.AppendLine(GerarCreateTable(tabela));
@@ -31,6 +43,12 @@ public static class GeradorDdlSql
         foreach (var view in snapshot.Views.OrderBy(v => v.Nome, StringComparer.OrdinalIgnoreCase))
         {
             sb.AppendLine(GerarCreateView(view));
+            sb.AppendLine();
+        }
+
+        foreach (var gatilho in snapshot.Gatilhos.OrderBy(g => g.Nome, StringComparer.OrdinalIgnoreCase))
+        {
+            sb.AppendLine(GerarBlocoFonte(gatilho.SourceSql));
             sb.AppendLine();
         }
 
@@ -87,6 +105,11 @@ public static class GeradorDdlSql
     public static string GerarCreateView(ViewSchema view)
     {
         return $"CREATE VIEW {Q(view.Nome)} AS {view.SelectSql.Trim()};";
+    }
+
+    public static string GerarBlocoFonte(string fonte)
+    {
+        return fonte.Trim().TrimEnd(';') + ';';
     }
 
     public static string GerarCreateTable(TabelaSchema tabela)

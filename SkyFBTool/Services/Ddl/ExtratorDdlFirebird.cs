@@ -57,7 +57,10 @@ public static class ExtratorDdlFirebird
 
         snapshot.Dominios = await CarregarDominiosAsync(conexao);
         snapshot.Sequencias = await CarregarSequenciasAsync(conexao);
+        snapshot.Procedimentos = await CarregarProcedimentosAsync(conexao);
+        snapshot.Funcoes = await CarregarFuncoesAsync(conexao);
         snapshot.Views = await CarregarViewsAsync(conexao);
+        snapshot.Gatilhos = await CarregarGatilhosAsync(conexao);
 
         foreach (var nomeTabela in tabelas)
         {
@@ -160,6 +163,119 @@ public static class ExtratorDdlFirebird
         }
 
         return sequencias;
+    }
+
+    private static async Task<List<ProcedimentoSchema>> CarregarProcedimentosAsync(FbConnection conexao)
+    {
+        const string sql = """
+                           SELECT
+                               TRIM(p.rdb$procedure_name) AS procedure_name,
+                               p.rdb$procedure_source AS procedure_source
+                           FROM rdb$procedures p
+                           WHERE COALESCE(p.rdb$system_flag, 0) = 0
+                           ORDER BY p.rdb$procedure_name
+                           """;
+
+        await using var cmd = new FbCommand(sql, conexao);
+        await using var reader = await cmd.ExecuteReaderAsync();
+
+        var procedimentos = new List<ProcedimentoSchema>();
+        while (await reader.ReadAsync())
+        {
+            string nome = reader.GetString(reader.GetOrdinal("procedure_name"));
+            string? source = reader.IsDBNull(reader.GetOrdinal("procedure_source"))
+                ? null
+                : reader.GetString(reader.GetOrdinal("procedure_source"));
+
+            if (string.IsNullOrWhiteSpace(source))
+                continue;
+
+            procedimentos.Add(new ProcedimentoSchema
+            {
+                Nome = nome,
+                SourceSql = NormalizarEspacosFonte(source)
+            });
+        }
+
+        return procedimentos;
+    }
+
+    private static async Task<List<FuncaoSchema>> CarregarFuncoesAsync(FbConnection conexao)
+    {
+        const string sql = """
+                           SELECT
+                               TRIM(f.rdb$function_name) AS function_name,
+                               f.rdb$function_source AS function_source
+                           FROM rdb$functions f
+                           WHERE COALESCE(f.rdb$system_flag, 0) = 0
+                             AND COALESCE(f.rdb$legacy_flag, 0) = 0
+                           ORDER BY f.rdb$function_name
+                           """;
+
+        try
+        {
+            await using var cmd = new FbCommand(sql, conexao);
+            await using var reader = await cmd.ExecuteReaderAsync();
+
+            var funcoes = new List<FuncaoSchema>();
+            while (await reader.ReadAsync())
+            {
+                string nome = reader.GetString(reader.GetOrdinal("function_name"));
+                string? source = reader.IsDBNull(reader.GetOrdinal("function_source"))
+                    ? null
+                    : reader.GetString(reader.GetOrdinal("function_source"));
+
+                if (string.IsNullOrWhiteSpace(source))
+                    continue;
+
+                funcoes.Add(new FuncaoSchema
+                {
+                    Nome = nome,
+                    SourceSql = NormalizarEspacosFonte(source)
+                });
+            }
+
+            return funcoes;
+        }
+        catch (FbException ex) when (MensagemTokenDesconhecidoParaFunctionSource(ex))
+        {
+            return [];
+        }
+    }
+
+    private static async Task<List<GatilhoSchema>> CarregarGatilhosAsync(FbConnection conexao)
+    {
+        const string sql = """
+                           SELECT
+                               TRIM(t.rdb$trigger_name) AS trigger_name,
+                               t.rdb$trigger_source AS trigger_source
+                           FROM rdb$triggers t
+                           WHERE COALESCE(t.rdb$system_flag, 0) = 0
+                           ORDER BY t.rdb$trigger_name
+                           """;
+
+        await using var cmd = new FbCommand(sql, conexao);
+        await using var reader = await cmd.ExecuteReaderAsync();
+
+        var gatilhos = new List<GatilhoSchema>();
+        while (await reader.ReadAsync())
+        {
+            string nome = reader.GetString(reader.GetOrdinal("trigger_name"));
+            string? source = reader.IsDBNull(reader.GetOrdinal("trigger_source"))
+                ? null
+                : reader.GetString(reader.GetOrdinal("trigger_source"));
+
+            if (string.IsNullOrWhiteSpace(source))
+                continue;
+
+            gatilhos.Add(new GatilhoSchema
+            {
+                Nome = nome,
+                SourceSql = NormalizarEspacosFonte(source)
+            });
+        }
+
+        return gatilhos;
     }
 
     private static async Task<List<ViewSchema>> CarregarViewsAsync(FbConnection conexao)
@@ -316,6 +432,13 @@ public static class ExtratorDdlFirebird
         string mensagem = ex.Message ?? string.Empty;
         return mensagem.Contains("Token unknown", StringComparison.OrdinalIgnoreCase)
                && mensagem.Contains("character_length", StringComparison.OrdinalIgnoreCase);
+    }
+
+    private static bool MensagemTokenDesconhecidoParaFunctionSource(FbException ex)
+    {
+        string mensagem = ex.Message ?? string.Empty;
+        return mensagem.Contains("Token unknown", StringComparison.OrdinalIgnoreCase)
+               && mensagem.Contains("function_source", StringComparison.OrdinalIgnoreCase);
     }
 
     private static async Task<ChavePrimariaSchema?> CarregarChavePrimariaAsync(FbConnection conexao, string nomeTabela)
@@ -580,6 +703,11 @@ public static class ExtratorDdlFirebird
             ' ',
             expressao
                 .Split(new[] { '\r', '\n', '\t', ' ' }, StringSplitOptions.RemoveEmptyEntries));
+    }
+
+    private static string NormalizarEspacosFonte(string fonte)
+    {
+        return fonte.Replace("\r\n", "\n").Replace("\r", "\n").Trim();
     }
 
     private static string? NormalizarCheckConstraintSource(string? source)

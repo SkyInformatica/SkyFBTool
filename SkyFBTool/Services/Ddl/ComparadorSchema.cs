@@ -43,12 +43,21 @@ public static class ComparadorSchema
         var dominiosAlvo = alvo.Dominios.ToDictionary(d => d.Nome, StringComparer.OrdinalIgnoreCase);
         var sequenciasOrigem = origem.Sequencias.ToDictionary(s => s.Nome, StringComparer.OrdinalIgnoreCase);
         var sequenciasAlvo = alvo.Sequencias.ToDictionary(s => s.Nome, StringComparer.OrdinalIgnoreCase);
+        var procedimentosOrigem = origem.Procedimentos.ToDictionary(p => p.Nome, StringComparer.OrdinalIgnoreCase);
+        var procedimentosAlvo = alvo.Procedimentos.ToDictionary(p => p.Nome, StringComparer.OrdinalIgnoreCase);
+        var funcoesOrigem = origem.Funcoes.ToDictionary(f => f.Nome, StringComparer.OrdinalIgnoreCase);
+        var funcoesAlvo = alvo.Funcoes.ToDictionary(f => f.Nome, StringComparer.OrdinalIgnoreCase);
         var viewsOrigem = origem.Views.ToDictionary(v => v.Nome, StringComparer.OrdinalIgnoreCase);
         var viewsAlvo = alvo.Views.ToDictionary(v => v.Nome, StringComparer.OrdinalIgnoreCase);
+        var gatilhosOrigem = origem.Gatilhos.ToDictionary(g => g.Nome, StringComparer.OrdinalIgnoreCase);
+        var gatilhosAlvo = alvo.Gatilhos.ToDictionary(g => g.Nome, StringComparer.OrdinalIgnoreCase);
 
         CompararDominios(dominiosOrigem, dominiosAlvo, resultado, idioma);
         CompararSequencias(sequenciasOrigem, sequenciasAlvo, resultado, idioma);
+        CompararProcedimentos(procedimentosOrigem, procedimentosAlvo, resultado, idioma);
+        CompararFuncoes(funcoesOrigem, funcoesAlvo, resultado, idioma);
         CompararViews(viewsOrigem, viewsAlvo, resultado, idioma);
+        CompararGatilhos(gatilhosOrigem, gatilhosAlvo, resultado, idioma);
 
         foreach (var nomeTabela in tabelasOrigem.Keys.OrderBy(n => n, StringComparer.OrdinalIgnoreCase))
         {
@@ -156,6 +165,82 @@ public static class ComparadorSchema
         }
     }
 
+    private static void CompararProcedimentos(
+        IReadOnlyDictionary<string, ProcedimentoSchema> origem,
+        IReadOnlyDictionary<string, ProcedimentoSchema> alvo,
+        ResultadoDiffSchema resultado,
+        IdiomaSaida idioma)
+    {
+        foreach (var nome in origem.Keys.OrderBy(n => n, StringComparer.OrdinalIgnoreCase))
+        {
+            var procOrigem = origem[nome];
+            if (!alvo.TryGetValue(nome, out var procAlvo))
+            {
+                resultado.ItensCriados.Add(TextoLocalizado.Obter(idioma,
+                    $"Procedure missing in target: {nome}",
+                    $"Procedure ausente no alvo: {nome}"));
+                resultado.ComandosSql.Add(GeradorDdlSql.GerarBlocoFonte(procOrigem.SourceSql));
+                continue;
+            }
+
+            if (FontesEquivalentes(procOrigem.SourceSql, procAlvo.SourceSql))
+                continue;
+
+            resultado.Avisos.Add(TextoLocalizado.Obter(idioma,
+                $"Procedure differs and requires manual review: {nome}",
+                $"Procedure diferente e requer revisÃ£o manual: {nome}"));
+            resultado.ComandosSql.Add(GeradorDdlSql.GerarBlocoFonte(procOrigem.SourceSql));
+        }
+
+        foreach (var nome in alvo.Keys.OrderBy(n => n, StringComparer.OrdinalIgnoreCase))
+        {
+            if (!origem.ContainsKey(nome))
+            {
+                resultado.ItensSomenteNoAlvo.Add(TextoLocalizado.Obter(idioma,
+                    $"Procedure exists only in target: {nome}",
+                    $"Procedure existe apenas no alvo: {nome}"));
+            }
+        }
+    }
+
+    private static void CompararFuncoes(
+        IReadOnlyDictionary<string, FuncaoSchema> origem,
+        IReadOnlyDictionary<string, FuncaoSchema> alvo,
+        ResultadoDiffSchema resultado,
+        IdiomaSaida idioma)
+    {
+        foreach (var nome in origem.Keys.OrderBy(n => n, StringComparer.OrdinalIgnoreCase))
+        {
+            var funcOrigem = origem[nome];
+            if (!alvo.TryGetValue(nome, out var funcAlvo))
+            {
+                resultado.ItensCriados.Add(TextoLocalizado.Obter(idioma,
+                    $"Function missing in target: {nome}",
+                    $"Function ausente no alvo: {nome}"));
+                resultado.ComandosSql.Add(GeradorDdlSql.GerarBlocoFonte(funcOrigem.SourceSql));
+                continue;
+            }
+
+            if (FontesEquivalentes(funcOrigem.SourceSql, funcAlvo.SourceSql))
+                continue;
+
+            resultado.Avisos.Add(TextoLocalizado.Obter(idioma,
+                $"Function differs and requires manual review: {nome}",
+                $"Function diferente e requer revisÃ£o manual: {nome}"));
+            resultado.ComandosSql.Add(GeradorDdlSql.GerarBlocoFonte(funcOrigem.SourceSql));
+        }
+
+        foreach (var nome in alvo.Keys.OrderBy(n => n, StringComparer.OrdinalIgnoreCase))
+        {
+            if (!origem.ContainsKey(nome))
+            {
+                resultado.ItensSomenteNoAlvo.Add(TextoLocalizado.Obter(idioma,
+                    $"Function exists only in target: {nome}",
+                    $"Function existe apenas no alvo: {nome}"));
+            }
+        }
+    }
+
     private static void CompararViews(
         IReadOnlyDictionary<string, ViewSchema> origem,
         IReadOnlyDictionary<string, ViewSchema> alvo,
@@ -189,6 +274,44 @@ public static class ComparadorSchema
                 resultado.ItensSomenteNoAlvo.Add(TextoLocalizado.Obter(idioma,
                     $"View exists only in target: {nome}",
                     $"View existe apenas no alvo: {nome}"));
+            }
+        }
+    }
+
+    private static void CompararGatilhos(
+        IReadOnlyDictionary<string, GatilhoSchema> origem,
+        IReadOnlyDictionary<string, GatilhoSchema> alvo,
+        ResultadoDiffSchema resultado,
+        IdiomaSaida idioma)
+    {
+        foreach (var nome in origem.Keys.OrderBy(n => n, StringComparer.OrdinalIgnoreCase))
+        {
+            var gatilhoOrigem = origem[nome];
+            if (!alvo.TryGetValue(nome, out var gatilhoAlvo))
+            {
+                resultado.ItensCriados.Add(TextoLocalizado.Obter(idioma,
+                    $"Trigger missing in target: {nome}",
+                    $"Trigger ausente no alvo: {nome}"));
+                resultado.ComandosSql.Add(GeradorDdlSql.GerarBlocoFonte(gatilhoOrigem.SourceSql));
+                continue;
+            }
+
+            if (FontesEquivalentes(gatilhoOrigem.SourceSql, gatilhoAlvo.SourceSql))
+                continue;
+
+            resultado.Avisos.Add(TextoLocalizado.Obter(idioma,
+                $"Trigger differs and requires manual review: {nome}",
+                $"Trigger diferente e requer revisÃ£o manual: {nome}"));
+            resultado.ComandosSql.Add(GeradorDdlSql.GerarBlocoFonte(gatilhoOrigem.SourceSql));
+        }
+
+        foreach (var nome in alvo.Keys.OrderBy(n => n, StringComparer.OrdinalIgnoreCase))
+        {
+            if (!origem.ContainsKey(nome))
+            {
+                resultado.ItensSomenteNoAlvo.Add(TextoLocalizado.Obter(idioma,
+                    $"Trigger exists only in target: {nome}",
+                    $"Trigger existe apenas no alvo: {nome}"));
             }
         }
     }
@@ -227,6 +350,14 @@ public static class ComparadorSchema
             sql.StartsWith("CREATE GENERATOR", StringComparison.OrdinalIgnoreCase))
             return 16;
 
+        if (sql.StartsWith("CREATE PROCEDURE", StringComparison.OrdinalIgnoreCase) ||
+            sql.StartsWith("CREATE OR ALTER PROCEDURE", StringComparison.OrdinalIgnoreCase))
+            return 17;
+
+        if (sql.StartsWith("CREATE FUNCTION", StringComparison.OrdinalIgnoreCase) ||
+            sql.StartsWith("CREATE OR ALTER FUNCTION", StringComparison.OrdinalIgnoreCase))
+            return 18;
+
         if (sql.StartsWith("CREATE TABLE", StringComparison.OrdinalIgnoreCase))
             return 20;
 
@@ -256,6 +387,10 @@ public static class ComparadorSchema
             sql.Contains("ADD CONSTRAINT", StringComparison.OrdinalIgnoreCase) &&
             sql.Contains("CHECK", StringComparison.OrdinalIgnoreCase))
             return 43;
+
+        if (sql.StartsWith("CREATE TRIGGER", StringComparison.OrdinalIgnoreCase) ||
+            sql.StartsWith("CREATE OR ALTER TRIGGER", StringComparison.OrdinalIgnoreCase))
+            return 45;
 
         if (sql.StartsWith("CREATE INDEX", StringComparison.OrdinalIgnoreCase) ||
             sql.StartsWith("CREATE UNIQUE INDEX", StringComparison.OrdinalIgnoreCase) ||
@@ -687,18 +822,22 @@ public static class ComparadorSchema
             .ToUpperInvariant();
     }
 
-    private static bool ViewsEquivalentes(ViewSchema origem, ViewSchema alvo)
+    private static bool FontesEquivalentes(string origem, string alvo)
     {
-        return string.Equals(ViewSqlNormalizada(origem.SelectSql), ViewSqlNormalizada(alvo.SelectSql), StringComparison.OrdinalIgnoreCase);
+        return string.Equals(FonteNormalizada(origem), FonteNormalizada(alvo), StringComparison.OrdinalIgnoreCase);
     }
 
-    private static string ViewSqlNormalizada(string sql)
+    private static string FonteNormalizada(string fonte)
     {
-        return string.Join(
-                ' ',
-                sql.Split(new[] { '\r', '\n', '\t', ' ' }, StringSplitOptions.RemoveEmptyEntries))
-            .Trim()
-            .ToUpperInvariant();
+        return fonte
+            .Replace("\r\n", "\n")
+            .Replace("\r", "\n")
+            .Trim();
+    }
+
+    private static bool ViewsEquivalentes(ViewSchema origem, ViewSchema alvo)
+    {
+        return string.Equals(FonteNormalizada(origem.SelectSql), FonteNormalizada(alvo.SelectSql), StringComparison.OrdinalIgnoreCase);
     }
 
     private static bool DominiosEquivalentes(DominioSchema origem, DominioSchema alvo)

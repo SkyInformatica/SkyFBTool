@@ -21,7 +21,7 @@ public class DdlExtractIntegrationTests
         try
         {
             await CriarBancoAsync(arquivoBanco, "UTF8");
-            await CriarSchemaTesteAsync(arquivoBanco, "UTF8");
+            bool suportaFuncoes = await CriarSchemaTesteAsync(arquivoBanco, "UTF8");
 
             var opcoes = new OpcoesDdlExtracao
             {
@@ -48,6 +48,10 @@ public class DdlExtractIntegrationTests
                                                     d.TipoSql.StartsWith("VARCHAR(", StringComparison.OrdinalIgnoreCase) &&
                                                     string.Equals(d.DefaultSql, "DEFAULT 'N/A'", StringComparison.OrdinalIgnoreCase));
             Assert.Contains(snapshot.Sequencias, s => s.Nome == "SEQ_PEDIDOS");
+            Assert.Contains(snapshot.Procedimentos, p => p.Nome == "SP_AJUSTAR_PEDIDO");
+            Assert.Contains(snapshot.Gatilhos, g => g.Nome == "TRG_PEDIDOS_BI");
+            if (suportaFuncoes)
+                Assert.Contains(snapshot.Funcoes, f => f.Nome == "FN_PEDIDO_TOTAL");
             Assert.Contains(snapshot.Views, v => v.Nome == "VW_CLIENTES" &&
                                                  v.SelectSql.Contains("SELECT ID, EMAIL FROM CLIENTES", StringComparison.OrdinalIgnoreCase));
 
@@ -98,7 +102,7 @@ public class DdlExtractIntegrationTests
         try
         {
             await CriarBancoAsync(arquivoBanco, "UTF8");
-            await CriarSchemaTesteAsync(arquivoBanco, "UTF8");
+            bool suportaFuncoes = await CriarSchemaTesteAsync(arquivoBanco, "UTF8");
 
             var opcoes = new OpcoesDdlExtracao
             {
@@ -119,6 +123,10 @@ public class DdlExtractIntegrationTests
             Assert.Contains("CREATE TABLE \"PEDIDOS\"", sql, StringComparison.OrdinalIgnoreCase);
             Assert.Contains("CREATE DOMAIN \"DM_EMAIL\" AS VARCHAR(120)", sql, StringComparison.OrdinalIgnoreCase);
             Assert.Contains("CREATE SEQUENCE \"SEQ_PEDIDOS\";", sql, StringComparison.OrdinalIgnoreCase);
+            Assert.Contains("CREATE OR ALTER PROCEDURE SP_AJUSTAR_PEDIDO", sql, StringComparison.OrdinalIgnoreCase);
+            Assert.Contains("CREATE OR ALTER TRIGGER TRG_PEDIDOS_BI", sql, StringComparison.OrdinalIgnoreCase);
+            if (suportaFuncoes)
+                Assert.Contains("CREATE OR ALTER FUNCTION FN_PEDIDO_TOTAL", sql, StringComparison.OrdinalIgnoreCase);
             Assert.Contains("CREATE VIEW \"VW_CLIENTES\" AS SELECT ID, EMAIL FROM CLIENTES;", sql, StringComparison.OrdinalIgnoreCase);
             Assert.Contains("ALTER TABLE \"CLIENTES\" ADD CONSTRAINT \"PK_CLIENTES\" PRIMARY KEY (\"ID\");", sql, StringComparison.OrdinalIgnoreCase);
             Assert.Contains("ALTER TABLE \"CLIENTES\" ADD CONSTRAINT \"UQ_CLIENTES_EMAIL\" UNIQUE (\"EMAIL\");", sql, StringComparison.OrdinalIgnoreCase);
@@ -156,47 +164,37 @@ public class DdlExtractIntegrationTests
         await Task.CompletedTask;
     }
 
-    private static async Task CriarSchemaTesteAsync(string arquivoBanco, string charset)
+    private static async Task<bool> CriarSchemaTesteAsync(string arquivoBanco, string charset)
     {
         await using var conexao = new FbConnection(CriarConnectionString(arquivoBanco, charset));
         await conexao.OpenAsync();
 
-        string sql = """
-                     CREATE DOMAIN "DM_EMAIL" AS VARCHAR(120) DEFAULT 'N/A' NOT NULL CHECK (VALUE CONTAINING '@');
-                     CREATE SEQUENCE "SEQ_PEDIDOS";
-                     CREATE TABLE CLIENTES (
-                       ID INTEGER NOT NULL,
-                       NOME VARCHAR(120),
-                       EMAIL DM_EMAIL,
-                       CONSTRAINT PK_CLIENTES PRIMARY KEY (ID),
-                       CONSTRAINT UQ_CLIENTES_EMAIL UNIQUE (EMAIL),
-                       CONSTRAINT CHK_CLIENTES_EMAIL CHECK (EMAIL CONTAINING '@')
-                     );
+        bool suportaFuncoes = int.TryParse(conexao.ServerVersion.Split('.')[0], out int major) && major >= 3;
 
-                     CREATE TABLE PEDIDOS (
-                       ID INTEGER NOT NULL,
-                       CLIENTE_ID INTEGER NOT NULL,
-                       VALOR_TOTAL NUMERIC(15,2) DEFAULT 0 NOT NULL,
-                       CONSTRAINT PK_PEDIDOS PRIMARY KEY (ID),
-                       CONSTRAINT FK_PEDIDOS_CLIENTE FOREIGN KEY (CLIENTE_ID) REFERENCES CLIENTES (ID)
-                     );
-
-                     CREATE VIEW VW_CLIENTES AS
-                     SELECT ID, EMAIL
-                     FROM CLIENTES;
-
-                     CREATE INDEX IDX_PEDIDOS_CLIENTE ON PEDIDOS (CLIENTE_ID);
-                     """;
-
-        foreach (var comando in sql.Split(';', StringSplitOptions.RemoveEmptyEntries))
+        var comandos = new List<string>
         {
-            string atual = comando.Trim();
-            if (string.IsNullOrWhiteSpace(atual))
-                continue;
+            "CREATE DOMAIN \"DM_EMAIL\" AS VARCHAR(120) DEFAULT 'N/A' NOT NULL CHECK (VALUE CONTAINING '@')",
+            "CREATE SEQUENCE \"SEQ_PEDIDOS\"",
+            "CREATE TABLE CLIENTES (\n  ID INTEGER NOT NULL,\n  NOME VARCHAR(120),\n  EMAIL DM_EMAIL,\n  CONSTRAINT PK_CLIENTES PRIMARY KEY (ID),\n  CONSTRAINT UQ_CLIENTES_EMAIL UNIQUE (EMAIL),\n  CONSTRAINT CHK_CLIENTES_EMAIL CHECK (EMAIL CONTAINING '@')\n)",
+            "CREATE TABLE PEDIDOS (\n  ID INTEGER NOT NULL,\n  CLIENTE_ID INTEGER NOT NULL,\n  VALOR_TOTAL NUMERIC(15,2) DEFAULT 0 NOT NULL,\n  CONSTRAINT PK_PEDIDOS PRIMARY KEY (ID),\n  CONSTRAINT FK_PEDIDOS_CLIENTE FOREIGN KEY (CLIENTE_ID) REFERENCES CLIENTES (ID)\n)",
+            "CREATE VIEW VW_CLIENTES AS\nSELECT ID, EMAIL\nFROM CLIENTES",
+            "CREATE OR ALTER PROCEDURE SP_AJUSTAR_PEDIDO (P_ID INTEGER)\nAS\nBEGIN\n  UPDATE PEDIDOS SET VALOR_TOTAL = VALOR_TOTAL WHERE ID = :P_ID;\nEND",
+            "CREATE OR ALTER TRIGGER TRG_PEDIDOS_BI FOR PEDIDOS ACTIVE BEFORE INSERT POSITION 0\nAS\nBEGIN\n  IF (NEW.VALOR_TOTAL IS NULL) THEN NEW.VALOR_TOTAL = 0;\nEND",
+            "CREATE INDEX IDX_PEDIDOS_CLIENTE ON PEDIDOS (CLIENTE_ID)"
+        };
 
-            await using var cmd = new FbCommand(atual, conexao);
+        if (suportaFuncoes)
+        {
+            comandos.Insert(5, "CREATE OR ALTER FUNCTION FN_PEDIDO_TOTAL (P_VALOR NUMERIC(15,2))\nRETURNS NUMERIC(15,2)\nAS\nBEGIN\n  RETURN COALESCE(P_VALOR, 0);\nEND");
+        }
+
+        foreach (var comando in comandos)
+        {
+            await using var cmd = new FbCommand(comando, conexao);
             await cmd.ExecuteNonQueryAsync();
         }
+
+        return suportaFuncoes;
     }
 
     private static string CriarConnectionString(string arquivoBanco, string charset)

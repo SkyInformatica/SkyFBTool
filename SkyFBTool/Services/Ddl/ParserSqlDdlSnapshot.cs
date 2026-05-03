@@ -39,7 +39,7 @@ internal static class ParserSqlDdlSnapshot
             dentroComentarioLinha = false;
             string linhaAnalise = linhaOriginal.TrimStart('\uFEFF', '\u200B', '\u00A0', '\u2060', ' ', '\t');
 
-            if (TentarProcessarSetTerm(linhaAnalise, ref delimitadorAtual) && comandoAtual.Length == 0)
+            if (TentarProcessarSetTerm(linhaAnalise, ref delimitadorAtual) && string.IsNullOrWhiteSpace(comandoAtual.ToString()))
                 continue;
 
             int i = 0;
@@ -134,7 +134,7 @@ internal static class ParserSqlDdlSnapshot
         if (partes.Length < 3)
             return false;
 
-        string token = partes[2].Replace(";", "").Trim();
+        string token = partes[2].Trim();
         if (!string.IsNullOrWhiteSpace(token))
             delimitadorAtual = token[0];
 
@@ -159,7 +159,16 @@ internal static class ParserSqlDdlSnapshot
         if (TentarProcessarCreateSequence(limpo, snapshot))
             return;
 
+        if (TentarProcessarCreateProcedure(limpo, snapshot))
+            return;
+
+        if (TentarProcessarCreateFunction(limpo, snapshot))
+            return;
+
         if (TentarProcessarCreateView(limpo, snapshot))
+            return;
+
+        if (TentarProcessarCreateTrigger(limpo, snapshot))
             return;
 
         if (TentarProcessarCreateTable(limpo, tabelas))
@@ -323,6 +332,78 @@ internal static class ParserSqlDdlSnapshot
         {
             Nome = nome,
             SelectSql = NormalizarEspacos(corpo)
+        });
+
+        return true;
+    }
+
+    private static bool TentarProcessarCreateProcedure(string sql, SnapshotSchema snapshot)
+    {
+        var match = Regex.Match(
+            sql,
+            $"^CREATE\\s+(?:OR\\s+ALTER\\s+)?PROCEDURE\\s+(?<nome>{PadraoIdentificador})\\s+.+$",
+            RegexOptions.IgnoreCase | RegexOptions.Singleline | RegexOptions.CultureInvariant);
+
+        if (!match.Success)
+            return false;
+
+        string nome = DesquotarIdentificador(match.Groups["nome"].Value);
+        if (string.IsNullOrWhiteSpace(nome))
+            return false;
+
+        snapshot.Procedimentos.RemoveAll(p => string.Equals(p.Nome, nome, StringComparison.OrdinalIgnoreCase));
+        snapshot.Procedimentos.Add(new ProcedimentoSchema
+        {
+            Nome = nome,
+            SourceSql = NormalizarEspacosFonte(sql)
+        });
+
+        return true;
+    }
+
+    private static bool TentarProcessarCreateFunction(string sql, SnapshotSchema snapshot)
+    {
+        var match = Regex.Match(
+            sql,
+            $"^CREATE\\s+(?:OR\\s+ALTER\\s+)?FUNCTION\\s+(?<nome>{PadraoIdentificador})\\s+.+$",
+            RegexOptions.IgnoreCase | RegexOptions.Singleline | RegexOptions.CultureInvariant);
+
+        if (!match.Success)
+            return false;
+
+        string nome = DesquotarIdentificador(match.Groups["nome"].Value);
+        if (string.IsNullOrWhiteSpace(nome))
+            return false;
+
+        snapshot.Funcoes.RemoveAll(f => string.Equals(f.Nome, nome, StringComparison.OrdinalIgnoreCase));
+        snapshot.Funcoes.Add(new FuncaoSchema
+        {
+            Nome = nome,
+            SourceSql = NormalizarEspacosFonte(sql)
+        });
+
+        return true;
+    }
+
+    private static bool TentarProcessarCreateTrigger(string sql, SnapshotSchema snapshot)
+    {
+        var match = Regex.Match(
+            sql,
+            $"^CREATE\\s+(?:OR\\s+ALTER\\s+)?TRIGGER\\s+(?<nome>{PadraoIdentificador})\\s+.+$",
+            RegexOptions.IgnoreCase | RegexOptions.Singleline | RegexOptions.CultureInvariant);
+
+        if (!match.Success)
+            return false;
+
+        string nome = DesquotarIdentificador(match.Groups["nome"].Value);
+        if (string.IsNullOrWhiteSpace(nome))
+            return false;
+
+        snapshot.Gatilhos.RemoveAll(t => string.Equals(t.Nome, nome, StringComparison.OrdinalIgnoreCase));
+        snapshot.Gatilhos.Add(new GatilhoSchema
+        {
+            Nome = nome,
+            SourceSql = NormalizarEspacosFonte(sql)
         });
 
         return true;
@@ -816,6 +897,11 @@ internal static class ParserSqlDdlSnapshot
         return string.Join(
             ' ',
             valor.Split(new[] { ' ', '\t', '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries));
+    }
+
+    private static string NormalizarEspacosFonte(string valor)
+    {
+        return valor.Replace("\r\n", "\n").Replace("\r", "\n").Trim();
     }
 
     private const string PadraoIdentificador = "(?:\"(?:\"\"|[^\"])+\"|[A-Za-z_][A-Za-z0-9_$]*)";

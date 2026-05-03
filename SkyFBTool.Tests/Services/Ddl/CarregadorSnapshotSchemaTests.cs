@@ -15,6 +15,24 @@ public class CarregadorSnapshotSchemaTests
         string ddl = """
                      CREATE DOMAIN "DM_EMAIL" AS VARCHAR(120) DEFAULT 'N/A' NOT NULL CHECK (VALUE CONTAINING '@');
                      CREATE SEQUENCE "SEQ_PEDIDOS";
+                     SET TERM ^;
+                     CREATE OR ALTER PROCEDURE "SP_AJUSTAR_PEDIDO" (P_ID INTEGER)
+                     AS
+                     BEGIN
+                         UPDATE "PEDIDOS" SET "VALOR_TOTAL" = "VALOR_TOTAL" WHERE "ID" = :P_ID;
+                     END ^
+                     CREATE OR ALTER FUNCTION "FN_PEDIDO_TOTAL" (P_VALOR NUMERIC(15,2))
+                     RETURNS NUMERIC(15,2)
+                     AS
+                     BEGIN
+                         RETURN COALESCE(P_VALOR, 0);
+                     END ^
+                     CREATE OR ALTER TRIGGER "TRG_PEDIDOS_BI" FOR "PEDIDOS" ACTIVE BEFORE INSERT POSITION 0
+                     AS
+                     BEGIN
+                         IF (NEW."VALOR_TOTAL" IS NULL) THEN NEW."VALOR_TOTAL" = 0;
+                     END ^
+                     SET TERM ;^
                      SET SQL DIALECT 3;
                      CREATE TABLE "CLIENTES" (
                          "ID" INTEGER NOT NULL,
@@ -46,6 +64,9 @@ public class CarregadorSnapshotSchemaTests
         Assert.Contains(snapshot.Dominios, d => d.Nome == "DM_EMAIL" &&
                                                 d.TipoSql.StartsWith("VARCHAR(", StringComparison.OrdinalIgnoreCase));
         Assert.Contains(snapshot.Sequencias, s => s.Nome == "SEQ_PEDIDOS");
+        Assert.Contains(snapshot.Procedimentos, p => p.Nome == "SP_AJUSTAR_PEDIDO");
+        Assert.Contains(snapshot.Funcoes, f => f.Nome == "FN_PEDIDO_TOTAL");
+        Assert.Contains(snapshot.Gatilhos, g => g.Nome == "TRG_PEDIDOS_BI");
         Assert.Single(snapshot.Views);
         Assert.Equal("VW_CLIENTES", snapshot.Views[0].Nome);
         Assert.Contains("SELECT", snapshot.Views[0].SelectSql, StringComparison.OrdinalIgnoreCase);

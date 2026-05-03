@@ -4,6 +4,9 @@ public class SnapshotSchema
 {
     public List<TabelaSchema> Tabelas { get; set; } = [];
     public List<ViewSchema> Views { get; set; } = [];
+    public List<ProcedimentoSchema> Procedimentos { get; set; } = [];
+    public List<FuncaoSchema> Funcoes { get; set; } = [];
+    public List<GatilhoSchema> Gatilhos { get; set; } = [];
     public List<DominioSchema> Dominios { get; set; } = [];
     public List<SequenciaSchema> Sequencias { get; set; } = [];
 }
@@ -77,6 +80,24 @@ public class ViewSchema
 {
     public string Nome { get; set; } = string.Empty;
     public string SelectSql { get; set; } = string.Empty;
+}
+
+public class ProcedimentoSchema
+{
+    public string Nome { get; set; } = string.Empty;
+    public string SourceSql { get; set; } = string.Empty;
+}
+
+public class FuncaoSchema
+{
+    public string Nome { get; set; } = string.Empty;
+    public string SourceSql { get; set; } = string.Empty;
+}
+
+public class GatilhoSchema
+{
+    public string Nome { get; set; } = string.Empty;
+    public string SourceSql { get; set; } = string.Empty;
 }
 
 public class RestricaoCheckSchema
