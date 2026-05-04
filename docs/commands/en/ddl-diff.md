@@ -8,7 +8,7 @@ Compares two schema inputs and generates:
 
 `ddl-diff` is designed for controlled schema synchronization workflows (promotions, audits, migration planning).
 
-Today the diff also covers domains, sequences/generators, views, procedures, stored functions, triggers, unique constraints, and `CHECK` constraints in addition to tables, columns, PKs, FKs, and user indexes.
+By default the diff ignores `DOMAIN` differences to keep reviews practical. Use `--include-domains` when you want domains compared as well. The diff still covers sequences/generators, views, procedures, stored functions, triggers, unique constraints, and `CHECK` constraints in addition to tables, columns, PKs, FKs, and user indexes.
 
 ## When to use
 - DBA: assess schema drift and generate reviewed adjustment SQL before rollout.
@@ -25,6 +25,7 @@ SkyFBTool ddl-diff --source SOURCE --target TARGET --output PREFIX
 - `--target`: target input (`.schema.json` or `.sql`).
 - `--target-ddl`: alias for `--target`.
 - `--output`: output prefix/file base/directory.
+- `--include-domains`: include domains in the comparison instead of ignoring them by default.
 
 ## Rules and operational guidance
 - Keep source/target roles explicit:
@@ -63,7 +64,7 @@ This ordering is deterministic and keeps base objects before dependent objects, 
 ## Recommended workflow
 1. Generate snapshots with `ddl-extract` for both environments.
 2. Run `ddl-diff` between source and target snapshots.
-3. Review `.html` and `.sql` with DBA/dev, including domains and additional constraints when present.
+3. Review `.html` and `.sql` with DBA/dev, including domains only when `--include-domains` is enabled and additional constraints when present.
 4. Apply script in staging.
 5. Re-run `ddl-diff` to confirm convergence.
 

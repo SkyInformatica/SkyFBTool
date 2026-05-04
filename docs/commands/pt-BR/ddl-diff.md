@@ -8,7 +8,7 @@ Compara duas entradas de schema e gera:
 
 `ddl-diff` foi desenhado para fluxos controlados de sincronização de schema (promoções, auditorias, planejamento de migração).
 
-Hoje o diff também considera domínios, sequências/geradores, views, procedimentos, funções armazenadas, gatilhos, constraints únicas e constraints `CHECK` além de tabelas, colunas, PKs, FKs e índices de usuário.
+Por padrão, o diff ignora diferenças de `DOMAIN` para manter a revisão mais prática. Use `--include-domains` quando quiser comparar domains também. O diff continua cobrindo sequências/geradores, views, procedimentos, funções armazenadas, gatilhos, constraints únicas e constraints `CHECK` além de tabelas, colunas, PKs, FKs e índices de usuário.
 
 ## Quando usar
 - DBA: avaliar drift de schema e gerar SQL de ajuste revisado antes do rollout.
@@ -25,6 +25,7 @@ SkyFBTool ddl-diff --source ORIGEM --target ALVO --output PREFIXO
 - `--target`: entrada de alvo (`.schema.json` ou `.sql`).
 - `--target-ddl`: alias de `--target`.
 - `--output`: prefixo/arquivo base/diretório de saída.
+- `--include-domains`: inclui domains na comparação em vez de ignorá-los por padrão.
 
 ## Regras e orientação operacional
 - Mantenha papéis de origem/alvo explícitos:
@@ -63,7 +64,7 @@ Essa ordenação é determinística e mantém objetos base antes dos dependentes
 ## Fluxo recomendado
 1. Gere snapshots com `ddl-extract` nos dois ambientes.
 2. Execute `ddl-diff` entre snapshots de origem e alvo.
-3. Revise `.html` e `.sql` com DBA/dev, incluindo domínios e constraints adicionais quando presentes.
+3. Revise `.html` e `.sql` com DBA/dev, incluindo domínios apenas quando `--include-domains` estiver habilitado e constraints adicionais quando presentes.
 4. Aplique em homologação.
 5. Reexecute `ddl-diff` para confirmar convergência.
 

@@ -113,6 +113,7 @@ OPÇÕES:
   --source ARQUIVO            Origem (.schema.json ou .sql gerado no extract)
   --target ARQUIVO            Alvo (.schema.json ou .sql gerado no extract)
   --output CAMINHO            Prefixo/arquivo/diretório de saída
+  --include-domains           Inclui domains na comparação (padrão: ignorado)
 
 SAÍDA:
   <prefixo>.sql               Script de ajuste do alvo para origem
