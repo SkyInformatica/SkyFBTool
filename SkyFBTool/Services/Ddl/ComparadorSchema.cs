@@ -179,7 +179,7 @@ public static class ComparadorSchema
                 resultado.ItensCriados.Add(TextoLocalizado.Obter(idioma,
                     $"Procedure missing in target: {nome}",
                     $"Procedure ausente no alvo: {nome}"));
-                resultado.ComandosSql.Add(GeradorDdlSql.GerarBlocoFonte(procOrigem.SourceSql));
+                resultado.ComandosSql.Add(GeradorDdlSql.GerarCreateProcedure(procOrigem));
                 continue;
             }
 
@@ -189,7 +189,7 @@ public static class ComparadorSchema
             resultado.Avisos.Add(TextoLocalizado.Obter(idioma,
                 $"Procedure differs and requires manual review: {nome}",
                 $"Procedure diferente e requer revisÃ£o manual: {nome}"));
-            resultado.ComandosSql.Add(GeradorDdlSql.GerarBlocoFonte(procOrigem.SourceSql));
+            resultado.ComandosSql.Add(GeradorDdlSql.GerarCreateProcedure(procOrigem));
         }
 
         foreach (var nome in alvo.Keys.OrderBy(n => n, StringComparer.OrdinalIgnoreCase))
@@ -217,7 +217,7 @@ public static class ComparadorSchema
                 resultado.ItensCriados.Add(TextoLocalizado.Obter(idioma,
                     $"Function missing in target: {nome}",
                     $"Function ausente no alvo: {nome}"));
-                resultado.ComandosSql.Add(GeradorDdlSql.GerarBlocoFonte(funcOrigem.SourceSql));
+                resultado.ComandosSql.Add(GeradorDdlSql.GerarBlocoPsql(funcOrigem.SourceSql));
                 continue;
             }
 
@@ -227,7 +227,7 @@ public static class ComparadorSchema
             resultado.Avisos.Add(TextoLocalizado.Obter(idioma,
                 $"Function differs and requires manual review: {nome}",
                 $"Function diferente e requer revisÃ£o manual: {nome}"));
-            resultado.ComandosSql.Add(GeradorDdlSql.GerarBlocoFonte(funcOrigem.SourceSql));
+            resultado.ComandosSql.Add(GeradorDdlSql.GerarBlocoPsql(funcOrigem.SourceSql));
         }
 
         foreach (var nome in alvo.Keys.OrderBy(n => n, StringComparer.OrdinalIgnoreCase))
@@ -292,7 +292,7 @@ public static class ComparadorSchema
                 resultado.ItensCriados.Add(TextoLocalizado.Obter(idioma,
                     $"Trigger missing in target: {nome}",
                     $"Trigger ausente no alvo: {nome}"));
-                resultado.ComandosSql.Add(GeradorDdlSql.GerarBlocoFonte(gatilhoOrigem.SourceSql));
+                resultado.ComandosSql.Add(GeradorDdlSql.GerarBlocoPsql(gatilhoOrigem.SourceSql));
                 continue;
             }
 
@@ -302,7 +302,7 @@ public static class ComparadorSchema
             resultado.Avisos.Add(TextoLocalizado.Obter(idioma,
                 $"Trigger differs and requires manual review: {nome}",
                 $"Trigger diferente e requer revisÃ£o manual: {nome}"));
-            resultado.ComandosSql.Add(GeradorDdlSql.GerarBlocoFonte(gatilhoOrigem.SourceSql));
+            resultado.ComandosSql.Add(GeradorDdlSql.GerarBlocoPsql(gatilhoOrigem.SourceSql));
         }
 
         foreach (var nome in alvo.Keys.OrderBy(n => n, StringComparer.OrdinalIgnoreCase))

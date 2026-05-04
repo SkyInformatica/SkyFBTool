@@ -310,4 +310,5 @@ public class ComparadorSchemaTests
         Assert.True(indiceCreatePai < indiceCreateFilho);
         Assert.True(indiceCreateFilho < indiceCreateNeto);
     }
+
 }

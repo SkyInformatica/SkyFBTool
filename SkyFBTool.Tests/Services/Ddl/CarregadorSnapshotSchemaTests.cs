@@ -33,6 +33,14 @@ public class CarregadorSnapshotSchemaTests
                          IF (NEW."VALOR_TOTAL" IS NULL) THEN NEW."VALOR_TOTAL" = 0;
                      END ^
                      SET TERM ;^
+                     DECLARE EXTERNAL FUNCTION "UDF_EXEMPLO"
+                     (
+                         CSTRING(80) BY DESCRIPTOR,
+                         INTEGER
+                     )
+                     RETURNS CSTRING(80)
+                     ENTRY_POINT 'udf_exemplo'
+                     MODULE_NAME 'udf_lib';
                      SET SQL DIALECT 3;
                      CREATE TABLE "CLIENTES" (
                          "ID" INTEGER NOT NULL,
@@ -66,6 +74,7 @@ public class CarregadorSnapshotSchemaTests
         Assert.Contains(snapshot.Sequencias, s => s.Nome == "SEQ_PEDIDOS");
         Assert.Contains(snapshot.Procedimentos, p => p.Nome == "SP_AJUSTAR_PEDIDO");
         Assert.Contains(snapshot.Funcoes, f => f.Nome == "FN_PEDIDO_TOTAL");
+        Assert.Contains(snapshot.FuncoesExternas, f => f.Nome == "UDF_EXEMPLO");
         Assert.Contains(snapshot.Gatilhos, g => g.Nome == "TRG_PEDIDOS_BI");
         Assert.Single(snapshot.Views);
         Assert.Equal("VW_CLIENTES", snapshot.Views[0].Nome);

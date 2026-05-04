@@ -165,6 +165,9 @@ internal static class ParserSqlDdlSnapshot
         if (TentarProcessarCreateFunction(limpo, snapshot))
             return;
 
+        if (TentarProcessarDeclareExternalFunction(limpo, snapshot))
+            return;
+
         if (TentarProcessarCreateView(limpo, snapshot))
             return;
 
@@ -377,6 +380,30 @@ internal static class ParserSqlDdlSnapshot
 
         snapshot.Funcoes.RemoveAll(f => string.Equals(f.Nome, nome, StringComparison.OrdinalIgnoreCase));
         snapshot.Funcoes.Add(new FuncaoSchema
+        {
+            Nome = nome,
+            SourceSql = NormalizarEspacosFonte(sql)
+        });
+
+        return true;
+    }
+
+    private static bool TentarProcessarDeclareExternalFunction(string sql, SnapshotSchema snapshot)
+    {
+        var match = Regex.Match(
+            sql,
+            $"^DECLARE\\s+EXTERNAL\\s+FUNCTION\\s+(?<nome>{PadraoIdentificador})\\s+.+$",
+            RegexOptions.IgnoreCase | RegexOptions.Singleline | RegexOptions.CultureInvariant);
+
+        if (!match.Success)
+            return false;
+
+        string nome = DesquotarIdentificador(match.Groups["nome"].Value);
+        if (string.IsNullOrWhiteSpace(nome))
+            return false;
+
+        snapshot.FuncoesExternas.RemoveAll(f => string.Equals(f.Nome, nome, StringComparison.OrdinalIgnoreCase));
+        snapshot.FuncoesExternas.Add(new FuncaoExternaSchema
         {
             Nome = nome,
             SourceSql = NormalizarEspacosFonte(sql)

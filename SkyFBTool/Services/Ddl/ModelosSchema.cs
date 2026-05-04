@@ -2,10 +2,14 @@ namespace SkyFBTool.Services.Ddl;
 
 public class SnapshotSchema
 {
+    public string? VersaoServidor { get; set; }
+    public int? VersaoMajor { get; set; }
+    public string? CharsetBanco { get; set; }
     public List<TabelaSchema> Tabelas { get; set; } = [];
     public List<ViewSchema> Views { get; set; } = [];
     public List<ProcedimentoSchema> Procedimentos { get; set; } = [];
     public List<FuncaoSchema> Funcoes { get; set; } = [];
+    public List<FuncaoExternaSchema> FuncoesExternas { get; set; } = [];
     public List<GatilhoSchema> Gatilhos { get; set; } = [];
     public List<DominioSchema> Dominios { get; set; } = [];
     public List<SequenciaSchema> Sequencias { get; set; } = [];
@@ -26,6 +30,8 @@ public class ColunaSchema
 {
     public string Nome { get; set; } = string.Empty;
     public string TipoSql { get; set; } = string.Empty;
+    public string? CharsetNome { get; set; }
+    public int? BytesPorCaracter { get; set; }
     public bool AceitaNulo { get; set; } = true;
     public string? DefaultSql { get; set; }
     public string? ComputedBySql { get; set; }
@@ -66,6 +72,8 @@ public class DominioSchema
 {
     public string Nome { get; set; } = string.Empty;
     public string TipoSql { get; set; } = string.Empty;
+    public string? CharsetNome { get; set; }
+    public int? BytesPorCaracter { get; set; }
     public bool AceitaNulo { get; set; } = true;
     public string? DefaultSql { get; set; }
     public string? CheckSql { get; set; }
@@ -86,6 +94,8 @@ public class ProcedimentoSchema
 {
     public string Nome { get; set; } = string.Empty;
     public string SourceSql { get; set; } = string.Empty;
+    public List<ParametroProcedimentoSchema> ParametrosEntrada { get; set; } = [];
+    public List<ParametroProcedimentoSchema> ParametrosSaida { get; set; } = [];
 }
 
 public class FuncaoSchema
@@ -94,10 +104,28 @@ public class FuncaoSchema
     public string SourceSql { get; set; } = string.Empty;
 }
 
-public class GatilhoSchema
+public class FuncaoExternaSchema
 {
     public string Nome { get; set; } = string.Empty;
     public string SourceSql { get; set; } = string.Empty;
+}
+
+public class GatilhoSchema
+{
+    public string Nome { get; set; } = string.Empty;
+    public string? RelacaoNome { get; set; }
+    public int TipoTrigger { get; set; }
+    public bool Ativo { get; set; } = true;
+    public int Sequencia { get; set; }
+    public string SourceSql { get; set; } = string.Empty;
+}
+
+public class ParametroProcedimentoSchema
+{
+    public string Nome { get; set; } = string.Empty;
+    public string TipoSql { get; set; } = string.Empty;
+    public bool AceitaNulo { get; set; } = true;
+    public string? DefaultSql { get; set; }
 }
 
 public class RestricaoCheckSchema

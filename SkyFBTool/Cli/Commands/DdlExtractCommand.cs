@@ -47,11 +47,12 @@ public static class DdlExtractCommand
         }
 
         Console.WriteLine(TextoLocalizado.Obter(idioma, "Starting DDL extraction...", "Iniciando extração de DDL..."));
-        var (arquivoSql, arquivoJson) = await ExtratorDdlFirebird.ExtrairAsync(op);
+        var (arquivoSql, arquivoJson, arquivoAuditoria) = await ExtratorDdlFirebird.ExtrairAsync(op);
 
         Console.WriteLine();
         Console.WriteLine(TextoLocalizado.Obter(idioma, "Extraction finished.", "Extração concluída."));
         Console.WriteLine($"{TextoLocalizado.Obter(idioma, "DDL SQL", "DDL SQL")}    : {arquivoSql}");
         Console.WriteLine($"{TextoLocalizado.Obter(idioma, "Schema JSON", "Schema JSON")}: {arquivoJson}");
+        Console.WriteLine($"{TextoLocalizado.Obter(idioma, "Compatibility audit", "Auditoria de compatibilidade")}: {arquivoAuditoria}");
     }
 }

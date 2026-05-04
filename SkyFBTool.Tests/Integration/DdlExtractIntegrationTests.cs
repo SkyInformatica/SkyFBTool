@@ -34,12 +34,15 @@ public class DdlExtractIntegrationTests
                 Saida = saidaBase
             };
 
-            var (_, arquivoJson) = await ExtratorDdlFirebird.ExtrairAsync(opcoes);
+            var (_, arquivoJson, arquivoAuditoria) = await ExtratorDdlFirebird.ExtrairAsync(opcoes);
 
             Assert.True(File.Exists(arquivoJson));
+            Assert.True(File.Exists(arquivoAuditoria));
             string textoJson = await File.ReadAllTextAsync(arquivoJson);
+            string textoAuditoria = await File.ReadAllTextAsync(arquivoAuditoria);
             var snapshot = JsonSerializer.Deserialize<SnapshotSchema>(textoJson);
             Assert.NotNull(snapshot);
+            Assert.Contains("\"TotalItens\"", textoAuditoria);
 
             var clientes = snapshot!.Tabelas.Single(t => t.Nome == "CLIENTES");
             var pedidos = snapshot.Tabelas.Single(t => t.Nome == "PEDIDOS");
@@ -115,16 +118,22 @@ public class DdlExtractIntegrationTests
                 Saida = saidaBase
             };
 
-            var (arquivoSql, _) = await ExtratorDdlFirebird.ExtrairAsync(opcoes);
+            var (arquivoSql, _, arquivoAuditoria) = await ExtratorDdlFirebird.ExtrairAsync(opcoes);
             Assert.True(File.Exists(arquivoSql));
+            Assert.True(File.Exists(arquivoAuditoria));
 
             string sql = await File.ReadAllTextAsync(arquivoSql);
+            Assert.Contains("SET NAMES UTF8;", sql, StringComparison.OrdinalIgnoreCase);
+            Assert.DoesNotContain("CHARACTER SET UTF8", sql, StringComparison.OrdinalIgnoreCase);
+            Assert.Contains("Firebird field compatibility audit", sql, StringComparison.OrdinalIgnoreCase);
+            Assert.Contains("SET TERM ^;", sql, StringComparison.OrdinalIgnoreCase);
+            Assert.Contains("SET TERM ;^", sql, StringComparison.OrdinalIgnoreCase);
             Assert.Contains("CREATE TABLE \"CLIENTES\"", sql, StringComparison.OrdinalIgnoreCase);
             Assert.Contains("CREATE TABLE \"PEDIDOS\"", sql, StringComparison.OrdinalIgnoreCase);
             Assert.Contains("CREATE DOMAIN \"DM_EMAIL\" AS VARCHAR(120)", sql, StringComparison.OrdinalIgnoreCase);
             Assert.Contains("CREATE SEQUENCE \"SEQ_PEDIDOS\";", sql, StringComparison.OrdinalIgnoreCase);
             Assert.Contains("CREATE OR ALTER PROCEDURE SP_AJUSTAR_PEDIDO", sql, StringComparison.OrdinalIgnoreCase);
-            Assert.Contains("CREATE OR ALTER TRIGGER TRG_PEDIDOS_BI", sql, StringComparison.OrdinalIgnoreCase);
+            Assert.Contains("CREATE OR ALTER TRIGGER \"TRG_PEDIDOS_BI\" FOR \"PEDIDOS\" ACTIVE BEFORE INSERT POSITION 0", sql, StringComparison.OrdinalIgnoreCase);
             if (suportaFuncoes)
                 Assert.Contains("CREATE OR ALTER FUNCTION FN_PEDIDO_TOTAL", sql, StringComparison.OrdinalIgnoreCase);
             Assert.Contains("CREATE VIEW \"VW_CLIENTES\" AS SELECT ID, EMAIL FROM CLIENTES;", sql, StringComparison.OrdinalIgnoreCase);
@@ -133,6 +142,71 @@ public class DdlExtractIntegrationTests
             Assert.Contains("ALTER TABLE \"CLIENTES\" ADD CONSTRAINT \"CHK_CLIENTES_EMAIL\" CHECK (EMAIL CONTAINING '@');", sql, StringComparison.OrdinalIgnoreCase);
             Assert.Contains("FOREIGN KEY (\"CLIENTE_ID\") REFERENCES \"CLIENTES\" (\"ID\")", sql, StringComparison.OrdinalIgnoreCase);
             Assert.Contains("CREATE INDEX \"IDX_PEDIDOS_CLIENTE\" ON \"PEDIDOS\" (\"CLIENTE_ID\");", sql, StringComparison.OrdinalIgnoreCase);
+        }
+        finally
+        {
+            TentarExcluirDiretorio(pastaTemp);
+        }
+    }
+
+    [Fact]
+    public async Task DdlExtract_GeraSql_ComColunaComputada_DevePreservarCoalesce()
+    {
+        if (!IntegracaoHabilitada())
+            return;
+
+        string pastaTemp = CriarPastaTemp();
+        string arquivoBanco = Path.Combine(pastaTemp, "ddl_extract_computed.fdb");
+        string saidaBase = Path.Combine(pastaTemp, "schema_computed");
+
+        try
+        {
+            await CriarBancoAsync(arquivoBanco, "UTF8");
+
+            await using (var conexao = new FbConnection(CriarConnectionString(arquivoBanco, "UTF8")))
+            {
+                await conexao.OpenAsync();
+
+                const string ddl = """
+                                   CREATE TABLE PEDIDOS_COMPUTADOS (
+                                       ID INTEGER NOT NULL,
+                                       VALOR_TOTAL NUMERIC(15,2),
+                                       VALOR_DUPLO COMPUTED BY (COALESCE(VALOR_TOTAL, 0) * 2)
+                                   )
+                                   """;
+
+                await using var cmd = new FbCommand(ddl, conexao);
+                await cmd.ExecuteNonQueryAsync();
+            }
+
+            var opcoes = new OpcoesDdlExtracao
+            {
+                Host = ObterHost(),
+                Porta = ObterPorta(),
+                Usuario = ObterUsuario(),
+                Senha = ObterSenha(),
+                Database = arquivoBanco,
+                Charset = "UTF8",
+                Saida = saidaBase
+            };
+
+            var (arquivoSql, arquivoJson, arquivoAuditoria) = await ExtratorDdlFirebird.ExtrairAsync(opcoes);
+
+            string sql = await File.ReadAllTextAsync(arquivoSql);
+            Assert.Contains("SET NAMES UTF8;", sql, StringComparison.OrdinalIgnoreCase);
+            Assert.DoesNotContain("CHARACTER SET UTF8", sql, StringComparison.OrdinalIgnoreCase);
+            Assert.Contains("COALESCE(VALOR_TOTAL, 0) * 2", sql, StringComparison.OrdinalIgnoreCase);
+
+            string textoJson = await File.ReadAllTextAsync(arquivoJson);
+            var snapshot = JsonSerializer.Deserialize<SnapshotSchema>(textoJson);
+            Assert.NotNull(snapshot);
+
+            var pedidos = snapshot!.Tabelas.Single(t => t.Nome == "PEDIDOS_COMPUTADOS");
+            Assert.Contains(pedidos.Colunas, c => c.Nome == "VALOR_DUPLO" &&
+                                                  c.ComputedBySql is not null &&
+                                                  c.ComputedBySql.Contains("COALESCE", StringComparison.OrdinalIgnoreCase));
+
+            Assert.True(File.Exists(arquivoAuditoria));
         }
         finally
         {

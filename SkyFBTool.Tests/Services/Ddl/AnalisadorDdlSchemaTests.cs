@@ -178,6 +178,32 @@ public class AnalisadorDdlSchemaTests
     }
 
     [Fact]
+    public void Analisar_QuandoColunaIncompativelComVersao_DeveGerarAchado()
+    {
+        var snapshot = new SnapshotSchema
+        {
+            VersaoMajor = 2,
+            Tabelas =
+            [
+                new TabelaSchema
+                {
+                    Nome = "CLIENTES",
+                    Colunas =
+                    [
+                        new ColunaSchema { Nome = "ATIVO", TipoSql = "BOOLEAN", AceitaNulo = false }
+                    ]
+                }
+            ]
+        };
+
+        var resultado = AnalisadorDdlSchema.Analisar(snapshot);
+
+        var achado = Assert.Single(resultado.Achados, a => a.Codigo == "CAMPO_TIPO_INCOMPATIVEL_VERSAO");
+        Assert.Equal("critical", achado.Severidade);
+        Assert.Contains("CLIENTES.ATIVO", achado.Escopo);
+    }
+
+    [Fact]
     public void Analisar_QuandoIndiceDuplicado_DeveRegistrarAchadoLow()
     {
         var snapshot = new SnapshotSchema
