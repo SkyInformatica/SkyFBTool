@@ -17,7 +17,7 @@ public static class ComparadorSchema
         var (origem, origemArquivo) = await CarregadorSnapshotSchema.CarregarSnapshotComOrigemAsync(opcoes.Origem);
         var (alvo, alvoArquivo) = await CarregadorSnapshotSchema.CarregarSnapshotComOrigemAsync(opcoes.Alvo);
 
-        var resultado = GerarDiff(origem, alvo, idioma);
+        var resultado = GerarDiff(origem, alvo, idioma, opcoes.IncluirDominios);
         var (arquivoSql, arquivoJson, arquivoHtml) = ResolverArquivosSaida(opcoes);
 
         Directory.CreateDirectory(Path.GetDirectoryName(arquivoSql)!);
@@ -33,7 +33,8 @@ public static class ComparadorSchema
     public static ResultadoDiffSchema GerarDiff(
         SnapshotSchema origem,
         SnapshotSchema alvo,
-        IdiomaSaida idioma = IdiomaSaida.English)
+        IdiomaSaida idioma = IdiomaSaida.English,
+        bool incluirDominios = false)
     {
         var resultado = new ResultadoDiffSchema();
 
@@ -52,7 +53,8 @@ public static class ComparadorSchema
         var gatilhosOrigem = origem.Gatilhos.ToDictionary(g => g.Nome, StringComparer.OrdinalIgnoreCase);
         var gatilhosAlvo = alvo.Gatilhos.ToDictionary(g => g.Nome, StringComparer.OrdinalIgnoreCase);
 
-        CompararDominios(dominiosOrigem, dominiosAlvo, resultado, idioma);
+        if (incluirDominios)
+            CompararDominios(dominiosOrigem, dominiosAlvo, resultado, idioma, origem.CharsetBanco);
         CompararSequencias(sequenciasOrigem, sequenciasAlvo, resultado, idioma);
         CompararProcedimentos(procedimentosOrigem, procedimentosAlvo, resultado, idioma);
         CompararFuncoes(funcoesOrigem, funcoesAlvo, resultado, idioma);
@@ -67,7 +69,7 @@ public static class ComparadorSchema
                 resultado.ItensCriados.Add(TextoLocalizado.Obter(idioma,
                     $"Table missing in target: {nomeTabela}",
                     $"Tabela ausente no alvo: {nomeTabela}"));
-                resultado.ComandosSql.Add(GeradorDdlSql.GerarCreateTable(tabelaOrigem));
+                resultado.ComandosSql.Add(GeradorDdlSql.GerarCreateTable(tabelaOrigem, origem.CharsetBanco));
 
                 if (tabelaOrigem.ChavePrimaria is not null)
                     resultado.ComandosSql.Add(GeradorDdlSql.GerarAddPk(tabelaOrigem));
@@ -83,7 +85,7 @@ public static class ComparadorSchema
                 continue;
             }
 
-            CompararTabela(tabelaOrigem, tabelaAlvo, resultado, idioma);
+            CompararTabela(tabelaOrigem, tabelaAlvo, resultado, idioma, origem.CharsetBanco);
         }
 
         foreach (var nomeTabelaAlvo in tabelasAlvo.Keys.OrderBy(n => n, StringComparer.OrdinalIgnoreCase))
@@ -104,7 +106,8 @@ public static class ComparadorSchema
         IReadOnlyDictionary<string, DominioSchema> origem,
         IReadOnlyDictionary<string, DominioSchema> alvo,
         ResultadoDiffSchema resultado,
-        IdiomaSaida idioma)
+        IdiomaSaida idioma,
+        string? charsetBanco)
     {
         foreach (var nome in origem.Keys.OrderBy(n => n, StringComparer.OrdinalIgnoreCase))
         {
@@ -114,7 +117,7 @@ public static class ComparadorSchema
                 resultado.ItensCriados.Add(TextoLocalizado.Obter(idioma,
                     $"Domain missing in target: {nome}",
                     $"Domínio ausente no alvo: {nome}"));
-                resultado.ComandosSql.Add(GeradorDdlSql.GerarCreateDomain(dominioOrigem));
+                resultado.ComandosSql.Add(GeradorDdlSql.GerarCreateDomain(dominioOrigem, charsetBanco));
                 continue;
             }
 
@@ -504,7 +507,8 @@ public static class ComparadorSchema
         TabelaSchema origem,
         TabelaSchema alvo,
         ResultadoDiffSchema resultado,
-        IdiomaSaida idioma)
+        IdiomaSaida idioma,
+        string? charsetBanco)
     {
         var colunasOrigem = origem.Colunas.ToDictionary(c => c.Nome, StringComparer.OrdinalIgnoreCase);
         var colunasAlvo = alvo.Colunas.ToDictionary(c => c.Nome, StringComparer.OrdinalIgnoreCase);
@@ -518,7 +522,7 @@ public static class ComparadorSchema
                     $"Column missing in target: {origem.Nome}.{nomeColuna}",
                     $"Coluna ausente no alvo: {origem.Nome}.{nomeColuna}"));
                 resultado.ComandosSql.Add(
-                    $"ALTER TABLE {GeradorDdlSql.Q(origem.Nome)} ADD {GeradorDdlSql.GerarDefinicaoColuna(colunaOrigem)};");
+                    $"ALTER TABLE {GeradorDdlSql.Q(origem.Nome)} ADD {GeradorDdlSql.GerarDefinicaoColuna(colunaOrigem, charsetBanco)};");
                 continue;
             }
 
@@ -845,7 +849,8 @@ public static class ComparadorSchema
         return string.Equals(origem.TipoSql, alvo.TipoSql, StringComparison.OrdinalIgnoreCase)
                && origem.AceitaNulo == alvo.AceitaNulo
                && string.Equals(origem.DefaultSql, alvo.DefaultSql, StringComparison.OrdinalIgnoreCase)
-               && string.Equals(origem.CheckSql, alvo.CheckSql, StringComparison.OrdinalIgnoreCase);
+               && string.Equals(origem.CheckSql, alvo.CheckSql, StringComparison.OrdinalIgnoreCase)
+               && string.Equals(origem.CharsetNome, alvo.CharsetNome, StringComparison.OrdinalIgnoreCase);
     }
 
     private static Dictionary<string, T> CriarMapaPorAssinatura<T>(

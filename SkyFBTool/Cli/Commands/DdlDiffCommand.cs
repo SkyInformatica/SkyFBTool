@@ -28,6 +28,9 @@ public static class DdlDiffCommand
                 case "output":
                     op.Saida = CliArgumentParser.LerValorOpcao(args, ref i, chave);
                     break;
+                case "include-domains":
+                    op.IncluirDominios = true;
+                    break;
                 default:
                     throw new ArgumentException(TextoLocalizado.Obter(
                         idioma,

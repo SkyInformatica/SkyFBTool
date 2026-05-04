@@ -127,6 +127,57 @@ public class ComparadorSchemaTests
     }
 
     [Fact]
+    public void GerarDiff_PorPadrao_DeveIgnorarDominios()
+    {
+        var origem = new SnapshotSchema
+        {
+            Dominios =
+            [
+                new DominioSchema
+                {
+                    Nome = "DM_STATUS",
+                    TipoSql = "VARCHAR(20)",
+                    AceitaNulo = false,
+                    CharsetNome = "UTF8"
+                }
+            ]
+        };
+
+        var alvo = new SnapshotSchema();
+
+        var diff = ComparadorSchema.GerarDiff(origem, alvo);
+
+        Assert.Empty(diff.ItensCriados);
+        Assert.Empty(diff.Avisos);
+        Assert.DoesNotContain(diff.ComandosSql, sql => sql.Contains("CREATE DOMAIN", StringComparison.OrdinalIgnoreCase));
+    }
+
+    [Fact]
+    public void GerarDiff_ComFlagDeDominios_DeveCompararDominios()
+    {
+        var origem = new SnapshotSchema
+        {
+            Dominios =
+            [
+                new DominioSchema
+                {
+                    Nome = "DM_STATUS",
+                    TipoSql = "VARCHAR(20)",
+                    AceitaNulo = false,
+                    CharsetNome = "UTF8"
+                }
+            ]
+        };
+
+        var alvo = new SnapshotSchema();
+
+        var diff = ComparadorSchema.GerarDiff(origem, alvo, IdiomaSaida.English, incluirDominios: true);
+
+        Assert.Contains(diff.ItensCriados, item => item.Contains("Domain missing in target", StringComparison.OrdinalIgnoreCase));
+        Assert.Contains(diff.ComandosSql, sql => sql.Contains("CREATE DOMAIN", StringComparison.OrdinalIgnoreCase));
+    }
+
+    [Fact]
     public void GerarDiff_QuandoIndiceDuplicadoNaOrigem_DeveIncluirNomesNoAviso()
     {
         var origem = new SnapshotSchema
