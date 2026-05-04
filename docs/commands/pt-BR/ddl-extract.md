@@ -4,10 +4,14 @@
 Extrai metadados de schema Firebird e gera duas saídas sincronizadas:
 - script DDL legível (`.sql`) para inspeção humana
 - snapshot normalizado (`.schema.json`) para fluxos automatizados de diff/análise
+- auditoria de compatibilidade (`.schema.audit.json`) com detalhes de validação por campo
 
 `ddl-extract` é a etapa canônica antes de `ddl-diff` e `ddl-analyze` quando você quer artefatos reprodutíveis de metadados.
 
 Hoje o snapshot inclui tabelas, colunas, domínios, sequências/geradores, views, procedimentos, funções armazenadas, gatilhos, chaves primárias, chaves únicas, restrições `CHECK`, chaves estrangeiras e índices de usuário.
+
+O `.sql` gerado já fica pronto para objetos PSQL do Firebird: blocos de `PROCEDURE`, `FUNCTION` e `TRIGGER` são envoltos com `SET TERM`, o que permite executar o arquivo no `isql` ou em um runner compatível sem edição manual.
+Os cabeçalhos de trigger são reconstruídos a partir da metadata, preservando relação, estado ativo/inativo, timing e posição no resultado.
 
 ## Quando usar
 - DBA: capturar baseline do schema antes de manutenção ou migração.
@@ -21,7 +25,7 @@ SkyFBTool ddl-extract --database CAMINHO.fdb --output PREFIXO [opções]
 ## Todas as opções
 - `--database`: banco Firebird de origem.
 - `--output`: prefixo/arquivo base/diretório de saída.
-  - Prefixo/arquivo base: gera `<prefixo>.sql` e `<prefixo>.schema.json`.
+  - Prefixo/arquivo base: gera `<prefixo>.sql`, `<prefixo>.schema.json` e `<prefixo>.schema.audit.json`.
   - Diretório: a ferramenta gera nome base com timestamp dentro do diretório.
 - `--host`: host do servidor (padrão: `localhost`).
 - `--port`: porta do servidor (padrão: `3050`).
