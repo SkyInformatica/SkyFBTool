@@ -1,255 +1,255 @@
-# Guia de Programacao Assistida por IA (SkyFBTool)
+# Assisted Programming Guide (SkyFBTool)
 
-Este arquivo orienta assistentes de IA a fazer mudancas seguras e consistentes no projeto.
+This file guides AI assistants to make safe and consistent changes in the project.
 
-## 0) Leitura Obrigatoria
-- Antes de iniciar qualquer alteracao, ler `DOCS_STANDARD.md` quando ele existir no repositorio.
-- Aplicar este `AGENTS.md` em conjunto com `DOCS_STANDARD.md`.
-- Em caso de conflito entre os dois documentos, `DOCS_STANDARD.md` prevalece para regras de documentacao e idioma, e este arquivo prevalece para regras de implementacao do projeto.
+## 0) Required Reading
+- Before starting any change, read `DOCS_STANDARD.md` when it exists in the repository.
+- Apply this `AGENTS.md` together with `DOCS_STANDARD.md`.
+- If the two documents conflict, `DOCS_STANDARD.md` takes precedence for documentation and language rules, and this file takes precedence for project implementation rules.
 
-## 1) Contexto do Projeto
-- Tipo: ferramenta CLI em .NET 8 para exportacao/importacao de SQL em Firebird.
-- Entrada principal: `SkyFBTool/Program.cs`.
-- Dominios centrais:
-    - Exportacao: `SkyFBTool/Services/Export/`
-    - Importacao: `SkyFBTool/Services/Import/`
-    - Infra compartilhada: `SkyFBTool/Infra/`
-    - Contratos/opcoes: `SkyFBTool/Core/`
+## 1) Project Context
+- Type: .NET 8 CLI tool for Firebird SQL export/import.
+- Main entry point: `SkyFBTool/Program.cs`.
+- Core areas:
+    - Export: `SkyFBTool/Services/Export/`
+    - Import: `SkyFBTool/Services/Import/`
+    - Shared infrastructure: `SkyFBTool/Infra/`
+    - Contracts/options: `SkyFBTool/Core/`
 
-## 2) Principios Obrigatorios para Alteracoes
-- Preservar processamento em streaming:
-    - nao carregar arquivo SQL inteiro em memoria;
-    - nao materializar tabelas inteiras para exportacao.
-- Manter compatibilidade com Firebird 2.5/3.0/4.0/5.0.
-- Preservar comportamento de charset:
-    - `SET NAMES` no export;
-    - deteccao de `SET NAMES` no import;
-    - suporte a `--force-win1252` para bases legadas.
-- Evitar refatoracao ampla sem necessidade direta da tarefa.
-- Em mudancas de comportamento, atualizar ajuda CLI e README.
+## 2) Mandatory Change Principles
+- Preserve streaming processing:
+    - do not load the full SQL file into memory;
+    - do not materialize full tables for export.
+- Keep compatibility with Firebird 2.5/3.0/4.0/5.0.
+- Preserve charset behavior:
+    - `SET NAMES` on export;
+    - `SET NAMES` detection on import;
+    - support for `--force-win1252` for legacy databases.
+- Avoid broad refactoring unless it is directly needed by the task.
+- When behavior changes, update the CLI help and README.
 
-## 3) Mapa Rapido de Responsabilidades
+## 3) Quick Responsibility Map
 - `Program.cs`
-    - parse manual de argumentos;
-    - roteamento de comandos `export` e `import`.
+    - manual argument parsing;
+    - routing for `export` and `import` commands.
 - `ExportadorTabelaFirebird`
-    - escreve cabecalho SQL;
-    - executa SELECT;
-    - gera INSERTs;
-    - controla commits/progresso/log de erro.
+    - writes SQL header;
+    - executes SELECT;
+    - generates INSERTs;
+    - controls commits/progress/error logging.
 - `ConstrutorInsert`
-    - serializacao de tipos Firebird para SQL literal;
-    - BLOB (Hex/Base64) e texto.
+    - serializes Firebird types to SQL literals;
+    - BLOBs (Hex/Base64) and text.
 - `ImportadorSql`
-    - parser streaming de SQL (comentarios, string, delimitador via `SET TERM`);
-    - controle transacional e metricas;
-    - desativacao/reativacao de indices.
+    - streaming SQL parser (comments, strings, delimiter via `SET TERM`);
+    - transaction control and metrics;
+    - disabling/re-enabling indexes.
 - `ExecutorSql`
-    - executa comandos individuais (incluindo COMMIT e SET).
+    - executes individual commands (including COMMIT and SET).
 
-## 4) Regras de Implementacao para IA
-- Preferir alteracoes pequenas e localizadas por modulo.
-- Sempre tratar erros com contexto suficiente para diagnostico (linha/comando/arquivo).
-- Evitar concatenacao SQL nova sem necessidade real; quando inevitavel, validar entradas.
-- Garantir que opcoes novas:
-    - tenham valor padrao coerente;
-    - sejam documentadas na ajuda e README;
-    - sejam consideradas em export/import quando aplicavel.
-- Para logs grandes, usar append em arquivo dedicado e mensagens curtas no console.
+## 4) Implementation Rules for AI
+- Prefer small, localized changes per module.
+- Always handle errors with enough context for diagnosis (line/command/file).
+- Avoid introducing new SQL concatenation unless it is truly necessary; when unavoidable, validate inputs.
+- Ensure new options:
+    - have a sensible default;
+    - are documented in the help and README;
+    - are considered in export/import when applicable.
+- For large logs, use append mode in a dedicated file and short console messages.
 
-## 5) Riscos Tecnicos Ja Observados (nao ignorar)
-- `--where` continua sendo SQL livre do Firebird; embora exista validacao de tokens perigosos, validacao sintatica completa depende do banco.
-- Operacoes de importacao/exportacao em arquivos muito grandes exigem monitorar espaco em disco e tamanho de logs.
-- Ao adicionar novos parametros CLI, manter paridade entre parser, ajuda (`Program.cs`) e `README.md`.
+## 5) Known Technical Risks (do not ignore)
+- `--where` remains Firebird free-form SQL; although there is validation for dangerous tokens, full syntax validation depends on the database.
+- Import/export operations on very large files require monitoring disk space and log size.
+- When adding new CLI parameters, keep parser, help (`Program.cs`), and `README.md` in sync.
 
-Quando a tarefa tocar nesses pontos, priorizar correcao com impacto minimo e teste de regressao.
+When the task touches these points, prioritize the fix with minimal impact and regression testing.
 
-## 6) Checklist Antes de Finalizar
-1. Mudanca atende exatamente o pedido do usuario?
-2. Fluxo continua em streaming?
-3. Charset/encoding foi preservado?
-4. Ajuda CLI e README precisam ser atualizados?
-5. Logs de erro continuam uteis?
-6. Existe risco de quebra em importacao/exportacao de arquivo grande?
+## 6) Checklist Before Finishing
+1. Does the change address exactly what the user asked for?
+2. Does the flow still operate in streaming mode?
+3. Was charset/encoding preserved?
+4. Do the CLI help and README need updates?
+5. Are error logs still useful?
+6. Is there a risk of breaking import/export for large files?
 
-## 7) Checklist de Validacao Minima
-- Build local sem erros.
-- Executar ao menos um fluxo alvo alterado:
-    - export simples de tabela pequena;
-    - import simples com `SET NAMES` e `COMMIT`.
-- Validar que os arquivos de log de erro continuam sendo gerados quando esperado.
+## 7) Minimum Validation Checklist
+- Local build without errors.
+- Run at least one affected flow:
+    - simple export of a small table;
+    - simple import with `SET NAMES` and `COMMIT`.
+- Confirm that error log files are still generated when expected.
 
-## 8) Escopo e Estilo
-- Manter nomes e padrao em portugues, como no codigo atual.
-- Evitar adicionar dependencias externas sem justificativa forte.
-- Evitar comentarios no codigo; priorizar codigo autoexplicativo.
+## 8) Scope and Style
+- Keep names and conventions in Portuguese, as in the current codebase.
+- Avoid adding external dependencies without a strong justification.
+- Avoid comments in code; prefer self-explanatory code.
 
-## 9) Qualidade de Codigo e Manutenibilidade (Complementar)
+## 9) Code Quality and Maintainability (Supplementary)
 
-Esta secao adiciona regras explicitas para evitar problemas recorrentes observados em geracoes de codigo por IA, como duplicacao, acoplamento excessivo e baixa legibilidade.
+This section adds explicit rules to prevent recurring problems seen in AI-generated code, such as duplication, excessive coupling, and poor readability.
 
-### 9.1) Evitar Duplicacao (DRY)
-- Antes de criar nova logica, SEMPRE verificar se ja existe implementacao similar no projeto.
-- Nao duplicar:
-    - serializacao de valores SQL;
-    - manipulacao de charset;
-    - logica de parsing de comandos;
-    - tratamento de erros.
-- Se houver duplicacao:
-    - extrair metodo ou classe reutilizavel;
-    - manter responsabilidade clara.
+### 9.1) Avoid Duplication (DRY)
+- Before creating new logic, ALWAYS check whether similar implementation already exists in the project.
+- Do not duplicate:
+    - SQL value serialization;
+    - charset handling;
+    - command parsing logic;
+    - error handling.
+- If duplication exists:
+    - extract a reusable method or class;
+    - keep responsibilities clear.
 
-### 9.2) Responsabilidade Unica (SRP)
-- Cada classe deve ter um unico motivo para mudar.
-- Evitar classes que:
-    - fazem parsing + execucao + log ao mesmo tempo;
-    - misturam regra de negocio com IO (console/arquivo).
-- Separar claramente:
-    - parsing de argumentos;
-    - execucao de regra;
-    - escrita de saida/log.
-- Em CLI, manter tambem separadas as responsabilidades de:
+### 9.2) Single Responsibility (SRP)
+- Each class must have a single reason to change.
+- Avoid classes that:
+    - do parsing + execution + logging at the same time;
+    - mix business rules with IO (console/file).
+- Separate clearly:
+    - argument parsing;
+    - rule execution;
+    - output/log writing.
+- In the CLI, also keep these responsibilities separate:
     - parsing;
-    - validacao;
-    - resolucao de batch/wildcard;
-    - ajuda/saida do usuario;
-    - impressao de resultados.
+    - validation;
+    - batch/wildcard resolution;
+    - help/user output;
+    - result printing.
 
-### 9.3) Tamanho e Complexidade
-- Evitar metodos longos (> ~50 linhas).
-- Evitar blocos com multiplos niveis de `if/else`.
-- Quando a logica crescer:
-    - extrair funcoes menores;
-    - usar nomes descritivos.
+### 9.3) Size and Complexity
+- Avoid long methods (> ~50 lines).
+- Avoid blocks with multiple nested `if/else` levels.
+- When logic grows:
+    - extract smaller functions;
+    - use descriptive names.
 
-### 9.4) Nomes e Legibilidade
-- Usar nomes explicitos (evitar abreviacoes desnecessarias).
-- Nome deve refletir intencao, nao implementacao.
-- Evitar comentarios desnecessarios - o codigo deve ser autoexplicativo.
+### 9.4) Names and Readability
+- Use explicit names (avoid unnecessary abbreviations).
+- Names should reflect intent, not implementation.
+- Avoid unnecessary comments - code should be self-explanatory.
 
-### 9.5) Tratamento de Erros (padronizacao)
-- Nunca ignorar excecoes silenciosamente.
-- Sempre incluir contexto:
-    - comando SQL;
-    - linha aproximada;
-    - arquivo.
-- Evitar `catch (Exception)` generico sem rethrow ou log estruturado.
+### 9.5) Error Handling (Standardization)
+- Never silently ignore exceptions.
+- Always include context:
+    - SQL command;
+    - approximate line;
+    - file.
+- Avoid generic `catch (Exception)` without rethrow or structured logging.
 
-### 9.6) Consistencia Arquitetural
-- Reutilizar estruturas existentes antes de criar novas:
+### 9.6) Architectural Consistency
+- Reuse existing structures before creating new ones:
     - `ExportadorTabelaFirebird`
     - `ImportadorSql`
     - `ExecutorSql`
-- Nao criar novos "servicos paralelos" que duplicam responsabilidade.
-- Manter padrao atual de organizacao por pasta.
-- Se surgir logica comum de texto/idioma, batch pattern ou ajuda, centralizar em `Cli/Common` antes de duplicar nos comandos.
+- Do not create new "parallel services" that duplicate responsibilities.
+- Keep the current folder organization pattern.
+- If common text/language, batch pattern, or help logic appears, centralize it in `Cli/Common` before duplicating it across commands.
 
-### 9.7) Dependencias
-- Nao adicionar bibliotecas externas sem necessidade clara.
-- Preferir bibliotecas nativas do .NET.
-- Qualquer nova dependencia deve:
-    - resolver problema real;
-    - ser mencionada no README.
+### 9.7) Dependencies
+- Do not add external libraries without a clear need.
+- Prefer native .NET libraries.
+- Any new dependency must:
+    - solve a real problem;
+    - be mentioned in the README.
 
-### 9.8) CLI e Experiencia do Usuario
-- Mensagens devem ser:
-    - curtas;
-    - claras;
-    - consistentes.
-- Erros devem indicar como corrigir.
-- Nao alterar comportamento de flags existentes sem necessidade.
+### 9.8) CLI and User Experience
+- Messages must be:
+    - short;
+    - clear;
+    - consistent.
+- Errors must indicate how to fix the issue.
+- Do not change existing flag behavior unless necessary.
 
-### 9.9) Refatoracao Segura
-- Refatorar apenas quando:
-    - reduzir duplicacao;
-    - melhorar clareza;
-    - reduzir acoplamento.
-- Evitar refatoracao junto com mudanca funcional grande.
-- Preferir mudancas pequenas e revisaveis.
+### 9.9) Safe Refactoring
+- Refactor only when it:
+    - reduces duplication;
+    - improves clarity;
+    - reduces coupling.
+- Avoid refactoring together with a large functional change.
+- Prefer small, reviewable changes.
 
-### 9.10) Checklist de Qualidade (Obrigatorio)
-Antes de finalizar, validar:
+### 9.10) Quality Checklist (Mandatory)
+Before finishing, validate:
 
-1. Existe codigo duplicado introduzido?
-2. Alguma funcao ficou muito longa ou complexa?
-3. Foi reutilizado codigo existente corretamente?
-4. O codigo esta facil de entender sem comentarios?
-5. O tratamento de erro esta consistente?
-6. Alguma responsabilidade ficou misturada indevidamente?
-7. A mudanca manteve o padrao arquitetural do projeto?
-8. A mudanca introduziu texto novo em PT-BR sem revisao de acentuacao?
+1. Was any duplicate code introduced?
+2. Did any function become too long or too complex?
+3. Was existing code reused correctly?
+4. Is the code easy to understand without comments?
+5. Is error handling consistent?
+6. Was any responsibility mixed improperly?
+7. Did the change preserve the project's architectural pattern?
+8. Did the change introduce new PT-BR text without accent review?
 
-Se qualquer resposta indicar problema de qualidade, ajustar antes de concluir.
+If any answer indicates a quality problem, fix it before concluding.
 
-### 10) Politica de Idioma (Ingles por padrao, PT-BR quando detectado)
+### 10) Language Policy (English by default, PT-BR when detected)
 
-Este projeto e internacional. O padrao de runtime e CLI e **inglês**. Quando `IdiomaSaidaDetector` identificar `pt-BR`, a mesma mensagem deve sair em portugues com acentuacao correta.
-Documentacao interna pode estar em portugues.
+This project is international. The runtime and CLI default language is **English**. When `IdiomaSaidaDetector` identifies `pt-BR`, the same message must be shown in Portuguese with correct accenting.
+Internal documentation may be in Portuguese.
 
-#### 10.1) Onde usar INGLES
-- Mensagens da CLI quando a cultura nao for `pt-BR`
-- Logs operacionais
-- README principal
-- Nomes de comandos e flags
+#### 10.1) Where to Use ENGLISH
+- CLI messages when the culture is not `pt-BR`
+- Operational logs
+- Main README
+- Command and flag names
 
-Exemplo:
+Example:
 - "Error executing command"
 - "File not found"
 
-#### 10.2) Onde usar PORTUGUES
-- Mensagens da CLI quando `pt-BR` for detectado
-- Nomes de classes, metodos, variaveis e arquivos
-- Documentacao interna (ex: AGENTS.md, comentarios explicativos quando realmente necessarios)
-- Materiais de apoio para desenvolvedores brasileiros
+#### 10.2) Where to Use PORTUGUESE
+- CLI messages when `pt-BR` is detected
+- Names of classes, methods, variables, and files
+- Internal documentation (for example: `AGENTS.md`, explanatory comments when truly necessary)
+- Support materials for Brazilian developers
 
-#### 10.3) Regra de Localizacao
-- Toda mensagem nova voltada ao usuario deve ter variante em ingles e em portugues.
-- A variante em ingles e o padrao de fallback.
-- A variante em portugues deve usar acentuacao correta e linguagem natural.
-- Quando a mensagem tiver suporte a idioma, usar o helper compartilhado de localizacao em vez de concatenar texto solto.
+#### 10.3) Localization Rule
+- Every new user-facing message must have an English and a Portuguese variant.
+- English is the fallback default.
+- The Portuguese variant must use correct accenting and natural language.
+- When the message supports localization, use the shared localization helper instead of concatenating raw text.
 
-Exemplo:
+Example:
 - `CliText.Texto(idioma, "Invalid option.", "Opção inválida.")`
 
-#### 10.4) Regra de Qualidade para Portugues
-Quando portugues for utilizado:
-- Sempre usar acentuacao correta
-- Nao gerar texto sem acento (ex: "acao", "informacao")
-- Evitar erros gramaticais basicos
-- Manter linguagem clara e natural
-- Texto em PT-BR nao pode ser gerado sem acento, cedilha ou com ortografia simplificada.
-- Antes de finalizar, revisar strings novas com foco em palavras como `nao`, `opcao`, `padrao`, `relatorio`, `invalido`.
+#### 10.4) Portuguese Quality Rule
+When Portuguese is used:
+- Always use correct accenting
+- Do not generate accentless text (for example: "acao", "informacao")
+- Avoid basic grammar mistakes
+- Keep language clear and natural
+- PT-BR text must not be generated without accents, cedilla, or simplified spelling.
+- Before finishing, review new strings with focus on words like `nao`, `opcao`, `padrao`, `relatorio`, `invalido`.
 
-Exemplo:
+Example:
 
-Errado:
+Wrong:
 - "Erro na execucao do comando"
 - "Arquivo nao encontrado"
 
-Certo:
+Correct:
 - "Erro na execução do comando"
 - "Arquivo não encontrado"
 
-#### 10.5) Consistencia (regra critica)
-- Nunca misturar idiomas no mesmo contexto.
-- Mensagens de runtime devem seguir o idioma da cultura detectada.
-- Documentacao pode ser bilíngue, mas cada trecho precisa estar claro no idioma escolhido.
-- Nao traduzir parcialmente mensagens ou nomes.
+#### 10.5) Consistency (critical rule)
+- Never mix languages in the same context.
+- Runtime messages must follow the detected culture.
+- Documentation may be bilingual, but each section must be clearly written in the chosen language.
+- Do not partially translate messages or names.
 
-#### 10.6) Checklist de Idioma
-Antes de finalizar, validar:
+#### 10.6) Language Checklist
+Before finishing, validate:
 
-1. Codigo e CLI estao com ingles como padrao e PT-BR somente quando detectado?
-2. Algum texto em portugues apareceu sem acentuacao correta?
-3. Textos com suporte a idioma usam o helper compartilhado?
-4. Ha mistura de idiomas no mesmo contexto?
-5. A documentacao e a ajuda nao ficaram defasadas em relacao ao comportamento atual?
+1. Are the code and CLI using English by default and PT-BR only when detected?
+2. Did any Portuguese text appear without correct accenting?
+3. Do localized texts use the shared helper?
+4. Is there any language mixing in the same context?
+5. Are the documentation and help still aligned with the current behavior?
 
-Se houver inconsistencias, corrigir antes de concluir.
+If there are inconsistencies, fix them before concluding.
 
-### 11) Politica de Commits Git
+### 11) Git Commit Policy
 
-- Mensagens de commit devem ser SEMPRE em ingles.
-- Usar resumo objetivo no imperativo (ex: "Add DDL severity override config").
-- Evitar mensagens vagas como "ajustes", "fixes", "update".
-- Se houver mais de um commit, manter coerencia entre escopo e mensagem.
+- Commit messages must ALWAYS be in English.
+- Use a short imperative summary (example: "Add DDL severity override config").
+- Avoid vague messages like "fixes", "update", or "adjustments".
+- If there is more than one commit, keep scope and message consistent.
