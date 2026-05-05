@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - Import/export now apply automatic transient retry policy (up to 3 attempts) for command execution and file write instability scenarios.
+- `ddl-diff` now supports `--include-domains` to optionally compare `DOMAIN` objects, while ignoring them by default for practical reviews.
 
 ### Changed
 - `ddl-analyze --database` operational analysis was hardened with explicit status/error classification for MON$ collection outcomes (success, partial, or failure context in report metadata).
@@ -18,6 +19,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `ddl-analyze` HTML rendering now removes unused risk filter fields (`ScoreRisco`, `Prioridade`) from internal payload/output model.
 - `export` and `import` now share standardized console progress behavior: live dynamic line in interactive terminals, periodic fixed checkpoints (50k units or 30s), and CI-safe fixed-line fallback for redirected output.
 - `ddl-diff` now emits SQL in deterministic dependency-aware order (drop constraints, create/alter structures, PK, indexes, then FK) to reduce apply-time dependency failures.
+- `ddl-diff` now ignores `DOMAIN` differences by default and only includes them when `--include-domains` is explicitly enabled.
 - Command docs (EN/PT-BR) and README were updated to reflect dependency ordering and transient retry behavior.
 - DDL sample artifacts and command docs were refreshed to reflect current report/UI behavior.
 

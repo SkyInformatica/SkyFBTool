@@ -11,6 +11,7 @@ e o projeto adota [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Adicionado
 - Importação e exportação agora aplicam política de retry automático para falhas transitórias (até 3 tentativas) em cenários de instabilidade de execução e escrita.
+- `ddl-diff` agora suporta `--include-domains` para comparar objetos `DOMAIN` de forma opcional, mantendo a ignorância por padrão para revisões mais práticas.
 
 ### Alterado
 - A análise operacional de `ddl-analyze --database` foi reforçada com classificação explícita de status/erro da coleta MON$ (sucesso, parcial ou falha com contexto nos metadados do relatório).
@@ -18,6 +19,7 @@ e o projeto adota [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Renderização HTML de `ddl-analyze` agora remove campos internos de filtro de risco não utilizados (`ScoreRisco`, `Prioridade`) do modelo/payload de saída.
 - `export` e `import` agora compartilham padrão de progresso no console: linha dinâmica em terminal interativo, checkpoints fixos periódicos (50 mil unidades ou 30s) e fallback em linhas fixas para saída redirecionada/CI.
 - `ddl-diff` agora gera SQL em ordem determinística orientada a dependências (remoção de constraints, criação/alteração de estrutura, PK, índices e por último FK), reduzindo falhas por dependência na aplicação.
+- `ddl-diff` agora ignora diferenças de `DOMAIN` por padrão e só as inclui quando `--include-domains` é habilitado explicitamente.
 - Documentação dos comandos (EN/PT-BR) e README foram atualizados para refletir a ordenação por dependência e a política de retry transitório.
 - Artefatos de exemplo DDL e documentação de comandos foram atualizados para refletir o comportamento visual/funcional atual.
 
