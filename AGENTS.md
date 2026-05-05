@@ -2,6 +2,11 @@
 
 Este arquivo orienta assistentes de IA a fazer mudancas seguras e consistentes no projeto.
 
+## 0) Leitura Obrigatoria
+- Antes de iniciar qualquer alteracao, ler `DOCS_STANDARD.md` quando ele existir no repositorio.
+- Aplicar este `AGENTS.md` em conjunto com `DOCS_STANDARD.md`.
+- Em caso de conflito entre os dois documentos, `DOCS_STANDARD.md` prevalece para regras de documentacao e idioma, e este arquivo prevalece para regras de implementacao do projeto.
+
 ## 1) Contexto do Projeto
 - Tipo: ferramenta CLI em .NET 8 para exportacao/importacao de SQL em Firebird.
 - Entrada principal: `SkyFBTool/Program.cs`.
