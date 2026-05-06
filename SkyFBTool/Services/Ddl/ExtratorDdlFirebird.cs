@@ -867,7 +867,7 @@ public static class ExtratorDdlFirebird
         cmd.Parameters.AddWithValue("@tabela", nomeTabela);
         await using var reader = await cmd.ExecuteReaderAsync();
 
-        var checks = new List<RestricaoCheckSchema>();
+        var checks = new Dictionary<string, RestricaoCheckSchema>(StringComparer.OrdinalIgnoreCase);
         while (await reader.ReadAsync())
         {
             string nome = reader.GetString(reader.GetOrdinal("constraint_name"));
@@ -879,14 +879,16 @@ public static class ExtratorDdlFirebird
             if (string.IsNullOrWhiteSpace(checkSql))
                 continue;
 
-            checks.Add(new RestricaoCheckSchema
+            checks[nome] = new RestricaoCheckSchema
             {
                 Nome = nome,
                 CheckSql = checkSql
-            });
+            };
         }
 
-        return checks;
+        return checks.Values
+            .OrderBy(c => c.Nome, StringComparer.OrdinalIgnoreCase)
+            .ToList();
     }
 
     private static async Task<List<IndiceSchema>> CarregarIndicesAsync(FbConnection conexao, string nomeTabela)

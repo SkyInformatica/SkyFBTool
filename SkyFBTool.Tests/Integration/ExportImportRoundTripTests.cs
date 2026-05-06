@@ -367,7 +367,9 @@ public class ExportImportRoundTripTests
                 SearchOption.TopDirectoryOnly);
             Assert.NotEmpty(arquivosLog);
             string textoLog = await File.ReadAllTextAsync(arquivosLog.OrderByDescending(a => a).First());
-            Assert.Contains("Erro ao executar SQL", textoLog);
+            Assert.True(
+                textoLog.Contains("Error executing SQL", StringComparison.OrdinalIgnoreCase) ||
+                textoLog.Contains("Erro ao executar SQL", StringComparison.OrdinalIgnoreCase));
         }
         finally
         {
@@ -425,7 +427,9 @@ public class ExportImportRoundTripTests
             Assert.NotEmpty(arquivosLog);
 
             string textoLog = await File.ReadAllTextAsync(arquivosLog.OrderByDescending(a => a).First());
-            Assert.Contains("Erro ao executar SQL", textoLog);
+            Assert.True(
+                textoLog.Contains("Error executing SQL", StringComparison.OrdinalIgnoreCase) ||
+                textoLog.Contains("Erro ao executar SQL", StringComparison.OrdinalIgnoreCase));
         }
         finally
         {
@@ -478,7 +482,9 @@ public class ExportImportRoundTripTests
                 SearchOption.TopDirectoryOnly);
             Assert.NotEmpty(arquivosLog);
             string textoLog = await File.ReadAllTextAsync(arquivosLog.OrderByDescending(a => a).First());
-            Assert.Contains("Erro ao executar SQL", textoLog);
+            Assert.True(
+                textoLog.Contains("Error executing SQL", StringComparison.OrdinalIgnoreCase) ||
+                textoLog.Contains("Erro ao executar SQL", StringComparison.OrdinalIgnoreCase));
         }
         finally
         {
@@ -617,8 +623,11 @@ public class ExportImportRoundTripTests
             }
 
             string saida = writer.ToString();
-            Assert.Contains("Linhas: 1 | Comandos: 1", saida);
-            Assert.DoesNotContain("Linhas: 4 | Comandos: 1", saida);
+            Assert.True(
+                saida.Contains("Processed: 1 | Commands: 1", StringComparison.OrdinalIgnoreCase) ||
+                saida.Contains("Processado: 1 | Comandos: 1", StringComparison.OrdinalIgnoreCase));
+            Assert.DoesNotContain("Processed: 4 | Commands: 1", saida, StringComparison.OrdinalIgnoreCase);
+            Assert.DoesNotContain("Processado: 4 | Comandos: 1", saida, StringComparison.OrdinalIgnoreCase);
         }
         finally
         {
@@ -761,7 +770,9 @@ public class ExportImportRoundTripTests
             string caminhoLog = Path.Combine(pastaTemp, "erros_exportacao.log");
             Assert.True(File.Exists(caminhoLog));
             string textoLog = await File.ReadAllTextAsync(caminhoLog);
-            Assert.Contains("Erro ao escrever linha", textoLog);
+            Assert.True(
+                textoLog.Contains("Error writing row", StringComparison.OrdinalIgnoreCase) ||
+                textoLog.Contains("Erro ao escrever linha", StringComparison.OrdinalIgnoreCase));
         }
         finally
         {
@@ -1119,13 +1130,10 @@ public class ExportImportRoundTripTests
 
     private sealed class DestinoComFalhaControlada : IDestinoArquivo
     {
-        private bool _jaFalhou;
-
         public Task EscreverLinhaAsync(string linha)
         {
-            if (!_jaFalhou && linha.StartsWith("INSERT ", StringComparison.OrdinalIgnoreCase))
+            if (linha.StartsWith("INSERT ", StringComparison.OrdinalIgnoreCase))
             {
-                _jaFalhou = true;
                 throw new IOException("Falha simulada no destino");
             }
 

@@ -287,7 +287,7 @@ public static class ImportadorSql
                 i++;
             }
 
-            if (!dentroComentarioBloco && !dentroComentarioLinha)
+            if (!dentroComentarioBloco && !dentroComentarioLinha && comandoAtual.Length > 0)
                 comandoAtual.AppendLine();
 
             AtualizarProgresso(
@@ -462,7 +462,13 @@ public static class ImportadorSql
         if (partes.Length < 3)
             return false;
 
-        string token = partes[2].Replace(";", "").Trim();
+        string token = partes[2].Trim();
+        if (string.IsNullOrWhiteSpace(token) && partes.Length >= 4)
+            token = partes[3].Trim();
+
+        if (token.Length > 1 && token.EndsWith(';'))
+            token = token[..^1].Trim();
+
         if (!string.IsNullOrWhiteSpace(token))
             delimitadorAtual = token[0];
 

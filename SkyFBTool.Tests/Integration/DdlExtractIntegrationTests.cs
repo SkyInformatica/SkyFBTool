@@ -132,7 +132,7 @@ public class DdlExtractIntegrationTests
             Assert.Contains("CREATE TABLE \"PEDIDOS\"", sql, StringComparison.OrdinalIgnoreCase);
             Assert.Contains("CREATE DOMAIN \"DM_EMAIL\" AS VARCHAR(120)", sql, StringComparison.OrdinalIgnoreCase);
             Assert.Contains("CREATE SEQUENCE \"SEQ_PEDIDOS\";", sql, StringComparison.OrdinalIgnoreCase);
-            Assert.Contains("CREATE OR ALTER PROCEDURE SP_AJUSTAR_PEDIDO", sql, StringComparison.OrdinalIgnoreCase);
+            Assert.Contains("CREATE OR ALTER PROCEDURE \"SP_AJUSTAR_PEDIDO\"", sql, StringComparison.OrdinalIgnoreCase);
             Assert.Contains("CREATE OR ALTER TRIGGER \"TRG_PEDIDOS_BI\" FOR \"PEDIDOS\" ACTIVE BEFORE INSERT POSITION 0", sql, StringComparison.OrdinalIgnoreCase);
             if (suportaFuncoes)
                 Assert.Contains("CREATE OR ALTER FUNCTION FN_PEDIDO_TOTAL", sql, StringComparison.OrdinalIgnoreCase);

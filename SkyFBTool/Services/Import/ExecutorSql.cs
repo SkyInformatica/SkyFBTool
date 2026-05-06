@@ -29,6 +29,9 @@ public static class ExecutorSql
         if (sql.EndsWith(";"))
             sql = sql.Substring(0, sql.Length - 1);
 
+        if (string.IsNullOrWhiteSpace(sql))
+            return (transacao, false);
+
         if (sql.Equals("COMMIT", StringComparison.InvariantCultureIgnoreCase))
         {
             await transacao.CommitAsync();
@@ -38,15 +41,18 @@ public static class ExecutorSql
             return (transacao, false);
         }
 
-        if (sql.StartsWith("SET ", StringComparison.OrdinalIgnoreCase))
-        {
-            var cmdSemTransacao = new FbCommand(sql, conexao);
-            await cmdSemTransacao.ExecuteNonQueryAsync();
+        if (sql.StartsWith("SET TERM", StringComparison.OrdinalIgnoreCase))
             return (transacao, false);
-        }
 
         if (transacao == null)
             transacao = await conexao.BeginTransactionAsync();
+
+        if (sql.StartsWith("SET ", StringComparison.OrdinalIgnoreCase))
+        {
+            await using var cmdSet = new FbCommand(sql, conexao, transacao);
+            await cmdSet.ExecuteNonQueryAsync();
+            return (transacao, false);
+        }
 
         try
         {
