@@ -23,41 +23,41 @@ This document describes exactly which validations `ddl-analyze` runs and how eac
 
 ## Structural validation matrix
 
-| Code | Default severity | What it validates | Current rule |
-|---|---|---|---|
-| `TABELA_SEM_COLUNAS` | `critical` | Table with no columns | Column count is zero |
-| `COLUNA_DUPLICADA` | `critical` | Duplicated column in same table | Group by column name (case-insensitive), count > 1 |
-| `TIPO_DESCONHECIDO` | `high` | Unmapped SQL type | Type token starts with `TYPE_` |
-| `TABELA_SEM_PK` | `high` | Table without PK | Primary key is missing |
-| `PK_SEM_COLUNAS` | `critical` | PK without columns | PK column list is empty |
-| `PK_REFERENCIA_COLUNA_INEXISTENTE` | `critical` | PK references missing column | PK column not found in table column map |
-| `FK_SEM_COLUNAS` | `critical` | FK without local/reference columns | Local and/or referenced column list is empty |
-| `FK_CARDINALIDADE_INVALIDA` | `critical` | FK local/reference cardinality mismatch | Local and referenced column counts differ |
-| `FK_COLUNA_LOCAL_INEXISTENTE` | `critical` | FK uses missing local column | FK local column not found in table |
-| `FK_TABELA_REFERENCIA_INEXISTENTE` | `critical` | FK references missing table | Referenced table not found in table map |
-| `FK_COLUNA_REFERENCIA_INEXISTENTE` | `critical` | FK references missing target column | FK referenced column not found |
-| `FK_SEM_INDICE_COBERTURA` | `medium` | FK without local covering index | No FK support index is present and no regular index covers FK column prefix |
-| `INDICE_SEM_COLUNAS` | `high` | Index without columns | Index column list is empty |
-| `INDICE_COLUNA_INEXISTENTE` | `high` | Index references missing column | Index column not found |
-| `INDICE_DUPLICADO` | `low` | Indexes with same functional signature | Same signature (`U/N`, `A/D`, ordered column list) |
-| `INDICE_REDUNDANTE_PREFIXO` | `medium` | Potentially redundant prefix index | Short index is prefix of larger index, same direction, both non-unique |
-| `FK_DUPLICADA` | `low` | FKs with same functional signature | Same signature (local columns, referenced table/columns, update/delete rules) |
-| `OPERACIONAL_VOLUME_PRIORIDADE_ALTA` | `high` | High-volume table with concentrated findings | Estimated rows >= 10,000,000 and findings in table >= 3 |
-| `OPERACIONAL_VOLUME_PRIORIDADE_MEDIA` | `medium` | Relevant-volume table with repeated findings | Estimated rows >= 1,000,000 and findings in table >= 2 |
-| `OPERACIONAL_VOLUME_PRIORIDADE_BAIXA` | `low` | Medium-volume table with findings | Estimated rows >= 500,000 and findings in table >= 1 |
+| Code | Default severity | What it validates | Current rule | Practical explanation | Fictional example |
+|---|---|---|---|---|---|
+| `TABELA_SEM_COLUNAS` | `critical` | Table with no columns | Column count is zero | Table exists in schema metadata but has no valid columns. | `CREATE TABLE LOG_AUDIT ();` |
+| `COLUNA_DUPLICADA` | `critical` | Duplicated column in same table | Group by column name (case-insensitive), count > 1 | Same column name was declared multiple times in one table. | `CUSTOMERS(ID INT, NAME VARCHAR(60), NAME VARCHAR(80))` |
+| `TIPO_DESCONHECIDO` | `high` | Unmapped SQL type | Type token starts with `TYPE_` | Column type token is not recognized/mapped for Firebird. | `TOTAL TYPE_99` in a billing table. |
+| `TABELA_SEM_PK` | `high` | Table without PK | Primary key is missing | Table has no reliable primary identifier. | `ORDERS` with millions of rows and no `PRIMARY KEY`. |
+| `PK_SEM_COLUNAS` | `critical` | PK without columns | PK column list is empty | PK constraint exists but has no valid bound columns. | `PK_ORDERS` created without bound columns. |
+| `PK_REFERENCIA_COLUNA_INEXISTENTE` | `critical` | PK references missing column | PK column not found in table column map | PK points to a non-existent column. | PK uses `ORDER_ID`, table only has `ORDER_CODE`. |
+| `FK_SEM_COLUNAS` | `critical` | FK without local/reference columns | Local and/or referenced column list is empty | FK has incomplete relationship mapping. | `FK_ORDER_ITEMS` declared without field mapping. |
+| `FK_CARDINALIDADE_INVALIDA` | `critical` | FK local/reference cardinality mismatch | Local and referenced column counts differ | Local and referenced FK column counts do not match. | Local FK `(COMPANY_ID, ORDER_ID)` to parent PK `(ORDER_ID)`. |
+| `FK_COLUNA_LOCAL_INEXISTENTE` | `critical` | FK uses missing local column | FK local column not found in table | FK uses a column that is missing in child table. | FK in `ORDER_ITEMS` uses `BRANCH_ID`, but column is missing. |
+| `FK_TABELA_REFERENCIA_INEXISTENTE` | `critical` | FK references missing table | Referenced table not found in table map | FK points to a parent table not present in analyzed schema. | FK references `CUSTOMER_MASTER`, but only `CUSTOMERS` exists. |
+| `FK_COLUNA_REFERENCIA_INEXISTENTE` | `critical` | FK references missing target column | FK referenced column not found | FK points to missing column in parent table. | FK targets `CUSTOMERS(CUSTOMER_ID)`, parent has `ID`. |
+| `FK_SEM_INDICE_COBERTURA` | `medium` | FK without local covering index | No FK support index is present and no regular index covers FK column prefix | FK has no useful index for join/referential checks. | `ORDERS.CUSTOMER_ID` FK without index starting with `CUSTOMER_ID`. |
+| `INDICE_SEM_COLUNAS` | `high` | Index without columns | Index column list is empty | Index was defined with no valid columns. | `IDX_MOV` created empty by incomplete script. |
+| `INDICE_COLUNA_INEXISTENTE` | `high` | Index references missing column | Index column not found | Index includes column absent from table. | Index on `SALES(ISSUE_DATE)` where `ISSUE_DATE` is missing. |
+| `INDICE_DUPLICADO` | `low` | Indexes with same functional signature | Same signature (`U/N`, `A/D`, ordered column list) | Two indexes provide the same effective behavior. | `IDX_A` and `IDX_B` on `(CUSTOMER_ID, DATE)` non-unique/ASC. |
+| `INDICE_REDUNDANTE_PREFIXO` | `medium` | Potentially redundant prefix index | Short index is prefix of larger index, same direction, both non-unique | Shorter index is likely redundant. | `(CUSTOMER_ID)` and `(CUSTOMER_ID, DATE)` same direction. |
+| `FK_DUPLICADA` | `low` | FKs with same functional signature | Same signature (local columns, referenced table/columns, update/delete rules) | Different FK constraints repeat same relationship rule. | `FK_ORD_CUST_1` and `FK_ORD_CUST_2` with same fields/rules. |
+| `OPERACIONAL_VOLUME_PRIORIDADE_ALTA` | `high` | High-volume table with concentrated findings | Estimated rows >= 10,000,000 and findings in table >= 3 | Very large table with multiple findings; high blast radius. | `STOCK_MOV` with 25M rows and 4 structural findings. |
+| `OPERACIONAL_VOLUME_PRIORIDADE_MEDIA` | `medium` | Relevant-volume table with repeated findings | Estimated rows >= 1,000,000 and findings in table >= 2 | Large table with recurring findings; relevant priority. | `INVOICE_ITEMS` with 2.3M rows and 2 findings. |
+| `OPERACIONAL_VOLUME_PRIORIDADE_BAIXA` | `low` | Medium-volume table with findings | Estimated rows >= 500,000 and findings in table >= 1 | Mid-size table with finding; preventive prioritization. | `EVENT_LOG` with 700k rows and 1 finding. |
 
 ## Operational validation matrix (`MON$`) - `--database` only
 
-| Code | Default severity | What it validates | Current threshold | Practical meaning |
-|---|---|---|---|---|
-| `OPERACIONAL_GAP_OIT_OAT_ELEVADO` | `critical` | Transaction retention pressure from OAT-OIT gap | `OAT - OIT >= 200000` | Strong sign of blocked garbage collection; high risk of sustained degradation and urgent investigation needed. |
-| `OPERACIONAL_GAP_OIT_OAT_ACIMA_DO_ESPERADO` | `high` | Transaction retention pressure above expected | `OAT - OIT >= 50000` | Cleanup is lagging behind workload; likely long transactions or housekeeping cadence issues. |
-| `OPERACIONAL_GAP_OIT_OAT_MODERADO` | `medium` | Moderate transaction retention pressure | `OAT - OIT >= 10000` | Early pressure signal; monitor trend and prevent growth before it becomes critical. |
-| `OPERACIONAL_GAP_OAT_OST_ELEVADO` | `high` | High snapshot backlog from OST-OAT gap | `OST - OAT >= 200000` | Long snapshot readers are likely retaining old versions; read/reporting profile should be reviewed. |
-| `OPERACIONAL_GAP_OAT_OST_ACIMA_DO_ESPERADO` | `medium` | Snapshot backlog above expected | `OST - OAT >= 50000` | Snapshot retention is above healthy baseline; monitor and tune long-running reads. |
-| `OPERACIONAL_TRANSACAO_ATIVA_LONGA_CRITICA` | `critical` | Critical long active transaction | age >= `720` minutes | A transaction has been open for many hours; immediate action is required to avoid retention and lock pressure. |
-| `OPERACIONAL_TRANSACAO_ATIVA_LONGA` | `high` | Long active transaction | age >= `120` minutes | Transaction duration is already risky for normal operations and should be investigated soon. |
-| `OPERACIONAL_TRANSACAO_ATIVA_ACIMA_DO_ESPERADO` | `medium` | Active transaction duration above expected | age >= `30` minutes | Transaction is longer than expected baseline; review workload pattern and watch trend. |
+| Code | Default severity | What it validates | Current threshold | Practical meaning | Fictional example |
+|---|---|---|---|---|---|
+| `OPERACIONAL_GAP_OIT_OAT_ELEVADO` | `critical` | Transaction retention pressure from OAT-OIT gap | `OAT - OIT >= 200000` | Critical transaction-retention backlog; immediate degradation risk. | `OIT=1000`, `OAT=260500` (gap 259500). |
+| `OPERACIONAL_GAP_OIT_OAT_ACIMA_DO_ESPERADO` | `high` | Transaction retention pressure above expected | `OAT - OIT >= 50000` | High transaction pressure above healthy baseline. | `OIT=50000`, `OAT=125500` (gap 75500). |
+| `OPERACIONAL_GAP_OIT_OAT_MODERADO` | `medium` | Moderate transaction retention pressure | `OAT - OIT >= 10000` | Early retention pressure signal, still manageable with quick action. | `OIT=880000`, `OAT=893500` (gap 13500). |
+| `OPERACIONAL_GAP_OAT_OST_ELEVADO` | `high` | High snapshot backlog from OST-OAT gap | `OST - OAT >= 200000` | Long snapshot readers are retaining old versions for too long. | `OAT=320000`, `OST=540500` (gap 220500). |
+| `OPERACIONAL_GAP_OAT_OST_ACIMA_DO_ESPERADO` | `medium` | Snapshot backlog above expected | `OST - OAT >= 50000` | Snapshot retention is above operational baseline. | `OAT=700000`, `OST=761000` (gap 61000). |
+| `OPERACIONAL_TRANSACAO_ATIVA_LONGA_CRITICA` | `critical` | Critical long active transaction | age >= `720` minutes | An active transaction has remained open for many hours. | Reconciliation session open for 13h without commit/rollback. |
+| `OPERACIONAL_TRANSACAO_ATIVA_LONGA` | `high` | Long active transaction | age >= `120` minutes | Long active transaction with relevant retention/lock risk. | Integration process with a transaction open for 2h40. |
+| `OPERACIONAL_TRANSACAO_ATIVA_ACIMA_DO_ESPERADO` | `medium` | Active transaction duration above expected | age >= `30` minutes | Transaction duration is above expected workload baseline. | Update job with active transaction for 45 min. |
 
 ### What each MON$ metric means
 

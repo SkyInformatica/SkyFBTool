@@ -23,41 +23,41 @@ Este documento descreve, de forma precisa, quais validações o `ddl-analyze` ex
 
 ## Matriz de validações estruturais
 
-| Código | Severidade padrão | O que valida | Critério usado hoje |
-|---|---|---|---|
-| `TABELA_SEM_COLUNAS` | `critical` | Tabela sem colunas | `tabela.Colunas.Count == 0` |
-| `COLUNA_DUPLICADA` | `critical` | Coluna repetida na mesma tabela | Agrupamento por nome de coluna (case-insensitive), contagem > 1 |
-| `TIPO_DESCONHECIDO` | `high` | Tipo SQL não mapeado | `TipoSql` começa com `TYPE_` |
-| `TABELA_SEM_PK` | `high` | Tabela sem PK | `tabela.ChavePrimaria is null` |
-| `PK_SEM_COLUNAS` | `critical` | PK sem lista de colunas | `ChavePrimaria.Colunas.Count == 0` |
-| `PK_REFERENCIA_COLUNA_INEXISTENTE` | `critical` | PK aponta para coluna inexistente | Coluna da PK não encontrada no dicionário de colunas da tabela |
-| `FK_SEM_COLUNAS` | `critical` | FK sem colunas locais e/ou de referência | `fk.Colunas.Count == 0` ou `fk.ColunasReferencia.Count == 0` |
-| `FK_CARDINALIDADE_INVALIDA` | `critical` | FK com cardinalidade local/referência diferente | `fk.Colunas.Count != fk.ColunasReferencia.Count` |
-| `FK_COLUNA_LOCAL_INEXISTENTE` | `critical` | FK usa coluna local inexistente | Coluna local da FK não existe na tabela |
-| `FK_TABELA_REFERENCIA_INEXISTENTE` | `critical` | FK referencia tabela inexistente | Tabela de referência não encontrada no mapa de tabelas |
-| `FK_COLUNA_REFERENCIA_INEXISTENTE` | `critical` | FK referencia coluna inexistente na tabela alvo | Coluna de referência da FK não encontrada |
-| `FK_SEM_INDICE_COBERTURA` | `medium` | FK sem índice de cobertura local | Não há índice de suporte da própria FK e nenhum índice regular cobre o prefixo das colunas da FK |
-| `INDICE_SEM_COLUNAS` | `high` | Índice sem colunas | `indice.Colunas.Count == 0` |
-| `INDICE_COLUNA_INEXISTENTE` | `high` | Índice aponta para coluna inexistente | Coluna do índice não encontrada |
-| `INDICE_DUPLICADO` | `low` | Índices com mesma assinatura funcional | Mesma assinatura (`U/N`, `A/D`, lista ordenada de colunas) |
-| `INDICE_REDUNDANTE_PREFIXO` | `medium` | Índice possivelmente redundante por prefixo | Índice curto é prefixo de índice maior, mesma direção, ambos não únicos |
-| `FK_DUPLICADA` | `low` | FKs com mesma assinatura funcional | Mesma assinatura (colunas locais, tabela/colunas referência, regras update/delete) |
-| `OPERACIONAL_VOLUME_PRIORIDADE_ALTA` | `high` | Tabela de alto volume com achados concentrados | Registros estimados >= 10.000.000 e achados na tabela >= 3 |
-| `OPERACIONAL_VOLUME_PRIORIDADE_MEDIA` | `medium` | Tabela de volume relevante com achados recorrentes | Registros estimados >= 1.000.000 e achados na tabela >= 2 |
-| `OPERACIONAL_VOLUME_PRIORIDADE_BAIXA` | `low` | Tabela de volume intermediário com achados | Registros estimados >= 500.000 e achados na tabela >= 1 |
+| Código | Severidade padrão | O que valida | Critério usado hoje | Explicação prática | Exemplo fictício |
+|---|---|---|---|---|---|
+| `TABELA_SEM_COLUNAS` | `critical` | Tabela sem colunas | `tabela.Colunas.Count == 0` | A tabela existe no schema, mas não possui colunas válidas. | `CREATE TABLE LOG_AUDITORIA ();` |
+| `COLUNA_DUPLICADA` | `critical` | Coluna repetida na mesma tabela | Agrupamento por nome de coluna (case-insensitive), contagem > 1 | A mesma coluna foi declarada mais de uma vez na tabela. | `CLIENTES(ID INT, NOME VARCHAR(60), NOME VARCHAR(80))` |
+| `TIPO_DESCONHECIDO` | `high` | Tipo SQL não mapeado | `TipoSql` começa com `TYPE_` | O tipo da coluna não foi reconhecido/mapeado para Firebird. | `TOTAL TYPE_99` em tabela de faturamento. |
+| `TABELA_SEM_PK` | `high` | Tabela sem PK | `tabela.ChavePrimaria is null` | Tabela sem identificador primário confiável. | `PEDIDOS` com milhões de registros e sem `PRIMARY KEY`. |
+| `PK_SEM_COLUNAS` | `critical` | PK sem lista de colunas | `ChavePrimaria.Colunas.Count == 0` | Constraint de PK existe, mas sem colunas válidas. | `PK_PEDIDOS` criada sem colunas associadas. |
+| `PK_REFERENCIA_COLUNA_INEXISTENTE` | `critical` | PK aponta para coluna inexistente | Coluna da PK não encontrada no dicionário de colunas da tabela | A PK referencia campo inexistente. | PK usa `ID_PEDIDO`, mas a tabela tem apenas `COD_PEDIDO`. |
+| `FK_SEM_COLUNAS` | `critical` | FK sem colunas locais e/ou de referência | `fk.Colunas.Count == 0` ou `fk.ColunasReferencia.Count == 0` | FK sem mapeamento relacional completo. | `FK_ITENS_PEDIDO` sem mapeamento de campos. |
+| `FK_CARDINALIDADE_INVALIDA` | `critical` | FK com cardinalidade local/referência diferente | `fk.Colunas.Count != fk.ColunasReferencia.Count` | Quantidade de colunas local e referenciada não fecha. | FK local `(EMPRESA_ID, PEDIDO_ID)` para PK `(PEDIDO_ID)`. |
+| `FK_COLUNA_LOCAL_INEXISTENTE` | `critical` | FK usa coluna local inexistente | Coluna local da FK não existe na tabela | A FK usa campo que não existe na tabela filha. | FK em `ITENS_PEDIDO` usa `FILIAL_ID`, mas coluna não existe. |
+| `FK_TABELA_REFERENCIA_INEXISTENTE` | `critical` | FK referencia tabela inexistente | Tabela de referência não encontrada no mapa de tabelas | A FK aponta para tabela pai ausente no schema. | FK referencia `CLIENTE_MASTER`, mas só existe `CLIENTES`. |
+| `FK_COLUNA_REFERENCIA_INEXISTENTE` | `critical` | FK referencia coluna inexistente na tabela alvo | Coluna de referência da FK não encontrada | A FK aponta para coluna ausente na tabela pai. | FK para `CLIENTES(ID_CLIENTE)`, mas a tabela pai tem `CLIENTE_ID`. |
+| `FK_SEM_INDICE_COBERTURA` | `medium` | FK sem índice de cobertura local | Não há índice de suporte da própria FK e nenhum índice regular cobre o prefixo das colunas da FK | FK sem índice útil para join/validação relacional. | `PEDIDOS.CLIENTE_ID` com FK sem índice iniciando por `CLIENTE_ID`. |
+| `INDICE_SEM_COLUNAS` | `high` | Índice sem colunas | `indice.Colunas.Count == 0` | Índice definido sem campos válidos. | Índice `IDX_MOV` criado vazio por script incompleto. |
+| `INDICE_COLUNA_INEXISTENTE` | `high` | Índice aponta para coluna inexistente | Coluna do índice não encontrada | Índice inclui coluna ausente na tabela. | Índice em `VENDAS(DATA_EMISSAO)` sem a coluna `DATA_EMISSAO`. |
+| `INDICE_DUPLICADO` | `low` | Índices com mesma assinatura funcional | Mesma assinatura (`U/N`, `A/D`, lista ordenada de colunas) | Dois índices entregam a mesma função prática. | `IDX_A` e `IDX_B` em `(CLIENTE_ID, DATA)` ambos não únicos/ASC. |
+| `INDICE_REDUNDANTE_PREFIXO` | `medium` | Índice possivelmente redundante por prefixo | Índice curto é prefixo de índice maior, mesma direção, ambos não únicos | Índice menor tende a ser redundante. | `(CLIENTE_ID)` e `(CLIENTE_ID, DATA)` na mesma direção. |
+| `FK_DUPLICADA` | `low` | FKs com mesma assinatura funcional | Mesma assinatura (colunas locais, tabela/colunas referência, regras update/delete) | Há FKs diferentes repetindo a mesma regra relacional. | `FK_PED_CLIENTE_1` e `FK_PED_CLIENTE_2` com mesmos campos e regras. |
+| `OPERACIONAL_VOLUME_PRIORIDADE_ALTA` | `high` | Tabela de alto volume com achados concentrados | Registros estimados >= 10.000.000 e achados na tabela >= 3 | Tabela muito grande com vários achados; impacto potencial alto. | `MOV_ESTOQUE` com 25M linhas e 4 achados estruturais. |
+| `OPERACIONAL_VOLUME_PRIORIDADE_MEDIA` | `medium` | Tabela de volume relevante com achados recorrentes | Registros estimados >= 1.000.000 e achados na tabela >= 2 | Tabela grande com recorrência de achados; prioridade relevante. | `ITENS_NF` com 2,3M linhas e 2 achados. |
+| `OPERACIONAL_VOLUME_PRIORIDADE_BAIXA` | `low` | Tabela de volume intermediário com achados | Registros estimados >= 500.000 e achados na tabela >= 1 | Tabela de porte médio com achado; priorização preventiva. | `LOG_EVENTOS` com 700k linhas e 1 achado. |
 
 ## Matriz de validações operacionais (`MON$`) - apenas `--database`
 
-| Código | Severidade padrão | O que valida | Limite atual | Significado prático |
-|---|---|---|---|---|
-| `OPERACIONAL_GAP_OIT_OAT_ELEVADO` | `critical` | Pressão transacional por diferença OAT-OIT | `OAT - OIT >= 200000` | Sinal forte de garbage collection bloqueado; alto risco de degradação contínua e investigação urgente. |
-| `OPERACIONAL_GAP_OIT_OAT_ACIMA_DO_ESPERADO` | `high` | Pressão transacional acima do esperado | `OAT - OIT >= 50000` | A limpeza está atrasada em relação à carga; provável presença de transações longas ou housekeeping insuficiente. |
-| `OPERACIONAL_GAP_OIT_OAT_MODERADO` | `medium` | Pressão transacional moderada | `OAT - OIT >= 10000` | Sinal inicial de pressão; acompanhar tendência e agir antes de escalar. |
-| `OPERACIONAL_GAP_OAT_OST_ELEVADO` | `high` | Backlog snapshot elevado por diferença OST-OAT | `OST - OAT >= 200000` | Leitores snapshot longos provavelmente estão segurando versões antigas; revisar perfil de leitura/relatórios. |
-| `OPERACIONAL_GAP_OAT_OST_ACIMA_DO_ESPERADO` | `medium` | Backlog snapshot acima do esperado | `OST - OAT >= 50000` | Retenção snapshot acima da faixa saudável; monitorar e ajustar leituras longas. |
-| `OPERACIONAL_TRANSACAO_ATIVA_LONGA_CRITICA` | `critical` | Transação ativa longa crítica | idade >= `720` minutos | Há transação aberta por muitas horas; requer ação imediata para evitar pressão de retenção e lock. |
-| `OPERACIONAL_TRANSACAO_ATIVA_LONGA` | `high` | Transação ativa longa | idade >= `120` minutos | Duração já arriscada para operação normal; investigar em curto prazo. |
-| `OPERACIONAL_TRANSACAO_ATIVA_ACIMA_DO_ESPERADO` | `medium` | Duração acima do esperado | idade >= `30` minutos | Duração acima da linha de base esperada; revisar padrão da rotina e acompanhar tendência. |
+| Código | Severidade padrão | O que valida | Limite atual | Significado prático | Exemplo fictício |
+|---|---|---|---|---|---|
+| `OPERACIONAL_GAP_OIT_OAT_ELEVADO` | `critical` | Pressão transacional por diferença OAT-OIT | `OAT - OIT >= 200000` | Backlog crítico de limpeza transacional; risco imediato de degradação. | `OIT=1000`, `OAT=260500` (gap 259500). |
+| `OPERACIONAL_GAP_OIT_OAT_ACIMA_DO_ESPERADO` | `high` | Pressão transacional acima do esperado | `OAT - OIT >= 50000` | Pressão transacional alta, acima da faixa saudável. | `OIT=50000`, `OAT=125500` (gap 75500). |
+| `OPERACIONAL_GAP_OIT_OAT_MODERADO` | `medium` | Pressão transacional moderada | `OAT - OIT >= 10000` | Sinal inicial de retenção, ainda controlável com ação rápida. | `OIT=880000`, `OAT=893500` (gap 13500). |
+| `OPERACIONAL_GAP_OAT_OST_ELEVADO` | `high` | Backlog snapshot elevado por diferença OST-OAT | `OST - OAT >= 200000` | Leitores snapshot longos seguram versões antigas por muito tempo. | `OAT=320000`, `OST=540500` (gap 220500). |
+| `OPERACIONAL_GAP_OAT_OST_ACIMA_DO_ESPERADO` | `medium` | Backlog snapshot acima do esperado | `OST - OAT >= 50000` | Retenção snapshot acima da linha de base operacional. | `OAT=700000`, `OST=761000` (gap 61000). |
+| `OPERACIONAL_TRANSACAO_ATIVA_LONGA_CRITICA` | `critical` | Transação ativa longa crítica | idade >= `720` minutos | Há transação ativa aberta há muitas horas. | Sessão de conciliação aberta há 13h sem commit/rollback. |
+| `OPERACIONAL_TRANSACAO_ATIVA_LONGA` | `high` | Transação ativa longa | idade >= `120` minutos | Transação ativa longa com risco relevante para retenção/locks. | Processo de integração com transação aberta há 2h40. |
+| `OPERACIONAL_TRANSACAO_ATIVA_ACIMA_DO_ESPERADO` | `medium` | Duração acima do esperado | idade >= `30` minutos | Tempo de transação acima do padrão esperado para rotina. | Job de atualização com transação ativa há 45 min. |
 
 ### O que significa cada métrica MON$
 
