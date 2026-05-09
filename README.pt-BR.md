@@ -118,7 +118,7 @@ SkyFBTool ddl-analyze --input "C:\ddl\origem.schema.json" --ignore-table-prefix 
 SkyFBTool ddl-analyze --database "C:\dados\origem.fdb" --output "C:\ddl\analise_do_banco"
 SkyFBTool ddl-analyze --databases-batch "C:\dados\*.fdb" --output "C:\ddl\analises_lote\"
 SkyFBTool ddl-analyze --input "C:\ddl\origem.schema.json" --severity-config ".\docs\examples\ddl-severity.sample.json"
-SkyFBTool ddl-analyze --input "C:\ddl\origem.schema.json" --description "análise no banco XYZ" --output "C:\ddl\analise_com_contexto"
+SkyFBTool ddl-analyze --input "C:\ddl\origem.schema.json" --description "análise no banco de dados do cliente" --output "C:\ddl\analise_com_contexto"
 ```
 
 ## Observações

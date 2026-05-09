@@ -157,7 +157,7 @@ EXEMPLO:
   SkyFBTool ddl-analyze --database C:\dados\origem.fdb --output C:\ddl\analise_db
   SkyFBTool ddl-analyze --databases-batch C:\dados\*.fdb --output C:\ddl\analises\
   SkyFBTool ddl-analyze --input C:\ddl\origem.schema.json --severity-config .\docs\examples\ddl-severity.sample.json
-  SkyFBTool ddl-analyze --input C:\ddl\origem.schema.json --description ""Analysis performed on customer Ubirici database""
+  SkyFBTool ddl-analyze --input C:\ddl\origem.schema.json --description ""Analysis performed on customer database / Análise realizada no banco de dados do cliente""
 
 ";
     }
