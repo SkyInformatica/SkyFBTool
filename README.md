@@ -21,19 +21,20 @@ SkyFBTool is designed to make Firebird operations predictable, auditable, and sa
 | Operational engineering | Streaming execution, retry-aware processing, controlled commits, progress visibility |
 | Schema governance | Snapshot extraction, drift detection, diff workflows, review-ready outputs |
 | Risk mitigation | Severity-based findings, table-level prioritization, MON$ operational signals |
+| Structural observability | Risk prioritization, operational signals, and consolidated table-level visibility |
 | Legacy readiness | Firebird `2.5 -> 5.0`, charset-safe behavior, `CHARSET NONE` compatibility paths |
 
 ## Core Capabilities
 
 ### Resilient Operational Engineering
 
-- streaming export/import for large SQL files;
+- resilient large-scale SQL movement and replay pipeline;
 - SQL parser support for comments, strings, and `SET TERM`;
 - execution controls: `--continue-on-error`, commit pacing, progress intervals;
 - split output for large exports (`--split-size-mb`);
 - operational logging for troubleshooting and audit.
 
-### Schema Governance Toolkit
+### Structural Governance Process
 
 - `ddl-extract`: normalized schema artifacts (`.sql` + `.schema.json`);
 - `ddl-diff`: structural drift detection with SQL, JSON, and HTML outputs;
@@ -54,6 +55,16 @@ SkyFBTool is designed to make Firebird operations predictable, auditable, and sa
 - outputs tailored for auditability and staged rollout decisions;
 - severity-driven remediation prioritization for DBA workflows.
 
+## Intentional Limits
+
+Security-first operating model:
+
+- generated SQL is never executed automatically;
+- human review is a mandatory step in promotion flows;
+- destructive operations must be explicit;
+- continue-on-error is not the default behavior;
+- artifacts must remain auditable.
+
 ## Real-World Use Cases
 
 | Scenario | Tooling |
@@ -63,6 +74,42 @@ SkyFBTool is designed to make Firebird operations predictable, auditable, and sa
 | Environment drift detection | `ddl-diff` |
 | DDL governance baseline | `ddl-extract` |
 | Operational script execution | `exec-sql` |
+
+## Supported Critical Scenarios
+
+Supported scenarios:
+
+- databases with tens of millions of records;
+- long-running operations;
+- legacy Firebird environments;
+- structural drift across environments;
+- operational rollback/re-execution;
+- structural integrity troubleshooting;
+- audit pipeline workflows.
+
+## Conceptual Architecture
+
+```text
+ddl-extract
+    ↓
+ddl-diff
+    ↓
+ddl-analyze
+    ↓
+review/approval
+    ↓
+exec-sql / import
+    ↓
+revalidation
+```
+
+Quick summary:
+- `ddl-extract` creates the environment structural baseline;
+- `ddl-diff` identifies drift between source and target;
+- `ddl-analyze` prioritizes risks before applying changes;
+- human validation/review acts as the control mechanism before execution;
+- `exec-sql` or `import` executes the planned change;
+- revalidation confirms structural convergence and risk reduction.
 
 ## Recommended Flows
 
