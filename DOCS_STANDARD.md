@@ -13,6 +13,13 @@
 - `CHANGELOG.md` (English)
 - `CHANGELOG.pt-BR.md` (Portuguese)
 
+## Documentation Organization
+- Documentation must live under `docs/` (except top-level project files like README/CHANGELOG).
+- Prefer language folders for mirrored content (for example, `docs/<area>/en/` and `docs/<area>/pt-BR/`).
+- New conceptual, operational, or reference docs must be created in both English and Portuguese variants.
+- Keep localized pairs synchronized and linked with language switch links at the top.
+- Whenever a new document is added, it must be organized in the appropriate `docs/...` structure and added to the `*.sln` as Solution Items/Solution Folders for discoverability in the IDE.
+
 ## Sync Rules
 - Keep sections equivalent across languages.
 - Update both language files in the same pull request whenever behavior changes.

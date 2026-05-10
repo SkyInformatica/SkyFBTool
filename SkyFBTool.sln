@@ -50,6 +50,24 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "examples", "examples", "{47
 		docs\examples\ddl-severity.sample.json = docs\examples\ddl-severity.sample.json
 	EndProjectSection
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "concepts", "concepts", "{A8A68D4C-8E75-4F78-9A14-64E39A7DA35D}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "en", "en", "{2EAB1F2E-3FC4-43F9-9354-CC7B3467349C}"
+	ProjectSection(SolutionItems) = preProject
+		docs\concepts\en\firebird-compatibility.md = docs\concepts\en\firebird-compatibility.md
+		docs\concepts\en\operational-resilience.md = docs\concepts\en\operational-resilience.md
+		docs\concepts\en\risk-mitigation.md = docs\concepts\en\risk-mitigation.md
+		docs\concepts\en\schema-governance.md = docs\concepts\en\schema-governance.md
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "pt-BR", "pt-BR", "{9154C819-6C4D-4A89-A98F-168493AF45E8}"
+	ProjectSection(SolutionItems) = preProject
+		docs\concepts\pt-BR\firebird-compatibility.md = docs\concepts\pt-BR\firebird-compatibility.md
+		docs\concepts\pt-BR\operational-resilience.md = docs\concepts\pt-BR\operational-resilience.md
+		docs\concepts\pt-BR\risk-mitigation.md = docs\concepts\pt-BR\risk-mitigation.md
+		docs\concepts\pt-BR\schema-governance.md = docs\concepts\pt-BR\schema-governance.md
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -70,5 +88,8 @@ Global
 		{B0E06EA5-EC6E-4A22-9A74-0B5DB845F84F} = {FC1DFE70-DF17-476D-A430-7B9DD8C4A4BA}
 		{96D61037-7515-4A7A-BB63-5DBD7156E267} = {FC1DFE70-DF17-476D-A430-7B9DD8C4A4BA}
 		{4724E81D-E562-4D42-AFEB-744180606EB8} = {7F2FF1BB-BA38-40B6-918F-D3F492E6C976}
+		{A8A68D4C-8E75-4F78-9A14-64E39A7DA35D} = {7F2FF1BB-BA38-40B6-918F-D3F492E6C976}
+		{2EAB1F2E-3FC4-43F9-9354-CC7B3467349C} = {A8A68D4C-8E75-4F78-9A14-64E39A7DA35D}
+		{9154C819-6C4D-4A89-A98F-168493AF45E8} = {A8A68D4C-8E75-4F78-9A14-64E39A7DA35D}
 	EndGlobalSection
 EndGlobal
