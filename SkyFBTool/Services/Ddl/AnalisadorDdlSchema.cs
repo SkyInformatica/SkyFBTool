@@ -1,3 +1,4 @@
+using System.Text;
 using System.Text.Json;
 using SkyFBTool.Core;
 
@@ -88,7 +89,7 @@ public static class AnalisadorDdlSchema
         Directory.CreateDirectory(Path.GetDirectoryName(arquivoJsonSaida)!);
 
         await File.WriteAllTextAsync(arquivoJsonSaida, JsonSerializer.Serialize(resultado, JsonOptions));
-        await File.WriteAllTextAsync(arquivoHtmlSaida, RenderizadorHtmlAnaliseDdl.Renderizar(resultado, idioma));
+        await File.WriteAllTextAsync(arquivoHtmlSaida, RenderizadorHtmlAnaliseDdl.Renderizar(resultado, idioma), EncodingUtf8ComBom);
 
         return (arquivoJsonSaida, arquivoHtmlSaida);
     }
@@ -856,8 +857,12 @@ public static class AnalisadorDdlSchema
                 resultado.FonteDataUltimaManutencao = "MON$DATABASE.MON$CREATION_DATE";
             }
         }
-        catch
+        catch (Exception ex)
         {
+            resultado.FonteDataUltimaManutencao = TextoLocalizado.Obter(
+                idioma,
+                $"MON$DATABASE.MON$CREATION_DATE (unavailable: {ex.GetType().Name}: {ex.Message})",
+                $"MON$DATABASE.MON$CREATION_DATE (indisponível: {ex.GetType().Name}: {ex.Message})");
         }
 
         resultado.Achados = resultado.Achados
@@ -1063,4 +1068,6 @@ public static class AnalisadorDdlSchema
     {
         WriteIndented = true
     };
+
+    private static readonly UTF8Encoding EncodingUtf8ComBom = new(encoderShouldEmitUTF8Identifier: true);
 }

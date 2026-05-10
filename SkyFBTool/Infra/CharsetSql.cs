@@ -56,13 +56,16 @@ public static class CharsetSql
 
     private static Encoding TentarResolverOuUtf8(string nome)
     {
-        try
+        bool encodingDisponivel = Encoding.GetEncodings()
+            .Any(e =>
+                string.Equals(e.Name, nome, StringComparison.OrdinalIgnoreCase) ||
+                string.Equals(e.DisplayName, nome, StringComparison.OrdinalIgnoreCase));
+
+        if (encodingDisponivel)
         {
             return Encoding.GetEncoding(nome);
         }
-        catch
-        {
-            return new UTF8Encoding(false);
-        }
+
+        return new UTF8Encoding(false);
     }
 }
