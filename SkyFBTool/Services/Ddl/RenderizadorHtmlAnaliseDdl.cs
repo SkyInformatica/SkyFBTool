@@ -23,7 +23,8 @@ public static class RenderizadorHtmlAnaliseDdl
         return new ModeloRelatorio
         {
             Lang = idioma == IdiomaSaida.PortugueseBrazil ? "pt-BR" : "en",
-            Titulo = TextoLocalizado.Obter(idioma, "DDL Risk Analysis", "Análise de Risco DDL"),
+            TituloDocumento = TextoLocalizado.Obter(idioma, "DDL Risk Analysis", "Analise de Risco DDL"),
+            Titulo = TextoLocalizado.Obter(idioma, "DDL Risk Analysis", "An\u00E1lise de Risco DDL"),
             OrigemLabel = TextoLocalizado.Obter(idioma, "Source", "Origem"),
             OrigemExibicao = H(origemExibicao),
             OrigemTooltip = H(resultado.Origem),
@@ -324,6 +325,7 @@ public static class RenderizadorHtmlAnaliseDdl
     private sealed class ModeloRelatorio
     {
         public string Lang { get; init; } = "en";
+        public string TituloDocumento { get; init; } = "DDL Risk Analysis";
         public string Titulo { get; init; } = string.Empty;
         public string OrigemLabel { get; init; } = string.Empty;
         public string OrigemExibicao { get; init; } = string.Empty;

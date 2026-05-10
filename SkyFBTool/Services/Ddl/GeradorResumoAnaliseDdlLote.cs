@@ -88,7 +88,7 @@ public static class GeradorResumoAnaliseDdlLote
         Directory.CreateDirectory(Path.GetDirectoryName(arquivoJson)!);
 
         await File.WriteAllTextAsync(arquivoJson, JsonSerializer.Serialize(resumo, JsonOptions));
-        await File.WriteAllTextAsync(arquivoHtml, RenderizarHtml(resumo, idioma));
+        await File.WriteAllTextAsync(arquivoHtml, RenderizarHtml(resumo, idioma), EncodingUtf8ComBom);
         return (arquivoJson, arquivoHtml);
     }
 
@@ -98,8 +98,9 @@ public static class GeradorResumoAnaliseDdlLote
         sb.AppendLine("<!DOCTYPE html>");
         sb.AppendLine("<html><head><meta charset=\"utf-8\" />");
         sb.AppendLine("<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\" />");
-        sb.AppendLine($"<title>{Html(TextoLocalizado.Obter(idioma, "Batch DDL Analysis Summary", "Resumo da Análise DDL em Lote"))}</title>");
+        sb.AppendLine($"<title>{Html(TextoLocalizado.Obter(idioma, "Batch DDL Analysis Summary", "Resumo da An\u00E1lise DDL em Lote"))}</title>");
         sb.AppendLine("<style>");
+        sb.AppendLine("@page { margin: 12mm; }");
         sb.AppendLine("body { font-family: Segoe UI, Arial, sans-serif; margin: 20px; color: #1f2937; }");
         sb.AppendLine("h1, h2 { margin: 0 0 12px 0; }");
         sb.AppendLine(".meta { margin-bottom: 14px; font-size: 14px; }");
@@ -118,7 +119,7 @@ public static class GeradorResumoAnaliseDdlLote
         sb.AppendLine("@media (max-width: 900px) { body { margin: 12px; } }");
         sb.AppendLine("</style>");
         sb.AppendLine("</head><body>");
-        sb.AppendLine($"<h1>{Html(TextoLocalizado.Obter(idioma, "Batch DDL Analysis Summary", "Resumo da Análise DDL em Lote"))}</h1>");
+        sb.AppendLine($"<h1>{Html(TextoLocalizado.Obter(idioma, "Batch DDL Analysis Summary", "Resumo da An\u00E1lise DDL em Lote"))}</h1>");
         sb.AppendLine("<div class=\"meta\">");
         sb.AppendLine($"<div><strong>{Html(TextoLocalizado.Obter(idioma, "Generated at (UTC)", "Gerado em (UTC)"))}:</strong> {resumo.GeradoEmUtc:yyyy-MM-dd HH:mm:ss}</div>");
         sb.AppendLine("</div>");
@@ -256,6 +257,8 @@ public static class GeradorResumoAnaliseDdlLote
     {
         WriteIndented = true
     };
+
+    private static readonly UTF8Encoding EncodingUtf8ComBom = new(encoderShouldEmitUTF8Identifier: true);
 }
 
 public sealed class EntradaResumoAnaliseDdlLote

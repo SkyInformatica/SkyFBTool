@@ -3,9 +3,9 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>{{ Titulo }}</title>
+  <title>{{ TituloDocumento }}</title>
   <style>
-    @page { size: A4; margin: 12mm; }
+    @page { margin: 12mm; }
     body { font-family: Segoe UI, Arial, sans-serif; margin: 20px; color: #1f2937; }
     h1, h2 { margin: 0 0 12px 0; }
     .meta { margin-bottom: 14px; font-size: 14px; }
