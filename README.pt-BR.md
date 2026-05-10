@@ -2,67 +2,118 @@
 
 [English](./README.md) | Português (Brasil)
 
-SkyFBTool é uma CLI em .NET 8 para Firebird que cobre exportação/importação de SQL, execução operacional de scripts, extração de schema, comparação de schema e análise de risco DDL para Firebird 2.5 / 3.0 / 4.0 / 5.0. É focada em grandes volumes, execução em streaming, segurança de charset e fluxos de revisão amigáveis para DBA.
+SkyFBTool é uma plataforma de engenharia operacional para Firebird, focada em execução resiliente, governança estrutural e mitigação de riscos em cenários reais de produção.  
+Ela combina operações de dados em streaming, fluxos de governança de schema e análise de risco DDL para Firebird `2.5`, `3.0`, `4.0` e `5.0`, incluindo cenários legados de charset.
 
-## Público-alvo
+## Visão do Projeto
 
-- DBA: execução operacional, comparação de schema, priorização de risco e validação de rollout.
-- Desenvolvedor: artefatos reproduzíveis de schema, revisão de migração, saídas compatíveis com CI e validações automatizadas.
+O SkyFBTool foi projetado para tornar operações Firebird mais previsíveis, auditáveis e seguras:
 
-## Guia de escolha de comando
+- engenharia preventiva em vez de correções reativas;
+- sinais estruturais e operacionais no mesmo fluxo de decisão;
+- artefatos reproduzíveis para revisão humana e rollout controlado;
+- padrões de execução resiliente para operações de grande volume e longa duração.
 
-- Precisa mover dados de tabela para script SQL: use `export`.
-- Precisa executar script(s) SQL no banco: use `import` (ou `exec-sql` para contexto de manutenção).
-- Precisa gerar snapshots de schema (`.sql` + `.schema.json`): use `ddl-extract`.
-- Precisa comparar estrutura entre dois schemas: use `ddl-diff`.
-- Precisa de relatório de risco/priorização com severidade e sinais operacionais: use `ddl-analyze`.
+## Por que SkyFBTool
 
-## O que há de novo
+| Pilar | Entrega |
+|---|---|
+| Engenharia operacional | Execução em streaming, processamento com retry, commits controlados, visibilidade de progresso |
+| Governança de schema | Extração de snapshots, detecção de drift, fluxos de diff, saídas para revisão |
+| Mitigação de riscos | Achados por severidade, priorização por tabela, sinais operacionais via MON$ |
+| Prontidão para legado | Firebird `2.5 -> 5.0`, comportamento seguro para charset, compatibilidade com `CHARSET NONE` |
 
-- [CHANGELOG.pt-BR.md](./CHANGELOG.pt-BR.md)
-- [Releases](https://github.com/SkyInformatica/SkyFBTool/releases)
+## Principais Capacidades
 
-## Releases automatizadas
+### Engenharia operacional resiliente
 
-Este repositório possui um pipeline GitHub Actions em `.github/workflows/release.yml`.
+- exportação/importação em streaming para arquivos SQL grandes;
+- parser SQL com suporte a comentários, strings e `SET TERM`;
+- controles de execução: `--continue-on-error`, pacing de commit, intervalo de progresso;
+- divisão de saída para exportações grandes (`--split-size-mb`);
+- logging operacional para troubleshooting e auditoria.
 
-Como funciona:
-- Disparo: push de tag no formato `v*` (exemplo: `v0.1.0`)
-- Pipeline: restore, build, testes, publish (`win-x64` e `linux-x64`)
-- Saída: GitHub Release com artefatos compilados (`.tar.gz`)
+### Toolkit de governança de schema
 
-Exemplo de comando para tag:
+- `ddl-extract`: artefatos normalizados de schema (`.sql` + `.schema.json`);
+- `ddl-diff`: detecção de drift estrutural com saídas SQL, JSON e HTML;
+- workflows baseados em snapshot para promoção e sincronização controlada.
 
-```bash
-git tag v0.1.0
-git push origin v0.1.0
-```
+### Análise de risco estrutural
 
-## Recursos principais
+- `ddl-analyze`: análise de risco de schema com severidade e priorização;
+- índice de risco e priorização por tabela (`P0..P3`);
+- checks operacionais via `MON$` no modo por banco;
+- análise opcional de prioridade por volume (estimativa ou contagem exata).
 
-- Comandos `export`, `import` e `exec-sql`
-- Comandos `ddl-extract`, `ddl-diff` e `ddl-analyze` para extração, comparação e análise de risco de schema
-- `ddl-extract` captura tabelas, colunas, domínios, sequências, views, procedimentos, funções armazenadas, gatilhos, PKs, constraints únicas, constraints `CHECK`, FKs e índices de usuário em `.sql` e `.schema.json`
-- Exportação/importação em streaming para arquivos SQL grandes
-- `--filter`, `--filter-file` e modo avançado `--query-file`
-- Remapeamento de tabela destino com `--target-table`
-- `--blob-format` (`Hex` ou `Base64`)
-- `--insert-mode` (`insert` ou `upsert` com `UPDATE OR INSERT ... MATCHING`)
-- `--commit-every` e `--progress-every` configuráveis
-- Divisão de arquivo com `--split-size-mb` (padrão: 100 MB)
-- Modo legado de charset para `CHARSET NONE` com `--legacy-win1252`
-- Aviso para arquivos grandes de filtro/consulta (> 64 KB)
+## Diferenciais
 
-## Organização do código
+- foco em risco operacional real, não apenas execução de comandos;
+- combina análise estrutural e operacional no mesmo fluxo;
+- suporte prático para restrições legadas de Firebird e charset;
+- saídas orientadas a auditoria e decisões de rollout em etapas;
+- priorização de correção orientada por severidade para workflow de DBA.
 
-- `Program.cs`: ponto de entrada mínimo
-- `Cli/CliApp.cs`: roteamento da CLI + ajuda
-- `Cli/Commands/*`: um arquivo por comando (`export`, `import`, `ddl-extract`, `ddl-diff`, `ddl-analyze`)
-- `Cli/Common/*`: utilitários compartilhados de parsing de argumentos
-- `Services/*`: lógica por contexto (Export, Import, Ddl)
-- `Infra/*`: adaptadores técnicos (conexão, encoding, arquivos)
+## Casos de Uso Reais
 
-## Uso
+| Cenário | Ferramentas |
+|---|---|
+| Recuperação/movimentação massiva de dados | `export` + `import` |
+| Auditoria estrutural de risco | `ddl-analyze` |
+| Detecção de drift entre ambientes | `ddl-diff` |
+| Baseline de governança DDL | `ddl-extract` |
+| Execução operacional de scripts | `exec-sql` |
+
+## Fluxos Recomendados
+
+### 1) Fluxo de migração de dados (DBA/operação)
+1. Execute `export` na tabela/consulta de origem.
+2. Revise SQL gerado e parâmetros de split/charset.
+3. Execute `import` no destino com monitoramento de progresso/log.
+4. Valide o resumo e os logs de execução.
+
+### 2) Fluxo de promoção de schema (DBA + dev)
+1. Rode `ddl-extract` na origem e no destino.
+2. Rode `ddl-diff` para gerar artefatos SQL/JSON/HTML.
+3. Revise SQL e relatório HTML em homologação.
+4. Aplique o SQL aprovado e rode novo `ddl-diff` para confirmar convergência.
+
+### 3) Fluxo de triagem de risco (DBA)
+1. Execute `ddl-analyze` (preferencialmente com `--database`).
+2. Comece pelas tabelas priorizadas no relatório HTML.
+3. Trate `critical/high` primeiro, depois `medium`.
+4. Mantenha `low` como backlog de otimização após validação por plano/carga.
+
+### 4) Fluxo de execução operacional
+1. Execute scripts de manutenção com `exec-sql`/`import`.
+2. Acompanhe progresso e logs por comando.
+3. Use `--continue-on-error` apenas quando continuidade for requisito explícito.
+
+## Mapa de Documentação
+
+### Documentação por comando
+
+#### Operações de dados
+- `export`: [docs/commands/pt-BR/export.md](./docs/commands/pt-BR/export.md)
+- `import`: [docs/commands/pt-BR/import.md](./docs/commands/pt-BR/import.md)
+- `exec-sql`: [docs/commands/pt-BR/exec-sql.md](./docs/commands/pt-BR/exec-sql.md)
+
+#### Engenharia de schema
+- `ddl-extract`: [docs/commands/pt-BR/ddl-extract.md](./docs/commands/pt-BR/ddl-extract.md)
+- `ddl-diff`: [docs/commands/pt-BR/ddl-diff.md](./docs/commands/pt-BR/ddl-diff.md)
+- `ddl-analyze`: [docs/commands/pt-BR/ddl-analyze.md](./docs/commands/pt-BR/ddl-analyze.md)
+
+#### Critérios técnicos
+- Matriz de severidade/validação do `ddl-analyze`: [docs/commands/pt-BR/ddl-analyze-severity-and-validations.md](./docs/commands/pt-BR/ddl-analyze-severity-and-validations.md)
+
+### Documentação conceitual
+
+- Modelo de mitigação de riscos: [docs/concepts/pt-BR/risk-mitigation.md](./docs/concepts/pt-BR/risk-mitigation.md)
+- Modelo de governança de schema: [docs/concepts/pt-BR/schema-governance.md](./docs/concepts/pt-BR/schema-governance.md)
+- Modelo de resiliência operacional: [docs/concepts/pt-BR/operational-resilience.md](./docs/concepts/pt-BR/operational-resilience.md)
+- Modelo de compatibilidade Firebird: [docs/concepts/pt-BR/firebird-compatibility.md](./docs/concepts/pt-BR/firebird-compatibility.md)
+
+## Início Rápido
 
 ```powershell
 SkyFBTool export [opções]
@@ -73,158 +124,19 @@ SkyFBTool ddl-diff [opções]
 SkyFBTool ddl-analyze [opções]
 ```
 
-## Fluxos recomendados
+## Referências Operacionais
 
-### 1) Fluxo de migração de dados (DBA/operação)
-1. Execute `export` na tabela/consulta de origem.
-2. Revise o SQL gerado e os parâmetros de split/charset.
-3. Execute `import` no destino monitorando progresso e log.
-4. Valide o log de importação e o resumo final.
-
-### 2) Fluxo de promoção de schema (DBA + dev)
-1. Rode `ddl-extract` na origem e no destino.
-2. Rode `ddl-diff` para gerar comparação SQL/json/html.
-3. Revise o HTML e o SQL do diff em homologação.
-4. Aplique o SQL aprovado e rode um novo `ddl-diff` para confirmar a convergência.
-
-### 3) Fluxo de triagem de risco (DBA)
-1. Execute `ddl-analyze` (preferencialmente em `--database`).
-2. Comece pela seção de priorização por tabela no relatório HTML.
-3. Trate primeiro itens `critical/high`, depois `medium`.
-4. Use itens `low` como backlog de otimização após validação por plano/carga.
-
-### Exemplo de exportação
-
-```powershell
-SkyFBTool export --database "C:\dados\exemplo.fdb" --table "TABELA_EXEMPLO" --output "C:\exports\" --commit-every 10000
-```
-
-### Exemplo de importação
-
-```powershell
-SkyFBTool import --database "C:\dados\exemplo.fdb" --input "C:\exports\tabela_exemplo.sql" --continue-on-error
-SkyFBTool import --database "C:\dados\exemplo.fdb" --inputs-batch "C:\exports\*.sql" --continue-on-error
-SkyFBTool exec-sql --database "C:\dados\exemplo.fdb" --script "C:\scripts\patch.sql" --continue-on-error
-```
-
-### Exemplos de extração e diff de DDL
-
-```powershell
-SkyFBTool ddl-extract --database "C:\dados\origem.fdb" --output "C:\ddl\origem"
-SkyFBTool ddl-extract --database "C:\dados\alvo.fdb" --output "C:\ddl\alvo"
-SkyFBTool ddl-diff --source "C:\ddl\origem.schema.json" --target "C:\ddl\alvo.schema.json" --output "C:\ddl\comparacao"
-SkyFBTool ddl-analyze --input "C:\ddl\origem.schema.json" --output "C:\ddl\analise"
-SkyFBTool ddl-analyze --input "C:\ddl\origem.schema.json" --ignore-table-prefix LOG_ --ignore-table-prefixes TMP_,IBE$
-SkyFBTool ddl-analyze --database "C:\dados\origem.fdb" --output "C:\ddl\analise_do_banco"
-SkyFBTool ddl-analyze --databases-batch "C:\dados\*.fdb" --output "C:\ddl\analises_lote\"
-SkyFBTool ddl-analyze --input "C:\ddl\origem.schema.json" --severity-config ".\docs\examples\ddl-severity.sample.json"
-SkyFBTool ddl-analyze --input "C:\ddl\origem.schema.json" --description "análise no banco de dados do cliente" --output "C:\ddl\analise_com_contexto"
-```
-
-## Observações
-
-- Os relatórios de DDL e as mensagens de runtime da CLI seguem a detecção da cultura do SO (`English` como padrão, `pt-BR` quando a cultura do sistema é português do Brasil).
-- `ddl-extract` classifica falhas de extração por categoria raiz (`incompatible_ods`, `permission_denied`, `database_file_access`, `metadata_query_failure`, `connection_failure`, `unknown`).
-- Arquivos de saída do `ddl-diff`: `.sql`, `.json` e `.html`.
-- O relatório do `ddl-diff` inclui Top 10 achados críticos do alvo (com severidade), ordem sugerida de blocos SQL e checklist pós-aplicação.
-- Arquivos de saída do `ddl-analyze`: `.json` e `.html`, com resumo por tipo/tabela e filtros no HTML.
-- O relatório HTML do `ddl-analyze` inclui a seção **Tabelas priorizadas para correção** com `Prioridade` (`P0..P3`), `Índice de risco` e `Qtde`, além de legenda de prioridade ao lado dos critérios de severidade.
-- No `ddl-analyze --databases-batch`, também é gerado um resumo consolidado: `batch_analysis_summary_*.json` e `.html`.
-- `ddl-analyze` suporta dois modos de entrada: arquivo (`--input/--source`) ou conexão direta no banco (`--database` + opções de conexão).
-- No `ddl-analyze --database`, o relatório também inclui achados operacionais baseados nas tabelas de monitoramento do Firebird (`MON$`), como sinais de pressão de retenção transacional.
-- `ddl-analyze` detecta índices redundantes por prefixo (por exemplo, `(A)` vs `(A,B)`) como achados de otimização.
-- `ddl-analyze` suporta modo em lote com `--databases-batch` (`*` e `?`) para analisar vários arquivos `.fdb`.
-- `ddl-analyze` aceita `--ignore-table-prefix` (repetível) e `--ignore-table-prefixes` (lista por vírgula) para reduzir ruído de tabelas técnicas.
-- `ddl-analyze` aceita `--severity-config` para sobrescrever severidade por código de achado.
-- `ddl-analyze` aceita `--description` para incluir texto de contexto nos metadados do JSON e do HTML.
-- `ddl-analyze` suporta `--volume-analysis on|off` (padrão `on`) para habilitar/desabilitar a análise de prioridade por volume.
-- `ddl-analyze` usa estimativa por índice como padrão e executa `COUNT(*)` exato apenas quando `--volume-count-exact on` é informado explicitamente.
-- Use `docs/examples/ddl-severity.sample.json` como referência de formato (cobre todos os códigos atuais).
-- Saídas reproduzíveis de exemplo do `ddl-analyze`: `docs/examples/ddl-analyze-sample*.{sql,json,html}`.
-- Valores aceitos de severidade: `critical`, `high`, `medium`, `low`.
-- O formato do JSON é somente em inglês: `overrides`, `code`, `severity`.
-
-## Principais opções de exportação
-
-- `--database` caminho do banco Firebird
-- `--table` tabela de origem
-- `--target-table` tabela destino nos `INSERT`s gerados
-- `--output` arquivo ou diretório de saída
-- `--host` host do Firebird (padrão: `localhost`)
-- `--port` porta do Firebird (padrão: `3050`)
-- `--user` usuário do Firebird (padrão: `sysdba`)
-- `--password` senha do Firebird (padrão: `masterkey`)
-- `--charset` `WIN1252 | ISO8859_1 | UTF8 | NONE`
-- `--filter` condição simples (opcional)
-- `--filter-file` lê condição simples de arquivo
-- `--query-file` lê `SELECT` completo de arquivo (modo avançado)
-- `--blob-format` `Hex | Base64`
-- `--insert-mode` `insert | upsert` (`upsert` exige PK e escreve `MATCHING`)
-- `--commit-every` adiciona `COMMIT` a cada N linhas
-- `--progress-every` intervalo de progresso
-- `--split-size-mb` tamanho da divisão em MB (`0` desativa)
-- `--legacy-win1252` modo legado para `CHARSET NONE`
-- `--sanitize-text` sanitiza textos antes de escrever o SQL
-- `--escape-newlines` escapa quebras de linha em campos texto
-- `--continue-on-error` continua exportando se uma linha falhar
-
-Regras:
-- Não combinar `--query-file` com `--filter` ou `--filter-file`.
-- `--query-file` deve conter um `SELECT` completo.
-- `--filter` aceita prefixo `WHERE` (removido automaticamente).
-
-## Principais opções de importação
-
-- `--database` caminho do banco Firebird
-- `--input` arquivo SQL de entrada
-- `--script` alias explícito de `--input`
-- `--inputs-batch` padrão wildcard para múltiplos arquivos SQL de entrada
-- `--input-batch` alias de `--inputs-batch`
-- `--scripts-batch` alias de `--inputs-batch`
-- `--host` host do Firebird (padrão: `localhost`)
-- `--port` porta do Firebird (padrão: `3050`)
-- `--user` usuário do Firebird (padrão: `sysdba`)
-- `--password` senha do Firebird (padrão: `masterkey`)
-- `--progress-every` intervalo de progresso
-- `--continue-on-error` continua importando após erros de comando
-- use apenas um modo de entrada por execução: `--input/--script` ou `--inputs-batch`
-- status no resumo do lote:
-  - `Sucesso`: arquivo concluído sem erros de comandos SQL
-  - `Sucesso com erros`: arquivo concluído com erros de comando usando `--continue-on-error`
-  - `Falha`: arquivo interrompido por erro fatal
+- Changelog: [CHANGELOG.pt-BR.md](./CHANGELOG.pt-BR.md)
+- Releases: [GitHub Releases](https://github.com/SkyInformatica/SkyFBTool/releases)
+- Padrão de documentação: [DOCS_STANDARD.md](./DOCS_STANDARD.md)
+- Schema de referência para override de severidade: `docs/examples/ddl-severity.sample.json`
+- Amostras reproduzíveis de análise: `docs/examples/ddl-analyze-sample*.{sql,json,html}`
 
 ## Testes
 
 ```powershell
 dotnet test SkyFBTool.Tests\SkyFBTool.Tests.csproj -p:RestoreSources=https://api.nuget.org/v3/index.json
 ```
-
-### O que os testes garantem hoje
-
-- Exportação:
-  - composição segura/válida de `SELECT` (`table`, `columns`, `filter`, `query-file`);
-  - consistência na geração de SQL (`INSERT`/`UPSERT`, formatos de BLOB, escape de newline, `commit-every`);
-  - cobertura de charset e comportamento legado (`UTF8`, `WIN1252`, `ISO8859_1`, `NONE` + modo legado);
-  - exclusão de colunas calculadas/somente leitura e cenários de round-trip export/import.
-- Importação / execução SQL:
-  - comportamento do parser streaming (`SET TERM`, comentários, literais de string);
-  - comportamento fail-fast vs `--continue-on-error` e geração de log de execução;
-  - fluxo de entrada em lote, validação de parâmetros e comportamento central de progresso/commit.
-- Fluxos DDL:
-  - `ddl-extract` gerando snapshot/DDL dos objetos principais;
-  - `ddl-diff` detectando mudanças estruturais e sugerindo SQL;
-  - `ddl-analyze` com validações estruturais, override de severidade e composição de resumos;
-  - checks operacionais (`MON$`) com limites principais e agregação do resumo em lote.
-- Infra e CLI:
-  - utilitários de detecção/resolução de charset e divisão de arquivo de saída;
-  - validação de opções da CLI e classificação contextual de erros.
-
-### Lacunas de cobertura e próximas prioridades
-
-- Resiliência operacional de `MON$` em edge cases de versão/permissão do Firebird.
-- Combinações mais profundas de dependências reais no `ddl-diff`, além da ordenação base já implementada.
-- Validação de estresse de import/export em execuções longas e datasets de produção (pressão de recurso e estabilidade prolongada).
-- Fluxos de lote com resultados mistos (falhas parciais e bases muito heterogêneas).
 
 Testes de integração:
 
@@ -233,48 +145,38 @@ $env:SKYFBTOOL_TEST_RUN_INTEGRATION="true"
 .\SkyFBTool.Tests\run-integration-tests.ps1
 ```
 
-## Guia rápido de troubleshooting
+## Releases automatizadas
 
-- Falha com erros SQL:
-  - Consulte o log por execução (`*_import_log_*.log`) e o resumo final.
-- Problema de charset/acentuação:
-  - Defina `--charset` explícito; use `--legacy-win1252` só em cenário legado `CHARSET NONE` confirmado.
-- Execução/log muito grande:
-  - Use opções de split/progresso e prefira saída redirecionada em CI.
-- `ddl-analyze` sem achados operacionais:
-  - Confirme modo por banco (`--database` ou `--databases-batch`) e permissões de leitura em `MON$`.
+Este repositório inclui um pipeline de release em `.github/workflows/release.yml`.
 
-## Padrão de documentação
+- Disparo: push de tag no formato `v*` (ex.: `v0.1.0`)
+- Pipeline: restore, build, testes, publish (`win-x64`, `linux-x64`)
+- Saída: GitHub Release com artefatos compilados (`.tar.gz`)
 
-- [DOCS_STANDARD.md](./DOCS_STANDARD.md)
+Exemplo de tag:
 
-## Documentação por comando
-
-- `export`: [docs/commands/pt-BR/export.md](./docs/commands/pt-BR/export.md)
-- `import`: [docs/commands/pt-BR/import.md](./docs/commands/pt-BR/import.md)
-- `exec-sql`: [docs/commands/pt-BR/exec-sql.md](./docs/commands/pt-BR/exec-sql.md)
-- `ddl-extract`: [docs/commands/pt-BR/ddl-extract.md](./docs/commands/pt-BR/ddl-extract.md)
-- `ddl-diff`: [docs/commands/pt-BR/ddl-diff.md](./docs/commands/pt-BR/ddl-diff.md)
-- `ddl-analyze`: [docs/commands/pt-BR/ddl-analyze.md](./docs/commands/pt-BR/ddl-analyze.md)
-- Critérios de severidade/validação do `ddl-analyze`: [docs/commands/pt-BR/ddl-analyze-severity-and-validations.md](./docs/commands/pt-BR/ddl-analyze-severity-and-validations.md)
+```bash
+git tag v0.1.0
+git push origin v0.1.0
+```
 
 ## Dependências
 
-- `Scriban` é usado para renderizar o HTML do `ddl-analyze` a partir de template.
+- `Scriban` é usado para renderizar relatórios HTML do `ddl-analyze` a partir de templates.
 
-## Isenção de responsabilidade
+## Isenção de Responsabilidade
 
-O SkyFBTool é distribuído sob a licença MIT, "NO ESTADO EM QUE SE ENCONTRA", sem garantias de qualquer natureza.
+O SkyFBTool é fornecido sob licença MIT, "NO ESTADO EM QUE SE ENCONTRA", sem garantias de qualquer natureza.
 
 Os autores não se responsabilizam por:
 - perda de dados
-- corrupção de bancos
+- corrupção de banco de dados
 - falhas de execução
 - danos diretos ou indiretos
-- uso incorreto
-- impactos causados a terceiros
+- uso indevido
+- impactos em terceiros
 
-Valide sempre em ambiente de homologação antes do uso em produção.
+Sempre valide em ambiente de homologação antes do uso em produção.
 
 ## Licença
 
