@@ -11,6 +11,10 @@
     .meta { margin-bottom: 14px; font-size: 14px; }
     .kpi { display: flex; gap: 10px; flex-wrap: wrap; margin: 10px 0 18px; }
     .pill { border: 1px solid #d1d5db; border-radius: 12px; padding: 8px 10px; background: #f9fafb; font-size: 13px; }
+    .pill.critical { color: #7f1d1d; background: #fee2e2; border-color: #fca5a5; }
+    .pill.high { color: #9a3412; background: #ffedd5; border-color: #fdba74; }
+    .pill.medium { color: #1e3a8a; background: #dbeafe; border-color: #93c5fd; }
+    .pill.low { color: #065f46; background: #d1fae5; border-color: #86efac; }
     .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 8px 0 16px; }
     .card { border: 1px solid #e5e7eb; border-radius: 10px; background: #fff; padding: 10px; }
     .criteria-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 10px; align-items: start; }
@@ -78,10 +82,10 @@
   </div>
   <div class="kpi">
     <div class="pill"><strong>{{ TotalLabel }}:</strong> {{ TotalAchados }}</div>
-    <div class="pill"><strong>{{ CriticosLabel }}:</strong> {{ TotalCriticos }}</div>
-    <div class="pill"><strong>{{ AltosLabel }}:</strong> {{ TotalAltos }}</div>
-    <div class="pill"><strong>{{ MediosLabel }}:</strong> {{ TotalMedios }}</div>
-    <div class="pill"><strong>{{ BaixosLabel }}:</strong> {{ TotalBaixos }}</div>
+    <div class="pill critical"><strong>{{ CriticosLabel }}:</strong> {{ TotalCriticos }}</div>
+    <div class="pill high"><strong>{{ AltosLabel }}:</strong> {{ TotalAltos }}</div>
+    <div class="pill medium"><strong>{{ MediosLabel }}:</strong> {{ TotalMedios }}</div>
+    <div class="pill low"><strong>{{ BaixosLabel }}:</strong> {{ TotalBaixos }}</div>
   </div>
   <div class="card criteria">
     <h2>{{ CriteriosSeveridadeLabel }}</h2>

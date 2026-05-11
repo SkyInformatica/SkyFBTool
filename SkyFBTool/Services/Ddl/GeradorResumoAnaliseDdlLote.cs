@@ -106,6 +106,10 @@ public static class GeradorResumoAnaliseDdlLote
         sb.AppendLine(".meta { margin-bottom: 14px; font-size: 14px; }");
         sb.AppendLine(".kpi { display: flex; gap: 10px; flex-wrap: wrap; margin: 10px 0 18px; }");
         sb.AppendLine(".pill { border: 1px solid #d1d5db; border-radius: 12px; padding: 8px 10px; background: #f9fafb; font-size: 13px; }");
+        sb.AppendLine(".pill.bases-analisadas { color: #1e3a8a; background: #dbeafe; border-color: #93c5fd; }");
+        sb.AppendLine(".pill.bases-com-achados { color: #9a3412; background: #ffedd5; border-color: #fdba74; }");
+        sb.AppendLine(".pill.bases-com-criticos { color: #7f1d1d; background: #fee2e2; border-color: #fca5a5; }");
+        sb.AppendLine(".pill.total-achados { color: #065f46; background: #d1fae5; border-color: #86efac; }");
         sb.AppendLine(".card { border: 1px solid #e5e7eb; border-radius: 10px; background: #fff; padding: 10px; margin: 8px 0 16px; }");
         sb.AppendLine(".table-wrap { max-height: 70vh; overflow: auto; border: 1px solid #e5e7eb; border-radius: 8px; }");
         sb.AppendLine("table { width: 100%; border-collapse: collapse; }");
@@ -125,10 +129,10 @@ public static class GeradorResumoAnaliseDdlLote
         sb.AppendLine("</div>");
 
         sb.AppendLine("<div class=\"kpi\">");
-        sb.AppendLine($"<div class=\"pill\"><strong>{Html(TextoLocalizado.Obter(idioma, "Databases", "Bases"))}:</strong> {resumo.TotalBases}</div>");
-        sb.AppendLine($"<div class=\"pill\"><strong>{Html(TextoLocalizado.Obter(idioma, "Databases with findings", "Bases com achados"))}:</strong> {resumo.BasesComAchados}</div>");
-        sb.AppendLine($"<div class=\"pill\"><strong>{Html(TextoLocalizado.Obter(idioma, "Databases with critical findings", "Bases com achados críticos"))}:</strong> {resumo.BasesComCriticos}</div>");
-        sb.AppendLine($"<div class=\"pill\"><strong>{Html(TextoLocalizado.Obter(idioma, "Total findings", "Total de achados"))}:</strong> {resumo.TotalAchados}</div>");
+        sb.AppendLine($"<div class=\"pill bases-analisadas\"><strong>{Html(TextoLocalizado.Obter(idioma, "Databases analyzed", "Bases analisadas"))}:</strong> {resumo.TotalBases}</div>");
+        sb.AppendLine($"<div class=\"pill bases-com-achados\"><strong>{Html(TextoLocalizado.Obter(idioma, "Databases with findings", "Bases com achados"))}:</strong> {resumo.BasesComAchados}</div>");
+        sb.AppendLine($"<div class=\"pill bases-com-criticos\"><strong>{Html(TextoLocalizado.Obter(idioma, "Databases with critical findings", "Bases com achados críticos"))}:</strong> {resumo.BasesComCriticos}</div>");
+        sb.AppendLine($"<div class=\"pill total-achados\"><strong>{Html(TextoLocalizado.Obter(idioma, "Total findings generated", "Total de achados gerados"))}:</strong> {resumo.TotalAchados}</div>");
         sb.AppendLine("</div>");
 
         sb.AppendLine("<div class=\"card\">");
@@ -155,7 +159,14 @@ public static class GeradorResumoAnaliseDdlLote
             sb.AppendLine($"<td>{item.TotalMedios}</td>");
             sb.AppendLine($"<td>{item.TotalBaixos}</td>");
             sb.AppendLine($"<td>{item.TotalAchados}</td>");
-            sb.AppendLine($"<td><span class='severity-pill {Html(item.MaiorSeveridade)}'>{Html(SeveridadeRotulo(item.MaiorSeveridade, idioma))}</span></td>");
+            if (string.Equals(item.MaiorSeveridade, "none", StringComparison.OrdinalIgnoreCase))
+            {
+                sb.AppendLine($"<td>{Html(SeveridadeRotulo(item.MaiorSeveridade, idioma))}</td>");
+            }
+            else
+            {
+                sb.AppendLine($"<td><span class='severity-pill {Html(item.MaiorSeveridade)}'>{Html(SeveridadeRotulo(item.MaiorSeveridade, idioma))}</span></td>");
+            }
             sb.AppendLine($"<td>{Html(item.TopCodigos.Count == 0 ? "-" : string.Join(", ", item.TopCodigos))}</td>");
             sb.AppendLine("</tr>");
         }
@@ -209,6 +220,7 @@ public static class GeradorResumoAnaliseDdlLote
 
     private static string DeterminarMaiorSeveridade(ResultadoAnaliseDdl resultado)
     {
+        if (resultado.TotalAchados == 0) return "none";
         if (resultado.TotalCriticos > 0) return "critical";
         if (resultado.TotalAltos > 0) return "high";
         if (resultado.TotalMedios > 0) return "medium";
@@ -222,7 +234,8 @@ public static class GeradorResumoAnaliseDdlLote
             "critical" => 4,
             "high" => 3,
             "medium" => 2,
-            _ => 1
+            "low" => 1,
+            _ => 0
         };
     }
 
@@ -231,6 +244,7 @@ public static class GeradorResumoAnaliseDdlLote
         if (idioma != IdiomaSaida.PortugueseBrazil)
             return severidade.ToLowerInvariant() switch
             {
+                "none" => "Not applicable",
                 "critical" => "Critical",
                 "high" => "High",
                 "medium" => "Medium",
@@ -240,6 +254,7 @@ public static class GeradorResumoAnaliseDdlLote
 
         return severidade.ToLowerInvariant() switch
         {
+            "none" => "Não aplicável",
             "critical" => "Crítico",
             "high" => "Alto",
             "medium" => "Médio",

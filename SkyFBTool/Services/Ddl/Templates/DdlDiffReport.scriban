@@ -11,6 +11,9 @@
     .meta { margin-bottom: 14px; font-size: 14px; }
     .kpi { display: flex; gap: 10px; flex-wrap: wrap; margin: 10px 0 18px; }
     .pill { border: 1px solid #d1d5db; border-radius: 12px; padding: 8px 10px; background: #f9fafb; font-size: 13px; }
+    .pill.created { color: #065f46; background: #d1fae5; border-color: #86efac; }
+    .pill.altered { color: #9a3412; background: #ffedd5; border-color: #fdba74; }
+    .pill.target-only { color: #7f1d1d; background: #fee2e2; border-color: #fca5a5; }
     .summary-grid { display: grid; grid-template-columns: 3fr 1fr; gap: 12px; margin: 8px 0 16px; }
     .content-grid { display: grid; grid-template-columns: 1fr; gap: 12px; margin: 8px 0 16px; }
     .card { border: 1px solid #e5e7eb; border-radius: 10px; background: #fff; padding: 10px; }
@@ -56,9 +59,9 @@
   </div>
   <div class="kpi">
     <div class="pill"><strong>{{ ComandosLabel }}:</strong> {{ TotalComandos }}</div>
-    <div class="pill"><strong>{{ CriadosLabel }}:</strong> {{ TotalCriados }}</div>
-    <div class="pill"><strong>{{ AlteradosLabel }}:</strong> {{ TotalAlterados }}</div>
-    <div class="pill"><strong>{{ SomenteAlvoLabel }}:</strong> {{ TotalSomenteAlvo }}</div>
+    <div class="pill created"><strong>{{ CriadosLabel }}:</strong> {{ TotalCriados }}</div>
+    <div class="pill altered"><strong>{{ AlteradosLabel }}:</strong> {{ TotalAlterados }}</div>
+    <div class="pill target-only"><strong>{{ SomenteAlvoLabel }}:</strong> {{ TotalSomenteAlvo }}</div>
   </div>
 
   <div class="summary-grid">
