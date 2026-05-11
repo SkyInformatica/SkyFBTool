@@ -184,6 +184,39 @@ public class ExportImportRoundTripTests
     }
 
     [Fact]
+    public async Task Export_ForceWin1252_EmCharsetNone_PreservaAcentosDiversosNoSql()
+    {
+        if (!IntegracaoHabilitada())
+            return;
+
+        const string valorEsperado = "ação, coração, órgão, êxito, infância, maçã";
+        string pastaTemp = CriarPastaTemp();
+        string arquivoBanco = Path.Combine(pastaTemp, "export_none_acentos.fdb");
+        string arquivoSql = Path.Combine(pastaTemp, "export_none_acentos.sql");
+        const string tabela = "TESTE_EXPORT_NONE_ACC";
+
+        try
+        {
+            await CriarBancoAsync(arquivoBanco, "NONE");
+            await CriarTabelaEInserirLinhaAsync(arquivoBanco, "NONE", tabela, valorEsperado);
+
+            var opcoes = CriarOpcoesExportacao(arquivoBanco, null, arquivoSql, tabela);
+            opcoes.ForcarWin1252 = true;
+
+            await using (var destino = new DestinoArquivo(arquivoSql, 100, CharsetSql.ResolverEncodingLeituraSql("WIN1252")))
+                await ExportadorTabelaFirebird.ExportarAsync(opcoes, destino);
+
+            string sql = await File.ReadAllTextAsync(arquivoSql, CharsetSql.ResolverEncodingLeituraSql("WIN1252"));
+            Assert.Contains("SET NAMES WIN1252;", sql, StringComparison.OrdinalIgnoreCase);
+            Assert.Contains(valorEsperado, sql);
+        }
+        finally
+        {
+            TentarExcluirDiretorio(pastaTemp);
+        }
+    }
+
+    [Fact]
     public async Task ExportEImport_RoundTripUtf8_ExecutaNoBanco()
     {
         if (!IntegracaoHabilitada())
@@ -227,6 +260,40 @@ public class ExportImportRoundTripTests
         string pastaTemp = CriarPastaTemp();
         string arquivoBanco = Path.Combine(pastaTemp, "roundtrip_win1252.fdb");
         string arquivoSql = Path.Combine(pastaTemp, "roundtrip_win1252.sql");
+
+        try
+        {
+            await CriarBancoAsync(arquivoBanco, "WIN1252");
+            await CriarTabelaEInserirLinhaAsync(arquivoBanco, "WIN1252", "TESTE_EXPORT", valorEsperado);
+
+            var opcoesExportacao = CriarOpcoesExportacao(arquivoBanco, "WIN1252", arquivoSql, "TESTE_EXPORT");
+            await using (var destino = new DestinoArquivo(arquivoSql, 100, CharsetSql.ResolverEncodingLeituraSql("WIN1252")))
+                await ExportadorTabelaFirebird.ExportarAsync(opcoesExportacao, destino);
+
+            await LimparTabelaAsync(arquivoBanco, "WIN1252", "TESTE_EXPORT");
+
+            var opcoesImportacao = CriarOpcoesImportacao(arquivoBanco, arquivoSql, continuarEmCasoDeErro: false);
+            await ImportadorSql.ImportarAsync(opcoesImportacao);
+
+            string valor = await ObterNomeAsync(arquivoBanco, "WIN1252", "TESTE_EXPORT");
+            Assert.Equal(valorEsperado, valor);
+        }
+        finally
+        {
+            TentarExcluirDiretorio(pastaTemp);
+        }
+    }
+
+    [Fact]
+    public async Task ExportEImport_RoundTripWin1252_ComAcentosDiversos_ExecutaNoBanco()
+    {
+        if (!IntegracaoHabilitada())
+            return;
+
+        const string valorEsperado = "ação, coração, órgão, êxito, infância, maçã";
+        string pastaTemp = CriarPastaTemp();
+        string arquivoBanco = Path.Combine(pastaTemp, "roundtrip_win1252_acentos.fdb");
+        string arquivoSql = Path.Combine(pastaTemp, "roundtrip_win1252_acentos.sql");
 
         try
         {

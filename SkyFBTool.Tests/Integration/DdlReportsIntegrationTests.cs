@@ -113,6 +113,56 @@ CREATE TABLE CLIENTES (
         }
     }
 
+    [Fact]
+    public async Task DdlAnalyze_ComDescricaoAcentuada_DevePreservarNoJsonEHtml()
+    {
+        string pastaTemp = CriarPastaTemp();
+        string arquivoEntrada = Path.Combine(pastaTemp, "entrada.sql");
+        string saida = Path.Combine(pastaTemp, "analise_acentos");
+        const string descricao = "Análise de integridade: ação, coração, órgão, êxito e infância.";
+
+        try
+        {
+            await File.WriteAllTextAsync(arquivoEntrada, """
+SET SQL DIALECT 3;
+CREATE TABLE CLIENTE_SEM_PK (
+  ID INTEGER,
+  NOME VARCHAR(60)
+);
+""");
+
+            await DdlAnalyzeCommand.ExecuteAsync(
+            [
+                "--input", arquivoEntrada,
+                "--description", descricao,
+                "--output", saida
+            ]);
+
+            string arquivoJson = $"{saida}.json";
+            string arquivoHtml = $"{saida}.html";
+
+            Assert.True(File.Exists(arquivoJson));
+            Assert.True(File.Exists(arquivoHtml));
+
+            string json = await File.ReadAllTextAsync(arquivoJson);
+            string html = await File.ReadAllTextAsync(arquivoHtml);
+
+            var resultado = JsonSerializer.Deserialize<ResultadoAnaliseDdl>(json);
+            Assert.NotNull(resultado);
+            Assert.Equal(descricao, resultado!.Description);
+            Assert.True(
+                html.Contains("Análise de integridade", StringComparison.Ordinal) ||
+                html.Contains("An&#225;lise de integridade", StringComparison.Ordinal));
+            Assert.True(
+                html.Contains("ação", StringComparison.Ordinal) ||
+                html.Contains("a&#231;&#227;o", StringComparison.Ordinal));
+        }
+        finally
+        {
+            TentarExcluirDiretorio(pastaTemp);
+        }
+    }
+
     private static bool IntegracaoHabilitada()
     {
         string? flag = Environment.GetEnvironmentVariable("SKYFBTOOL_TEST_RUN_INTEGRATION");
