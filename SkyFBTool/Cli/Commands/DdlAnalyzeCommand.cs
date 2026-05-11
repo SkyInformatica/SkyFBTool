@@ -121,7 +121,7 @@ public static class DdlAnalyzeCommand
         Console.WriteLine(TextoLocalizado.Obter(
             idioma,
             $"Database wildcard resolved to {bancos.Count} file(s).",
-            $"Wildcard de banco resolveu para {bancos.Count} arquivo(s)."));
+            $"Padrão de bancos correspondeu a {bancos.Count} arquivo(s)."));
 
         var entradasResumo = new List<EntradaResumoAnaliseDdlLote>(bancos.Count);
 
