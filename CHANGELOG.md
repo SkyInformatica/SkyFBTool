@@ -12,6 +12,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Import/export now apply automatic transient retry policy (up to 3 attempts) for command execution and file write instability scenarios.
 - `ddl-diff` now supports `--include-domains` to optionally compare `DOMAIN` objects, while ignoring them by default for practical reviews.
+- Integration coverage was expanded for DDL report flows:
+  - batch `ddl-analyze` validates `none` highest severity for databases without findings;
+  - `ddl-diff` validates HTML report print-style and visual KPI markers generation.
 
 ### Changed
 - `ddl-analyze --database` operational analysis was hardened with explicit status/error classification for MON$ collection outcomes (success, partial, or failure context in report metadata).
@@ -24,11 +27,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - DDL sample artifacts and command docs were refreshed to reflect current report/UI behavior.
 - README (EN/PT-BR) was restructured as a strategic documentation portal, and conceptual docs were organized under `docs/concepts/en` and `docs/concepts/pt-BR` with bilingual navigation.
 - Batch DDL analysis summary now uses `Not applicable` for databases without findings, preventing false urgency in highest-severity presentation.
+- PT-BR console message for `ddl-analyze --databases-batch` was refined to clearer wording (`Padrão de bancos correspondeu a ... arquivo(s)`).
 
 ### Fixed
 - Batch `import` summary now correctly classifies files with SQL command errors under `--continue-on-error` as `Succeeded with errors` instead of plain `Succeeded`.
 - DDL report titles now preserve UTF-8 accents correctly in generated PDF/print flows (for example: `Análise de Risco DDL`).
 - Silent exception handling in maintenance timestamp collection was replaced with explicit resilient handling to keep diagnostics consistent.
+
 
 ## [0.4.0] - 2026-04-29
 

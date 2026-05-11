@@ -12,6 +12,9 @@ e o projeto adota [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ### Adicionado
 - ImportaÃ§Ã£o e exportaÃ§Ã£o agora aplicam polÃ­tica de retry automÃ¡tico para falhas transitÃ³rias (atÃ© 3 tentativas) em cenÃ¡rios de instabilidade de execuÃ§Ã£o e escrita.
 - `ddl-diff` agora suporta `--include-domains` para comparar objetos `DOMAIN` de forma opcional, mantendo a ignorÃ¢ncia por padrÃ£o para revisÃµes mais prÃ¡ticas.
+- Cobertura de integraÃ§Ã£o foi ampliada para fluxos de relatÃ³rios DDL:
+  - `ddl-analyze` em lote valida severidade mÃ¡xima `none` para bases sem achados;
+  - `ddl-diff` valida geraÃ§Ã£o de HTML com estilo de impressÃ£o e marcadores visuais de indicadores.
 
 ### Alterado
 - A anÃ¡lise operacional de `ddl-analyze --database` foi reforÃ§ada com classificaÃ§Ã£o explÃ­cita de status/erro da coleta MON$ (sucesso, parcial ou falha com contexto nos metadados do relatÃ³rio).
@@ -24,6 +27,7 @@ e o projeto adota [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Artefatos de exemplo DDL e documentaÃ§Ã£o de comandos foram atualizados para refletir o comportamento visual/funcional atual.
 - README (EN/PT-BR) foi reestruturado como portal estratégico de documentação, e os documentos conceituais foram organizados em `docs/concepts/en` e `docs/concepts/pt-BR` com navegação bilíngue.
 - O resumo da análise DDL em lote agora usa `Não aplicável` para bases sem achados, evitando senso falso de urgência na maior severidade.
+- Mensagem de console em PT-BR do `ddl-analyze --databases-batch` foi refinada para texto mais claro (`Padrão de bancos correspondeu a ... arquivo(s)`).
 
 ### Corrigido
 - Resumo do `import` em lote agora classifica corretamente arquivos com erros de comandos SQL em `--continue-on-error` como `Sucesso com erros`, em vez de `Sucesso`.
