@@ -46,6 +46,18 @@ This document describes exactly which validations `ddl-analyze` runs and how eac
 | `OPERACIONAL_VOLUME_PRIORIDADE_MEDIA` | `medium` | Relevant-volume table with repeated findings | Estimated rows >= 1,000,000 and findings in table >= 2 | Large table with recurring findings; relevant priority. Ex.: `INVOICE_ITEMS` with 2.3M rows and 2 findings. |
 | `OPERACIONAL_VOLUME_PRIORIDADE_BAIXA` | `low` | Medium-volume table with findings | Estimated rows >= 500,000 and findings in table >= 1 | Mid-size table with finding; preventive prioritization. Ex.: `EVENT_LOG` with 700k rows and 1 finding. |
 
+## Field compatibility validation matrix (`CAMPO_*`)
+
+These codes are emitted by the field-compatibility validator and are part of the same `ddl-analyze` findings list.
+
+| Code | Default severity | What it validates | Current rule | Practical explanation |
+|---|---|---|---|---|
+| `CAMPO_TIPO_VAZIO` | `critical` | Missing/empty SQL type | `TipoSql` is null, empty, or whitespace | Column/domain metadata has no valid type for safe DDL generation. |
+| `CAMPO_TAMANHO_EFETIVO_EXCEDIDO` | `critical` | Effective `CHAR/VARCHAR` size exceeds Firebird limit | `(declared length * bytes per character) > 32765` | Text field can exceed the real byte limit depending on charset. |
+| `CAMPO_PRECISAO_NUMERICA_INVALIDA` | `critical` | Invalid `NUMERIC/DECIMAL` precision/scale | Precision outside `1..38`, scale `< 0`, or scale `> precision` | Invalid numeric definition for consistent DDL generation. |
+| `CAMPO_PRECISAO_NUMERICA_INCOMPATIVEL` | `critical` | Precision incompatible with target version | Firebird `< 4` and precision `> 18` | Precision requires newer Firebird capabilities. |
+| `CAMPO_TIPO_INCOMPATIVEL_VERSAO` | `critical` | Type incompatible with target version | Type requires minimum major version (for example `BOOLEAN`>=3; `DECFLOAT/INT128/TIME WITH TIME ZONE/TIMESTAMP WITH TIME ZONE`>=4) | Type may be valid in newer versions but incompatible with target legacy environment. |
+
 ## Operational validation matrix (`MON$`) - `--database` only
 
 | Code | Default severity | What it validates | Current threshold | Practical meaning |

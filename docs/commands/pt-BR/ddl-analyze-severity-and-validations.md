@@ -46,6 +46,18 @@ Este documento descreve, de forma precisa, quais validações o `ddl-analyze` ex
 | `OPERACIONAL_VOLUME_PRIORIDADE_MEDIA` | `medium` | Tabela de volume relevante com achados recorrentes | Registros estimados >= 1.000.000 e achados na tabela >= 2 | Tabela grande com recorrência de achados; prioridade relevante. Ex.: `ITENS_NF` com 2,3M linhas e 2 achados. |
 | `OPERACIONAL_VOLUME_PRIORIDADE_BAIXA` | `low` | Tabela de volume intermediário com achados | Registros estimados >= 500.000 e achados na tabela >= 1 | Tabela de porte médio com achado; priorização preventiva. Ex.: `LOG_EVENTOS` com 700k linhas e 1 achado. |
 
+## Matriz de validações de compatibilidade de campos (`CAMPO_*`)
+
+Esses códigos são gerados pelo validador de compatibilidade de campos e aparecem na mesma lista de achados do `ddl-analyze`.
+
+| Código | Severidade padrão | O que valida | Critério usado hoje | Explicação prática |
+|---|---|---|---|---|
+| `CAMPO_TIPO_VAZIO` | `critical` | Tipo SQL ausente/vazio | `TipoSql` nulo, vazio ou whitespace | Metadado da coluna/domínio sem tipo válido para geração segura. |
+| `CAMPO_TAMANHO_EFETIVO_EXCEDIDO` | `critical` | Tamanho efetivo de `CHAR/VARCHAR` excede limite do Firebird | `(tamanho declarado * bytes por caractere) > 32765` | Campo textual pode ultrapassar o limite real em bytes conforme charset. |
+| `CAMPO_PRECISAO_NUMERICA_INVALIDA` | `critical` | Precisão/escala inválida em `NUMERIC/DECIMAL` | Precisão fora de `1..38`, escala `< 0` ou escala `> precisão` | Definição numérica inválida para DDL consistente. |
+| `CAMPO_PRECISAO_NUMERICA_INCOMPATIVEL` | `critical` | Precisão incompatível com versão alvo | Firebird `< 4` e precisão `> 18` | Precisão exige recursos de versão mais nova do Firebird. |
+| `CAMPO_TIPO_INCOMPATIVEL_VERSAO` | `critical` | Tipo incompatível com versão alvo | Tipo requer major mínimo (ex.: `BOOLEAN`>=3; `DECFLOAT/INT128/TIME WITH TIME ZONE/TIMESTAMP WITH TIME ZONE`>=4) | Tipo pode ser válido em versão nova, mas incompatível no ambiente legado alvo. |
+
 ## Matriz de validações operacionais (`MON$`) - apenas `--database`
 
 | Código | Severidade padrão | O que valida | Limite atual | Significado prático |
