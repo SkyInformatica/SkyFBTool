@@ -159,6 +159,7 @@ Quick summary:
 - Schema governance model: [docs/concepts/en/schema-governance.md](./docs/concepts/en/schema-governance.md)
 - Operational resilience model: [docs/concepts/en/operational-resilience.md](./docs/concepts/en/operational-resilience.md)
 - Firebird compatibility model: [docs/concepts/en/firebird-compatibility.md](./docs/concepts/en/firebird-compatibility.md)
+- Testing and validation strategy: [docs/concepts/en/testing-and-validation-strategy.md](./docs/concepts/en/testing-and-validation-strategy.md)
 
 ## Quick Start
 
@@ -180,6 +181,8 @@ SkyFBTool ddl-analyze [options]
 - Reproducible analyze samples: `docs/examples/ddl-analyze-sample*.{sql,json,html}`
 
 ## Tests
+
+Operational test and validation model: [docs/concepts/en/testing-and-validation-strategy.md](./docs/concepts/en/testing-and-validation-strategy.md)
 
 ```powershell
 dotnet test SkyFBTool.Tests\SkyFBTool.Tests.csproj -p:RestoreSources=https://api.nuget.org/v3/index.json

@@ -27,7 +27,6 @@ O SkyFBTool foi projetado para tornar operações Firebird mais previsíveis, au
 ## Principais Capacidades
 
 ### Engenharia operacional resiliente
-
 - processo resiliente de movimentação e reaplicação SQL em larga escala;
 - analisador SQL com suporte a comentários, strings e `SET TERM`;
 - controles de execução: `--continue-on-error`, cadência de commit, intervalo de progresso;
@@ -159,6 +158,7 @@ Resumo rápido:
 - Modelo de governança de esquema: [docs/concepts/pt-BR/schema-governance.md](./docs/concepts/pt-BR/schema-governance.md)
 - Modelo de resiliência operacional: [docs/concepts/pt-BR/operational-resilience.md](./docs/concepts/pt-BR/operational-resilience.md)
 - Modelo de compatibilidade Firebird: [docs/concepts/pt-BR/firebird-compatibility.md](./docs/concepts/pt-BR/firebird-compatibility.md)
+- Estratégia de testes e validações: [docs/concepts/pt-BR/testing-and-validation-strategy.md](./docs/concepts/pt-BR/testing-and-validation-strategy.md)
 
 ## Início Rápido
 
@@ -180,6 +180,8 @@ SkyFBTool ddl-analyze [opções]
 - Amostras reproduzíveis de análise: `docs/examples/ddl-analyze-sample*.{sql,json,html}`
 
 ## Testes
+
+Modelo operacional de testes e validações: [docs/concepts/pt-BR/testing-and-validation-strategy.md](./docs/concepts/pt-BR/testing-and-validation-strategy.md)
 
 ```powershell
 dotnet test SkyFBTool.Tests\SkyFBTool.Tests.csproj -p:RestoreSources=https://api.nuget.org/v3/index.json
