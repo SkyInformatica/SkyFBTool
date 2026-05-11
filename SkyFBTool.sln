@@ -58,6 +58,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "en", "en", "{2EAB1F2E-3FC4-
 		docs\concepts\en\operational-resilience.md = docs\concepts\en\operational-resilience.md
 		docs\concepts\en\risk-mitigation.md = docs\concepts\en\risk-mitigation.md
 		docs\concepts\en\schema-governance.md = docs\concepts\en\schema-governance.md
+		docs\concepts\en\testing-and-validation-strategy.md = docs\concepts\en\testing-and-validation-strategy.md
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "pt-BR", "pt-BR", "{9154C819-6C4D-4A89-A98F-168493AF45E8}"
@@ -66,6 +67,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "pt-BR", "pt-BR", "{9154C819
 		docs\concepts\pt-BR\operational-resilience.md = docs\concepts\pt-BR\operational-resilience.md
 		docs\concepts\pt-BR\risk-mitigation.md = docs\concepts\pt-BR\risk-mitigation.md
 		docs\concepts\pt-BR\schema-governance.md = docs\concepts\pt-BR\schema-governance.md
+		docs\concepts\pt-BR\testing-and-validation-strategy.md = docs\concepts\pt-BR\testing-and-validation-strategy.md
 	EndProjectSection
 EndProject
 Global

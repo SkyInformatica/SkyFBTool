@@ -41,3 +41,8 @@ O SkyFBTool trata operações Firebird como fluxos de engenharia com risco opera
 - Modo por arquivo foca em risco estrutural.
 - Modo por banco combina risco estrutural e operacional.
 - Override de severidade adapta política, mas deve ser versionado e revisado.
+
+## Documentos Relacionados
+
+- Guia do comando `ddl-analyze`: [../../commands/pt-BR/ddl-analyze.md](../../commands/pt-BR/ddl-analyze.md)
+- Matriz de severidade e validações: [../../commands/pt-BR/ddl-analyze-severity-and-validations.md](../../commands/pt-BR/ddl-analyze-severity-and-validations.md)

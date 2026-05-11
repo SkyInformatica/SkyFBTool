@@ -36,3 +36,8 @@ SkyFBTool supports schema governance through reproducible artifacts, drift visib
 3. Review and apply approved SQL.
 4. Re-run `ddl-diff` until convergence.
 5. Keep artifacts for traceability.
+
+## Related Documents
+
+- `ddl-diff` command guide: [../../commands/en/ddl-diff.md](../../commands/en/ddl-diff.md)
+- `ddl-extract` command guide: [../../commands/en/ddl-extract.md](../../commands/en/ddl-extract.md)

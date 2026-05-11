@@ -37,3 +37,8 @@ SkyFBTool is designed for long-running and high-volume Firebird operations with 
 - enable continue-on-error only with explicit operational policy;
 - monitor log growth and disk usage in large runs;
 - keep reproducible command lines and outputs for post-run audit.
+
+## Related Documents
+
+- Testing and validation strategy: [testing-and-validation-strategy.md](./testing-and-validation-strategy.md)
+- `ddl-analyze` command guide: [../../commands/en/ddl-analyze.md](../../commands/en/ddl-analyze.md)

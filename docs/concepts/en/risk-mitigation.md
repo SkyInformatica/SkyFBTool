@@ -41,3 +41,8 @@ SkyFBTool treats Firebird operations as risk-bearing engineering workflows, not 
 - File mode focuses on structural risk.
 - DB mode combines structural and operational risk.
 - Severity overrides can adapt policy, but should be version-controlled and reviewed.
+
+## Related Documents
+
+- `ddl-analyze` command guide: [../../commands/en/ddl-analyze.md](../../commands/en/ddl-analyze.md)
+- Severity and validation matrix: [../../commands/en/ddl-analyze-severity-and-validations.md](../../commands/en/ddl-analyze-severity-and-validations.md)
