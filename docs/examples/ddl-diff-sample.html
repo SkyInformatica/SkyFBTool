@@ -11,6 +11,9 @@
     .meta { margin-bottom: 14px; font-size: 14px; }
     .kpi { display: flex; gap: 10px; flex-wrap: wrap; margin: 10px 0 18px; }
     .pill { border: 1px solid #d1d5db; border-radius: 12px; padding: 8px 10px; background: #f9fafb; font-size: 13px; }
+    .pill.created { color: #065f46; background: #d1fae5; border-color: #86efac; }
+    .pill.altered { color: #9a3412; background: #ffedd5; border-color: #fdba74; }
+    .pill.target-only { color: #7f1d1d; background: #fee2e2; border-color: #fca5a5; }
     .summary-grid { display: grid; grid-template-columns: 3fr 1fr; gap: 12px; margin: 8px 0 16px; }
     .content-grid { display: grid; grid-template-columns: 1fr; gap: 12px; margin: 8px 0 16px; }
     .card { border: 1px solid #e5e7eb; border-radius: 10px; background: #fff; padding: 10px; }
@@ -52,13 +55,13 @@
   <div class="meta">
     <div><strong>Origem:</strong> ddl-diff-sample-source.sql</div>
     <div><strong>Alvo:</strong> ddl-diff-sample-target.sql</div>
-    <div><strong>Gerado em (UTC):</strong> 2026-05-02 18:46:01</div>
+    <div><strong>Gerado em (UTC):</strong> 2026-05-10 19:28:56</div>
   </div>
   <div class="kpi">
     <div class="pill"><strong>Comandos SQL gerados:</strong> 25</div>
-    <div class="pill"><strong>Itens criados:</strong> 17</div>
-    <div class="pill"><strong>Itens alterados:</strong> 6</div>
-    <div class="pill"><strong>Itens somente no alvo:</strong> 6</div>
+    <div class="pill created"><strong>Itens criados:</strong> 17</div>
+    <div class="pill altered"><strong>Itens alterados:</strong> 6</div>
+    <div class="pill target-only"><strong>Itens somente no alvo:</strong> 6</div>
   </div>
 
   <div class="summary-grid">
@@ -84,7 +87,7 @@
                   
                     <tr data-text="Coluna computada diferente: CLIENTES.NOME_NORM (ajuste manual recomendado)."><td>1</td><td>Coluna computada diferente: CLIENTES.NOME_NORM (ajuste manual recomendado).</td></tr>
                     
-                    <tr data-text="Indice duplicado no alvo (PEDIDOS): IX_PEDIDOS_DATA &lt;-&gt; IX_PEDIDOS_DATA_DUP | N|A|DATA_EMISSAO"><td>2</td><td>Indice duplicado no alvo (PEDIDOS): IX_PEDIDOS_DATA &lt;-&gt; IX_PEDIDOS_DATA_DUP | N|A|DATA_EMISSAO</td></tr>
+                    <tr data-text="&#205;ndice duplicado no alvo (PEDIDOS): IX_PEDIDOS_DATA &lt;-&gt; IX_PEDIDOS_DATA_DUP | N|A|DATA_EMISSAO"><td>2</td><td>&#205;ndice duplicado no alvo (PEDIDOS): IX_PEDIDOS_DATA &lt;-&gt; IX_PEDIDOS_DATA_DUP | N|A|DATA_EMISSAO</td></tr>
                     
                 </tbody></table>
                 
@@ -165,32 +168,8 @@
                       </td>
                     </tr>
                     
-                    <tr data-text="ALTER TABLE &quot;ITENS_PEDIDO&quot; ADD &quot;PRODUTO_ID&quot; INTEGER NOT NULL;">
-                      <td>5</td>
-                      <td class="sql-line">ALTER TABLE &quot;ITENS_PEDIDO&quot; ADD &quot;PRODUTO_ID&quot; INTEGER NOT NULL;</td>
-                      <td class="line-actions">
-                        <button type="button" class="btn copy-line" data-cmd="ALTER TABLE &quot;ITENS_PEDIDO&quot; ADD &quot;PRODUTO_ID&quot; INTEGER NOT NULL;">Copiar linha</button>
-                      </td>
-                    </tr>
-                    
-                    <tr data-text="ALTER TABLE &quot;ITENS_PEDIDO&quot; ADD &quot;VALOR_TOTAL&quot; NUMERIC(15,2) NOT NULL;">
-                      <td>6</td>
-                      <td class="sql-line">ALTER TABLE &quot;ITENS_PEDIDO&quot; ADD &quot;VALOR_TOTAL&quot; NUMERIC(15,2) NOT NULL;</td>
-                      <td class="line-actions">
-                        <button type="button" class="btn copy-line" data-cmd="ALTER TABLE &quot;ITENS_PEDIDO&quot; ADD &quot;VALOR_TOTAL&quot; NUMERIC(15,2) NOT NULL;">Copiar linha</button>
-                      </td>
-                    </tr>
-                    
-                    <tr data-text="ALTER TABLE &quot;ITENS_PEDIDO&quot; ADD &quot;VALOR_UNITARIO&quot; NUMERIC(15,2) NOT NULL;">
-                      <td>7</td>
-                      <td class="sql-line">ALTER TABLE &quot;ITENS_PEDIDO&quot; ADD &quot;VALOR_UNITARIO&quot; NUMERIC(15,2) NOT NULL;</td>
-                      <td class="line-actions">
-                        <button type="button" class="btn copy-line" data-cmd="ALTER TABLE &quot;ITENS_PEDIDO&quot; ADD &quot;VALOR_UNITARIO&quot; NUMERIC(15,2) NOT NULL;">Copiar linha</button>
-                      </td>
-                    </tr>
-                    
                     <tr data-text="ALTER TABLE &quot;PEDIDOS&quot; ADD &quot;STATUS&quot; VARCHAR(20) DEFAULT &#39;ABERTO&#39;;">
-                      <td>8</td>
+                      <td>5</td>
                       <td class="sql-line">ALTER TABLE &quot;PEDIDOS&quot; ADD &quot;STATUS&quot; VARCHAR(20) DEFAULT &#39;ABERTO&#39;;</td>
                       <td class="line-actions">
                         <button type="button" class="btn copy-line" data-cmd="ALTER TABLE &quot;PEDIDOS&quot; ADD &quot;STATUS&quot; VARCHAR(20) DEFAULT &#39;ABERTO&#39;;">Copiar linha</button>
@@ -198,10 +177,34 @@
                     </tr>
                     
                     <tr data-text="ALTER TABLE &quot;PEDIDOS&quot; ADD &quot;VALOR_TOTAL&quot; NUMERIC(15,2) DEFAULT 0;">
-                      <td>9</td>
+                      <td>6</td>
                       <td class="sql-line">ALTER TABLE &quot;PEDIDOS&quot; ADD &quot;VALOR_TOTAL&quot; NUMERIC(15,2) DEFAULT 0;</td>
                       <td class="line-actions">
                         <button type="button" class="btn copy-line" data-cmd="ALTER TABLE &quot;PEDIDOS&quot; ADD &quot;VALOR_TOTAL&quot; NUMERIC(15,2) DEFAULT 0;">Copiar linha</button>
+                      </td>
+                    </tr>
+                    
+                    <tr data-text="ALTER TABLE &quot;ITENS_PEDIDO&quot; ADD &quot;PRODUTO_ID&quot; INTEGER NOT NULL;">
+                      <td>7</td>
+                      <td class="sql-line">ALTER TABLE &quot;ITENS_PEDIDO&quot; ADD &quot;PRODUTO_ID&quot; INTEGER NOT NULL;</td>
+                      <td class="line-actions">
+                        <button type="button" class="btn copy-line" data-cmd="ALTER TABLE &quot;ITENS_PEDIDO&quot; ADD &quot;PRODUTO_ID&quot; INTEGER NOT NULL;">Copiar linha</button>
+                      </td>
+                    </tr>
+                    
+                    <tr data-text="ALTER TABLE &quot;ITENS_PEDIDO&quot; ADD &quot;VALOR_TOTAL&quot; NUMERIC(15,2) NOT NULL;">
+                      <td>8</td>
+                      <td class="sql-line">ALTER TABLE &quot;ITENS_PEDIDO&quot; ADD &quot;VALOR_TOTAL&quot; NUMERIC(15,2) NOT NULL;</td>
+                      <td class="line-actions">
+                        <button type="button" class="btn copy-line" data-cmd="ALTER TABLE &quot;ITENS_PEDIDO&quot; ADD &quot;VALOR_TOTAL&quot; NUMERIC(15,2) NOT NULL;">Copiar linha</button>
+                      </td>
+                    </tr>
+                    
+                    <tr data-text="ALTER TABLE &quot;ITENS_PEDIDO&quot; ADD &quot;VALOR_UNITARIO&quot; NUMERIC(15,2) NOT NULL;">
+                      <td>9</td>
+                      <td class="sql-line">ALTER TABLE &quot;ITENS_PEDIDO&quot; ADD &quot;VALOR_UNITARIO&quot; NUMERIC(15,2) NOT NULL;</td>
+                      <td class="line-actions">
+                        <button type="button" class="btn copy-line" data-cmd="ALTER TABLE &quot;ITENS_PEDIDO&quot; ADD &quot;VALOR_UNITARIO&quot; NUMERIC(15,2) NOT NULL;">Copiar linha</button>
                       </td>
                     </tr>
                     
@@ -213,32 +216,8 @@
                       </td>
                     </tr>
                     
-                    <tr data-text="ALTER TABLE &quot;ITENS_PEDIDO&quot; ALTER COLUMN &quot;PEDIDO_ID&quot; SET NOT NULL;">
-                      <td>11</td>
-                      <td class="sql-line">ALTER TABLE &quot;ITENS_PEDIDO&quot; ALTER COLUMN &quot;PEDIDO_ID&quot; SET NOT NULL;</td>
-                      <td class="line-actions">
-                        <button type="button" class="btn copy-line" data-cmd="ALTER TABLE &quot;ITENS_PEDIDO&quot; ALTER COLUMN &quot;PEDIDO_ID&quot; SET NOT NULL;">Copiar linha</button>
-                      </td>
-                    </tr>
-                    
-                    <tr data-text="ALTER TABLE &quot;ITENS_PEDIDO&quot; ALTER COLUMN &quot;QUANTIDADE&quot; TYPE NUMERIC(15,3);">
-                      <td>12</td>
-                      <td class="sql-line">ALTER TABLE &quot;ITENS_PEDIDO&quot; ALTER COLUMN &quot;QUANTIDADE&quot; TYPE NUMERIC(15,3);</td>
-                      <td class="line-actions">
-                        <button type="button" class="btn copy-line" data-cmd="ALTER TABLE &quot;ITENS_PEDIDO&quot; ALTER COLUMN &quot;QUANTIDADE&quot; TYPE NUMERIC(15,3);">Copiar linha</button>
-                      </td>
-                    </tr>
-                    
-                    <tr data-text="ALTER TABLE &quot;ITENS_PEDIDO&quot; ALTER COLUMN &quot;QUANTIDADE&quot; SET NOT NULL;">
-                      <td>13</td>
-                      <td class="sql-line">ALTER TABLE &quot;ITENS_PEDIDO&quot; ALTER COLUMN &quot;QUANTIDADE&quot; SET NOT NULL;</td>
-                      <td class="line-actions">
-                        <button type="button" class="btn copy-line" data-cmd="ALTER TABLE &quot;ITENS_PEDIDO&quot; ALTER COLUMN &quot;QUANTIDADE&quot; SET NOT NULL;">Copiar linha</button>
-                      </td>
-                    </tr>
-                    
                     <tr data-text="ALTER TABLE &quot;PEDIDOS&quot; ALTER COLUMN &quot;CLIENTE_ID&quot; SET NOT NULL;">
-                      <td>14</td>
+                      <td>11</td>
                       <td class="sql-line">ALTER TABLE &quot;PEDIDOS&quot; ALTER COLUMN &quot;CLIENTE_ID&quot; SET NOT NULL;</td>
                       <td class="line-actions">
                         <button type="button" class="btn copy-line" data-cmd="ALTER TABLE &quot;PEDIDOS&quot; ALTER COLUMN &quot;CLIENTE_ID&quot; SET NOT NULL;">Copiar linha</button>
@@ -246,10 +225,34 @@
                     </tr>
                     
                     <tr data-text="ALTER TABLE &quot;PEDIDOS&quot; ALTER COLUMN &quot;DATA_EMISSAO&quot; SET NOT NULL;">
-                      <td>15</td>
+                      <td>12</td>
                       <td class="sql-line">ALTER TABLE &quot;PEDIDOS&quot; ALTER COLUMN &quot;DATA_EMISSAO&quot; SET NOT NULL;</td>
                       <td class="line-actions">
                         <button type="button" class="btn copy-line" data-cmd="ALTER TABLE &quot;PEDIDOS&quot; ALTER COLUMN &quot;DATA_EMISSAO&quot; SET NOT NULL;">Copiar linha</button>
+                      </td>
+                    </tr>
+                    
+                    <tr data-text="ALTER TABLE &quot;ITENS_PEDIDO&quot; ALTER COLUMN &quot;PEDIDO_ID&quot; SET NOT NULL;">
+                      <td>13</td>
+                      <td class="sql-line">ALTER TABLE &quot;ITENS_PEDIDO&quot; ALTER COLUMN &quot;PEDIDO_ID&quot; SET NOT NULL;</td>
+                      <td class="line-actions">
+                        <button type="button" class="btn copy-line" data-cmd="ALTER TABLE &quot;ITENS_PEDIDO&quot; ALTER COLUMN &quot;PEDIDO_ID&quot; SET NOT NULL;">Copiar linha</button>
+                      </td>
+                    </tr>
+                    
+                    <tr data-text="ALTER TABLE &quot;ITENS_PEDIDO&quot; ALTER COLUMN &quot;QUANTIDADE&quot; TYPE NUMERIC(15,3);">
+                      <td>14</td>
+                      <td class="sql-line">ALTER TABLE &quot;ITENS_PEDIDO&quot; ALTER COLUMN &quot;QUANTIDADE&quot; TYPE NUMERIC(15,3);</td>
+                      <td class="line-actions">
+                        <button type="button" class="btn copy-line" data-cmd="ALTER TABLE &quot;ITENS_PEDIDO&quot; ALTER COLUMN &quot;QUANTIDADE&quot; TYPE NUMERIC(15,3);">Copiar linha</button>
+                      </td>
+                    </tr>
+                    
+                    <tr data-text="ALTER TABLE &quot;ITENS_PEDIDO&quot; ALTER COLUMN &quot;QUANTIDADE&quot; SET NOT NULL;">
+                      <td>15</td>
+                      <td class="sql-line">ALTER TABLE &quot;ITENS_PEDIDO&quot; ALTER COLUMN &quot;QUANTIDADE&quot; SET NOT NULL;</td>
+                      <td class="line-actions">
+                        <button type="button" class="btn copy-line" data-cmd="ALTER TABLE &quot;ITENS_PEDIDO&quot; ALTER COLUMN &quot;QUANTIDADE&quot; SET NOT NULL;">Copiar linha</button>
                       </td>
                     </tr>
                     
@@ -277,24 +280,16 @@
                       </td>
                     </tr>
                     
-                    <tr data-text="CREATE INDEX &quot;IX_ITENS_PEDIDO_PEDIDO&quot; ON &quot;ITENS_PEDIDO&quot; (&quot;PEDIDO_ID&quot;);">
+                    <tr data-text="CREATE UNIQUE INDEX &quot;UX_PRODUTOS_NOME&quot; ON &quot;PRODUTOS&quot; (&quot;NOME&quot;);">
                       <td>19</td>
-                      <td class="sql-line">CREATE INDEX &quot;IX_ITENS_PEDIDO_PEDIDO&quot; ON &quot;ITENS_PEDIDO&quot; (&quot;PEDIDO_ID&quot;);</td>
+                      <td class="sql-line">CREATE UNIQUE INDEX &quot;UX_PRODUTOS_NOME&quot; ON &quot;PRODUTOS&quot; (&quot;NOME&quot;);</td>
                       <td class="line-actions">
-                        <button type="button" class="btn copy-line" data-cmd="CREATE INDEX &quot;IX_ITENS_PEDIDO_PEDIDO&quot; ON &quot;ITENS_PEDIDO&quot; (&quot;PEDIDO_ID&quot;);">Copiar linha</button>
-                      </td>
-                    </tr>
-                    
-                    <tr data-text="CREATE INDEX &quot;IX_ITENS_PEDIDO_PRODUTO&quot; ON &quot;ITENS_PEDIDO&quot; (&quot;PRODUTO_ID&quot;);">
-                      <td>20</td>
-                      <td class="sql-line">CREATE INDEX &quot;IX_ITENS_PEDIDO_PRODUTO&quot; ON &quot;ITENS_PEDIDO&quot; (&quot;PRODUTO_ID&quot;);</td>
-                      <td class="line-actions">
-                        <button type="button" class="btn copy-line" data-cmd="CREATE INDEX &quot;IX_ITENS_PEDIDO_PRODUTO&quot; ON &quot;ITENS_PEDIDO&quot; (&quot;PRODUTO_ID&quot;);">Copiar linha</button>
+                        <button type="button" class="btn copy-line" data-cmd="CREATE UNIQUE INDEX &quot;UX_PRODUTOS_NOME&quot; ON &quot;PRODUTOS&quot; (&quot;NOME&quot;);">Copiar linha</button>
                       </td>
                     </tr>
                     
                     <tr data-text="CREATE INDEX &quot;IX_PEDIDOS_CLIENTE&quot; ON &quot;PEDIDOS&quot; (&quot;CLIENTE_ID&quot;);">
-                      <td>21</td>
+                      <td>20</td>
                       <td class="sql-line">CREATE INDEX &quot;IX_PEDIDOS_CLIENTE&quot; ON &quot;PEDIDOS&quot; (&quot;CLIENTE_ID&quot;);</td>
                       <td class="line-actions">
                         <button type="button" class="btn copy-line" data-cmd="CREATE INDEX &quot;IX_PEDIDOS_CLIENTE&quot; ON &quot;PEDIDOS&quot; (&quot;CLIENTE_ID&quot;);">Copiar linha</button>
@@ -302,34 +297,42 @@
                     </tr>
                     
                     <tr data-text="CREATE INDEX &quot;IX_PEDIDOS_DATA_STATUS&quot; ON &quot;PEDIDOS&quot; (&quot;DATA_EMISSAO&quot;, &quot;STATUS&quot;);">
-                      <td>22</td>
+                      <td>21</td>
                       <td class="sql-line">CREATE INDEX &quot;IX_PEDIDOS_DATA_STATUS&quot; ON &quot;PEDIDOS&quot; (&quot;DATA_EMISSAO&quot;, &quot;STATUS&quot;);</td>
                       <td class="line-actions">
                         <button type="button" class="btn copy-line" data-cmd="CREATE INDEX &quot;IX_PEDIDOS_DATA_STATUS&quot; ON &quot;PEDIDOS&quot; (&quot;DATA_EMISSAO&quot;, &quot;STATUS&quot;);">Copiar linha</button>
                       </td>
                     </tr>
                     
-                    <tr data-text="CREATE UNIQUE INDEX &quot;UX_PRODUTOS_NOME&quot; ON &quot;PRODUTOS&quot; (&quot;NOME&quot;);">
-                      <td>23</td>
-                      <td class="sql-line">CREATE UNIQUE INDEX &quot;UX_PRODUTOS_NOME&quot; ON &quot;PRODUTOS&quot; (&quot;NOME&quot;);</td>
+                    <tr data-text="CREATE INDEX &quot;IX_ITENS_PEDIDO_PEDIDO&quot; ON &quot;ITENS_PEDIDO&quot; (&quot;PEDIDO_ID&quot;);">
+                      <td>22</td>
+                      <td class="sql-line">CREATE INDEX &quot;IX_ITENS_PEDIDO_PEDIDO&quot; ON &quot;ITENS_PEDIDO&quot; (&quot;PEDIDO_ID&quot;);</td>
                       <td class="line-actions">
-                        <button type="button" class="btn copy-line" data-cmd="CREATE UNIQUE INDEX &quot;UX_PRODUTOS_NOME&quot; ON &quot;PRODUTOS&quot; (&quot;NOME&quot;);">Copiar linha</button>
+                        <button type="button" class="btn copy-line" data-cmd="CREATE INDEX &quot;IX_ITENS_PEDIDO_PEDIDO&quot; ON &quot;ITENS_PEDIDO&quot; (&quot;PEDIDO_ID&quot;);">Copiar linha</button>
                       </td>
                     </tr>
                     
-                    <tr data-text="ALTER TABLE &quot;ITENS_PEDIDO&quot; ADD CONSTRAINT &quot;FK_ITENS_PEDIDO_PEDIDO&quot; FOREIGN KEY (&quot;PEDIDO_ID&quot;) REFERENCES &quot;PEDIDOS&quot; (&quot;ID&quot;) ON DELETE CASCADE;">
-                      <td>24</td>
-                      <td class="sql-line">ALTER TABLE &quot;ITENS_PEDIDO&quot; ADD CONSTRAINT &quot;FK_ITENS_PEDIDO_PEDIDO&quot; FOREIGN KEY (&quot;PEDIDO_ID&quot;) REFERENCES &quot;PEDIDOS&quot; (&quot;ID&quot;) ON DELETE CASCADE;</td>
+                    <tr data-text="CREATE INDEX &quot;IX_ITENS_PEDIDO_PRODUTO&quot; ON &quot;ITENS_PEDIDO&quot; (&quot;PRODUTO_ID&quot;);">
+                      <td>23</td>
+                      <td class="sql-line">CREATE INDEX &quot;IX_ITENS_PEDIDO_PRODUTO&quot; ON &quot;ITENS_PEDIDO&quot; (&quot;PRODUTO_ID&quot;);</td>
                       <td class="line-actions">
-                        <button type="button" class="btn copy-line" data-cmd="ALTER TABLE &quot;ITENS_PEDIDO&quot; ADD CONSTRAINT &quot;FK_ITENS_PEDIDO_PEDIDO&quot; FOREIGN KEY (&quot;PEDIDO_ID&quot;) REFERENCES &quot;PEDIDOS&quot; (&quot;ID&quot;) ON DELETE CASCADE;">Copiar linha</button>
+                        <button type="button" class="btn copy-line" data-cmd="CREATE INDEX &quot;IX_ITENS_PEDIDO_PRODUTO&quot; ON &quot;ITENS_PEDIDO&quot; (&quot;PRODUTO_ID&quot;);">Copiar linha</button>
                       </td>
                     </tr>
                     
                     <tr data-text="ALTER TABLE &quot;PEDIDOS&quot; ADD CONSTRAINT &quot;FK_PEDIDOS_CLIENTE&quot; FOREIGN KEY (&quot;CLIENTE_ID&quot;) REFERENCES &quot;CLIENTES&quot; (&quot;ID&quot;);">
-                      <td>25</td>
+                      <td>24</td>
                       <td class="sql-line">ALTER TABLE &quot;PEDIDOS&quot; ADD CONSTRAINT &quot;FK_PEDIDOS_CLIENTE&quot; FOREIGN KEY (&quot;CLIENTE_ID&quot;) REFERENCES &quot;CLIENTES&quot; (&quot;ID&quot;);</td>
                       <td class="line-actions">
                         <button type="button" class="btn copy-line" data-cmd="ALTER TABLE &quot;PEDIDOS&quot; ADD CONSTRAINT &quot;FK_PEDIDOS_CLIENTE&quot; FOREIGN KEY (&quot;CLIENTE_ID&quot;) REFERENCES &quot;CLIENTES&quot; (&quot;ID&quot;);">Copiar linha</button>
+                      </td>
+                    </tr>
+                    
+                    <tr data-text="ALTER TABLE &quot;ITENS_PEDIDO&quot; ADD CONSTRAINT &quot;FK_ITENS_PEDIDO_PEDIDO&quot; FOREIGN KEY (&quot;PEDIDO_ID&quot;) REFERENCES &quot;PEDIDOS&quot; (&quot;ID&quot;) ON DELETE CASCADE;">
+                      <td>25</td>
+                      <td class="sql-line">ALTER TABLE &quot;ITENS_PEDIDO&quot; ADD CONSTRAINT &quot;FK_ITENS_PEDIDO_PEDIDO&quot; FOREIGN KEY (&quot;PEDIDO_ID&quot;) REFERENCES &quot;PEDIDOS&quot; (&quot;ID&quot;) ON DELETE CASCADE;</td>
+                      <td class="line-actions">
+                        <button type="button" class="btn copy-line" data-cmd="ALTER TABLE &quot;ITENS_PEDIDO&quot; ADD CONSTRAINT &quot;FK_ITENS_PEDIDO_PEDIDO&quot; FOREIGN KEY (&quot;PEDIDO_ID&quot;) REFERENCES &quot;PEDIDOS&quot; (&quot;ID&quot;) ON DELETE CASCADE;">Copiar linha</button>
                       </td>
                     </tr>
                     
@@ -351,9 +354,9 @@
                 
                 <tr data-text="Coluna ausente no alvo: CLIENTES.EMAIL"><td>3</td><td>Coluna ausente no alvo: CLIENTES.EMAIL</td></tr>
                 
-                <tr data-text="Indice ausente no alvo: CLIENTES.IX_CLIENTES_NOME"><td>4</td><td>Indice ausente no alvo: CLIENTES.IX_CLIENTES_NOME</td></tr>
+                <tr data-text="&#205;ndice ausente no alvo: CLIENTES.IX_CLIENTES_NOME"><td>4</td><td>&#205;ndice ausente no alvo: CLIENTES.IX_CLIENTES_NOME</td></tr>
                 
-                <tr data-text="Indice ausente no alvo: CLIENTES.UX_CLIENTES_EMAIL"><td>5</td><td>Indice ausente no alvo: CLIENTES.UX_CLIENTES_EMAIL</td></tr>
+                <tr data-text="&#205;ndice ausente no alvo: CLIENTES.UX_CLIENTES_EMAIL"><td>5</td><td>&#205;ndice ausente no alvo: CLIENTES.UX_CLIENTES_EMAIL</td></tr>
                 
                 <tr data-text="Coluna ausente no alvo: ITENS_PEDIDO.PRODUTO_ID"><td>6</td><td>Coluna ausente no alvo: ITENS_PEDIDO.PRODUTO_ID</td></tr>
                 
@@ -363,9 +366,9 @@
                 
                 <tr data-text="FK ausente no alvo: ITENS_PEDIDO.FK_ITENS_PEDIDO_PEDIDO"><td>9</td><td>FK ausente no alvo: ITENS_PEDIDO.FK_ITENS_PEDIDO_PEDIDO</td></tr>
                 
-                <tr data-text="Indice ausente no alvo: ITENS_PEDIDO.IX_ITENS_PEDIDO_PEDIDO"><td>10</td><td>Indice ausente no alvo: ITENS_PEDIDO.IX_ITENS_PEDIDO_PEDIDO</td></tr>
+                <tr data-text="&#205;ndice ausente no alvo: ITENS_PEDIDO.IX_ITENS_PEDIDO_PEDIDO"><td>10</td><td>&#205;ndice ausente no alvo: ITENS_PEDIDO.IX_ITENS_PEDIDO_PEDIDO</td></tr>
                 
-                <tr data-text="Indice ausente no alvo: ITENS_PEDIDO.IX_ITENS_PEDIDO_PRODUTO"><td>11</td><td>Indice ausente no alvo: ITENS_PEDIDO.IX_ITENS_PEDIDO_PRODUTO</td></tr>
+                <tr data-text="&#205;ndice ausente no alvo: ITENS_PEDIDO.IX_ITENS_PEDIDO_PRODUTO"><td>11</td><td>&#205;ndice ausente no alvo: ITENS_PEDIDO.IX_ITENS_PEDIDO_PRODUTO</td></tr>
                 
                 <tr data-text="Coluna ausente no alvo: PEDIDOS.STATUS"><td>12</td><td>Coluna ausente no alvo: PEDIDOS.STATUS</td></tr>
                 
@@ -373,9 +376,9 @@
                 
                 <tr data-text="FK ausente no alvo: PEDIDOS.FK_PEDIDOS_CLIENTE"><td>14</td><td>FK ausente no alvo: PEDIDOS.FK_PEDIDOS_CLIENTE</td></tr>
                 
-                <tr data-text="Indice ausente no alvo: PEDIDOS.IX_PEDIDOS_CLIENTE"><td>15</td><td>Indice ausente no alvo: PEDIDOS.IX_PEDIDOS_CLIENTE</td></tr>
+                <tr data-text="&#205;ndice ausente no alvo: PEDIDOS.IX_PEDIDOS_CLIENTE"><td>15</td><td>&#205;ndice ausente no alvo: PEDIDOS.IX_PEDIDOS_CLIENTE</td></tr>
                 
-                <tr data-text="Indice ausente no alvo: PEDIDOS.IX_PEDIDOS_DATA_STATUS"><td>16</td><td>Indice ausente no alvo: PEDIDOS.IX_PEDIDOS_DATA_STATUS</td></tr>
+                <tr data-text="&#205;ndice ausente no alvo: PEDIDOS.IX_PEDIDOS_DATA_STATUS"><td>16</td><td>&#205;ndice ausente no alvo: PEDIDOS.IX_PEDIDOS_DATA_STATUS</td></tr>
                 
                 <tr data-text="Tabela ausente no alvo: PRODUTOS"><td>17</td><td>Tabela ausente no alvo: PRODUTOS</td></tr>
                 
@@ -415,13 +418,13 @@
             
                 <tr data-text="Coluna existe apenas no alvo: CLIENTES.TIPO"><td>1</td><td>Coluna existe apenas no alvo: CLIENTES.TIPO</td></tr>
                 
-                <tr data-text="Indice existe apenas no alvo: CLIENTES.IX_CLIENTES_TIPO"><td>2</td><td>Indice existe apenas no alvo: CLIENTES.IX_CLIENTES_TIPO</td></tr>
+                <tr data-text="&#205;ndice existe apenas no alvo: CLIENTES.IX_CLIENTES_TIPO"><td>2</td><td>&#205;ndice existe apenas no alvo: CLIENTES.IX_CLIENTES_TIPO</td></tr>
                 
-                <tr data-text="Indice existe apenas no alvo: ITENS_PEDIDO.IX_ITENS_PEDIDO_QTD"><td>3</td><td>Indice existe apenas no alvo: ITENS_PEDIDO.IX_ITENS_PEDIDO_QTD</td></tr>
+                <tr data-text="&#205;ndice existe apenas no alvo: ITENS_PEDIDO.IX_ITENS_PEDIDO_QTD"><td>3</td><td>&#205;ndice existe apenas no alvo: ITENS_PEDIDO.IX_ITENS_PEDIDO_QTD</td></tr>
                 
                 <tr data-text="Coluna existe apenas no alvo: PEDIDOS.OBSERVACAO"><td>4</td><td>Coluna existe apenas no alvo: PEDIDOS.OBSERVACAO</td></tr>
                 
-                <tr data-text="Indice existe apenas no alvo: PEDIDOS.IX_PEDIDOS_DATA"><td>5</td><td>Indice existe apenas no alvo: PEDIDOS.IX_PEDIDOS_DATA</td></tr>
+                <tr data-text="&#205;ndice existe apenas no alvo: PEDIDOS.IX_PEDIDOS_DATA"><td>5</td><td>&#205;ndice existe apenas no alvo: PEDIDOS.IX_PEDIDOS_DATA</td></tr>
                 
                 <tr data-text="Tabela existe apenas no alvo: PAGAMENTOS"><td>6</td><td>Tabela existe apenas no alvo: PAGAMENTOS</td></tr>
                 

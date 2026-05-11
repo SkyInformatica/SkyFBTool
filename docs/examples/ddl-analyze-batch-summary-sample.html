@@ -1,93 +1,98 @@
-﻿<!doctype html>
-<html lang="pt-BR">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Resumo da Análise DDL em Lote (Exemplo)</title>
-  <style>
-    body { font-family: Segoe UI, Arial, sans-serif; margin: 20px; color: #1f2937; }
-    h1, h2 { margin: 0 0 12px 0; }
-    .meta { margin-bottom: 14px; font-size: 14px; }
-    .kpi { display: flex; gap: 10px; flex-wrap: wrap; margin: 10px 0 18px; }
-    .pill { border: 1px solid #d1d5db; border-radius: 12px; padding: 8px 10px; background: #f9fafb; font-size: 13px; }
-    .card { border: 1px solid #e5e7eb; border-radius: 10px; background: #fff; padding: 10px; margin: 8px 0 16px; }
-    .table-wrap { max-height: 70vh; overflow: auto; border: 1px solid #e5e7eb; border-radius: 8px; }
-    table { width: 100%; border-collapse: collapse; }
-    th, td { border-bottom: 1px solid #eef2f7; padding: 8px; text-align: left; vertical-align: top; font-size: 13px; }
-    th { position: sticky; top: 0; background: #f3f4f6; z-index: 1; }
-    .severity-pill { display: inline-flex; align-items: center; justify-content: center; min-height: 22px; padding: 0 10px; border-radius: 999px; font-size: 12px; font-weight: 700; border: 1px solid; }
-    .severity-pill.critical { color: #7f1d1d; background: #fee2e2; border-color: #fca5a5; }
-    .severity-pill.high { color: #9a3412; background: #ffedd5; border-color: #fdba74; }
-    .severity-pill.medium { color: #1e3a8a; background: #dbeafe; border-color: #93c5fd; }
-    .severity-pill.low { color: #065f46; background: #d1fae5; border-color: #86efac; }
-  </style>
-</head>
-<body>
-  <h1>Resumo da Análise DDL em Lote (Exemplo)</h1>
-  <div class="meta">
-    <div><strong>Gerado em (UTC):</strong> 2026-05-02 18:41:18</div>
-  </div>
-  <div class="kpi">
-    <div class="pill"><strong>Bases:</strong> 4</div>
-    <div class="pill"><strong>Bases com achados:</strong> 3</div>
-    <div class="pill"><strong>Bases com achados críticos:</strong> 1</div>
-    <div class="pill"><strong>Total de achados:</strong> 20</div>
-  </div>
-
-  <div class="card">
-    <h2>Resumo por base</h2>
-    <div class="table-wrap">
-      <table>
-        <thead>
-          <tr>
-            <th>Banco</th>
-            <th>Crítico</th>
-            <th>Alto</th>
-            <th>Médio</th>
-            <th>Baixo</th>
-            <th>Total</th>
-            <th>Maior severidade</th>
-            <th>Top códigos</th>
-          </tr>
-        </thead>
-        <tbody>
-<tr><td>ddl-analyze-sample-rich</td><td>6</td><td>6</td><td>2</td><td>2</td><td>16</td><td><span class="severity-pill critical">Crítico</span></td><td>TABELA_SEM_PK (3), INDICE_REDUNDANTE_PREFIXO (2), FK_CARDINALIDADE_INVALIDA (1)</td></tr>
-<tr><td>ddl-analyze-sample</td><td>0</td><td>2</td><td>0</td><td>1</td><td>3</td><td><span class="severity-pill high">Alto</span></td><td>TABELA_SEM_PK (2), INDICE_DUPLICADO (1)</td></tr>
-<tr><td>ddl-analyze-from-diff-target</td><td>0</td><td>0</td><td>0</td><td>1</td><td>1</td><td><span class="severity-pill low">Baixo</span></td><td>INDICE_DUPLICADO (1)</td></tr>
-<tr><td>ddl-analyze-from-diff-source</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td><span class="severity-pill low">Baixo</span></td><td></td></tr>
-        </tbody>
-      </table>
-    </div>
-  </div>
-
-  <div class="card">
-    <h2>Top achados por código (todas as bases)</h2>
-    <div class="table-wrap">
-      <table>
-        <thead>
-          <tr>
-            <th>Código</th>
-            <th>Quantidade</th>
-            <th>%</th>
-          </tr>
-        </thead>
-        <tbody>
-<tr><td>TABELA_SEM_PK</td><td>5</td><td>25</td></tr>
-<tr><td>INDICE_DUPLICADO</td><td>3</td><td>15</td></tr>
-<tr><td>INDICE_REDUNDANTE_PREFIXO</td><td>2</td><td>10</td></tr>
-<tr><td>FK_CARDINALIDADE_INVALIDA</td><td>1</td><td>5</td></tr>
-<tr><td>FK_COLUNA_LOCAL_INEXISTENTE</td><td>1</td><td>5</td></tr>
-<tr><td>FK_COLUNA_REFERENCIA_INEXISTENTE</td><td>1</td><td>5</td></tr>
-<tr><td>FK_DUPLICADA</td><td>1</td><td>5</td></tr>
-<tr><td>FK_TABELA_REFERENCIA_INEXISTENTE</td><td>1</td><td>5</td></tr>
-<tr><td>INDICE_COLUNA_INEXISTENTE</td><td>1</td><td>5</td></tr>
-<tr><td>INDICE_SEM_COLUNAS</td><td>1</td><td>5</td></tr>
-<tr><td>PK_REFERENCIA_COLUNA_INEXISTENTE</td><td>1</td><td>5</td></tr>
-<tr><td>TABELA_SEM_COLUNAS</td><td>1</td><td>5</td></tr>
-<tr><td>TIPO_DESCONHECIDO</td><td>1</td><td>5</td></tr>
-        </tbody>
-      </table>
-    </div>
-  </div>
-</body>
-</html>
+﻿<!DOCTYPE html>
+<html><head><meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Resumo da An&#225;lise DDL em Lote</title>
+<style>
+@page { margin: 12mm; }
+body { font-family: Segoe UI, Arial, sans-serif; margin: 20px; color: #1f2937; }
+h1, h2 { margin: 0 0 12px 0; }
+.meta { margin-bottom: 14px; font-size: 14px; }
+.kpi { display: flex; gap: 10px; flex-wrap: wrap; margin: 10px 0 18px; }
+.pill { border: 1px solid #d1d5db; border-radius: 12px; padding: 8px 10px; background: #f9fafb; font-size: 13px; }
+.pill.bases-analisadas { color: #1e3a8a; background: #dbeafe; border-color: #93c5fd; }
+.pill.bases-com-achados { color: #9a3412; background: #ffedd5; border-color: #fdba74; }
+.pill.bases-com-criticos { color: #7f1d1d; background: #fee2e2; border-color: #fca5a5; }
+.pill.total-achados { color: #065f46; background: #d1fae5; border-color: #86efac; }
+.card { border: 1px solid #e5e7eb; border-radius: 10px; background: #fff; padding: 10px; margin: 8px 0 16px; }
+.table-wrap { max-height: 70vh; overflow: auto; border: 1px solid #e5e7eb; border-radius: 8px; }
+table { width: 100%; border-collapse: collapse; }
+th, td { border-bottom: 1px solid #eef2f7; padding: 8px; text-align: left; vertical-align: top; font-size: 13px; }
+th { position: sticky; top: 0; background: #f3f4f6; z-index: 1; }
+.severity-pill { display: inline-flex; align-items: center; justify-content: center; min-height: 22px; padding: 0 10px; border-radius: 999px; font-size: 12px; font-weight: 700; border: 1px solid; }
+.severity-pill.critical { color: #7f1d1d; background: #fee2e2; border-color: #fca5a5; }
+.severity-pill.high { color: #9a3412; background: #ffedd5; border-color: #fdba74; }
+.severity-pill.medium { color: #1e3a8a; background: #dbeafe; border-color: #93c5fd; }
+.severity-pill.low { color: #065f46; background: #d1fae5; border-color: #86efac; }
+@media (max-width: 900px) { body { margin: 12px; } }
+</style>
+</head><body>
+<h1>Resumo da An&#225;lise DDL em Lote</h1>
+<div class="meta">
+<div><strong>Gerado em (UTC):</strong> 2026-05-10 19:13:40</div>
+</div>
+<div class="kpi">
+<div class="pill bases-analisadas"><strong>Bases analisadas:</strong> 3</div>
+<div class="pill bases-com-achados"><strong>Bases com achados:</strong> 2</div>
+<div class="pill bases-com-criticos"><strong>Bases com achados cr&#237;ticos:</strong> 1</div>
+<div class="pill total-achados"><strong>Total de achados gerados:</strong> 19</div>
+</div>
+<div class="card">
+<h2>Resumo por base</h2>
+<div class="table-wrap">
+<table><thead><tr>
+<th>Banco</th>
+<th>Cr&#237;tico</th><th>Alto</th><th>M&#233;dio</th><th>Baixo</th><th>Total</th>
+<th>Maior severidade</th>
+<th>Top c&#243;digos</th>
+</tr></thead><tbody>
+<tr>
+<td>ddl-analyze-sample-rich</td>
+<td>6</td>
+<td>6</td>
+<td>2</td>
+<td>2</td>
+<td>16</td>
+<td><span class='severity-pill critical'>Cr&#237;tico</span></td>
+<td>TABELA_SEM_PK (3), INDICE_REDUNDANTE_PREFIXO (2), FK_CARDINALIDADE_INVALIDA (1)</td>
+</tr>
+<tr>
+<td>ddl-analyze-sample</td>
+<td>0</td>
+<td>2</td>
+<td>0</td>
+<td>1</td>
+<td>3</td>
+<td><span class='severity-pill high'>Alto</span></td>
+<td>TABELA_SEM_PK (2), INDICE_DUPLICADO (1)</td>
+</tr>
+<tr>
+<td>ddl-analyze-from-diff-source</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>N&#227;o aplic&#225;vel</td>
+<td>-</td>
+</tr>
+</tbody></table></div></div>
+<div class="card">
+<h2>Top achados por c&#243;digo (todas as bases)</h2>
+<div class="table-wrap">
+<table><thead><tr>
+<th>C&#243;digo</th><th>Quantidade</th><th>%</th>
+</tr></thead><tbody>
+<tr><td>TABELA_SEM_PK</td><td>5</td><td>26,32</td></tr>
+<tr><td>INDICE_DUPLICADO</td><td>2</td><td>10,53</td></tr>
+<tr><td>INDICE_REDUNDANTE_PREFIXO</td><td>2</td><td>10,53</td></tr>
+<tr><td>FK_CARDINALIDADE_INVALIDA</td><td>1</td><td>5,26</td></tr>
+<tr><td>FK_COLUNA_LOCAL_INEXISTENTE</td><td>1</td><td>5,26</td></tr>
+<tr><td>FK_COLUNA_REFERENCIA_INEXISTENTE</td><td>1</td><td>5,26</td></tr>
+<tr><td>FK_DUPLICADA</td><td>1</td><td>5,26</td></tr>
+<tr><td>FK_TABELA_REFERENCIA_INEXISTENTE</td><td>1</td><td>5,26</td></tr>
+<tr><td>INDICE_COLUNA_INEXISTENTE</td><td>1</td><td>5,26</td></tr>
+<tr><td>INDICE_SEM_COLUNAS</td><td>1</td><td>5,26</td></tr>
+<tr><td>PK_REFERENCIA_COLUNA_INEXISTENTE</td><td>1</td><td>5,26</td></tr>
+<tr><td>TABELA_SEM_COLUNAS</td><td>1</td><td>5,26</td></tr>
+<tr><td>TIPO_DESCONHECIDO</td><td>1</td><td>5,26</td></tr>
+</tbody></table></div></div></body></html>

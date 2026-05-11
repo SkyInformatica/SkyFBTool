@@ -1,16 +1,20 @@
-<!doctype html>
+﻿<!doctype html>
 <html lang="pt-BR">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Análise de Risco DDL</title>
+  <title>Analise de Risco DDL</title>
   <style>
-    @page { size: A4; margin: 12mm; }
+    @page { margin: 12mm; }
     body { font-family: Segoe UI, Arial, sans-serif; margin: 20px; color: #1f2937; }
     h1, h2 { margin: 0 0 12px 0; }
     .meta { margin-bottom: 14px; font-size: 14px; }
     .kpi { display: flex; gap: 10px; flex-wrap: wrap; margin: 10px 0 18px; }
     .pill { border: 1px solid #d1d5db; border-radius: 12px; padding: 8px 10px; background: #f9fafb; font-size: 13px; }
+    .pill.critical { color: #7f1d1d; background: #fee2e2; border-color: #fca5a5; }
+    .pill.high { color: #9a3412; background: #ffedd5; border-color: #fdba74; }
+    .pill.medium { color: #1e3a8a; background: #dbeafe; border-color: #93c5fd; }
+    .pill.low { color: #065f46; background: #d1fae5; border-color: #86efac; }
     .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 8px 0 16px; }
     .card { border: 1px solid #e5e7eb; border-radius: 10px; background: #fff; padding: 10px; }
     .criteria-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 10px; align-items: start; }
@@ -67,17 +71,17 @@
   <div class="meta">
     <div><strong>Origem:</strong> <span title="D:\Projetos\SkyFBTool\docs\examples\ddl-diff-sample-source.sql">ddl-diff-sample-source.sql</span></div>
     
-    <div><strong>Gerado em (UTC):</strong> 2026-05-02 18:39:02</div>
+    <div><strong>Gerado em (UTC):</strong> 2026-05-10 19:28:56</div>
     
     <div><strong>Análise operacional (MON$):</strong> n&#227;o aplic&#225;vel</div>
     <div><strong>Análise de volume:</strong> n&#227;o aplic&#225;vel</div>
   </div>
   <div class="kpi">
     <div class="pill"><strong>Total de achados:</strong> 0</div>
-    <div class="pill"><strong>Críticos:</strong> 0</div>
-    <div class="pill"><strong>Altos:</strong> 0</div>
-    <div class="pill"><strong>Médios:</strong> 0</div>
-    <div class="pill"><strong>Baixos:</strong> 0</div>
+    <div class="pill critical"><strong>Críticos:</strong> 0</div>
+    <div class="pill high"><strong>Altos:</strong> 0</div>
+    <div class="pill medium"><strong>Médios:</strong> 0</div>
+    <div class="pill low"><strong>Baixos:</strong> 0</div>
   </div>
   <div class="card criteria">
     <h2>Critérios de severidade</h2>
