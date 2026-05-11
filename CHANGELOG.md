@@ -22,9 +22,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `ddl-diff` now ignores `DOMAIN` differences by default and only includes them when `--include-domains` is explicitly enabled.
 - Command docs (EN/PT-BR) and README were updated to reflect dependency ordering and transient retry behavior.
 - DDL sample artifacts and command docs were refreshed to reflect current report/UI behavior.
+- README (EN/PT-BR) was restructured as a strategic documentation portal, and conceptual docs were organized under `docs/concepts/en` and `docs/concepts/pt-BR` with bilingual navigation.
+- Batch DDL analysis summary now uses `Not applicable` for databases without findings, preventing false urgency in highest-severity presentation.
 
 ### Fixed
 - Batch `import` summary now correctly classifies files with SQL command errors under `--continue-on-error` as `Succeeded with errors` instead of plain `Succeeded`.
+- DDL report titles now preserve UTF-8 accents correctly in generated PDF/print flows (for example: `Análise de Risco DDL`).
+- Silent exception handling in maintenance timestamp collection was replaced with explicit resilient handling to keep diagnostics consistent.
 
 ## [0.4.0] - 2026-04-29
 
