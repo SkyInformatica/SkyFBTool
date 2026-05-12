@@ -140,6 +140,7 @@ Resumo rápido:
 ### Documentação por comando
 
 #### Operações de dados
+- `create-db`: [docs/commands/pt-BR/create-db.md](./docs/commands/pt-BR/create-db.md)
 - `export`: [docs/commands/pt-BR/export.md](./docs/commands/pt-BR/export.md)
 - `import`: [docs/commands/pt-BR/import.md](./docs/commands/pt-BR/import.md)
 - `exec-sql`: [docs/commands/pt-BR/exec-sql.md](./docs/commands/pt-BR/exec-sql.md)
@@ -164,6 +165,7 @@ Resumo rápido:
 
 ```powershell
 SkyFBTool export [opções]
+SkyFBTool create-db [opções]
 SkyFBTool import [opções]
 SkyFBTool exec-sql [opções]
 SkyFBTool ddl-extract [opções]

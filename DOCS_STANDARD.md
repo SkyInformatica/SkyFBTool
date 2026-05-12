@@ -19,6 +19,8 @@
 - New conceptual, operational, or reference docs must be created in both English and Portuguese variants.
 - Keep localized pairs synchronized and linked with language switch links at the top.
 - Whenever a new document is added, it must be organized in the appropriate `docs/...` structure and added to the `*.sln` as Solution Items/Solution Folders for discoverability in the IDE.
+- `README.md` and `README.pt-BR.md` must remain strategic entry points (vision, architecture, navigation, and value proposition) and must not accumulate command-level operational detail.
+- Detailed command syntax, options, flags, edge cases, troubleshooting, and examples must live in dedicated command docs under `docs/commands/...`.
 
 ## Sync Rules
 - Keep sections equivalent across languages.

@@ -15,6 +15,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Integration coverage was expanded for DDL report flows:
   - batch `ddl-analyze` validates `none` highest severity for databases without findings;
   - `ddl-diff` validates HTML report print-style and visual KPI markers generation.
+- New `create-db` command to provision Firebird database files with explicit operational options (`charset`, `page-size`, `forced-writes`) and safe overwrite behavior.
+- `create-db` now supports `--ddl-file` to bootstrap schema immediately after database creation by executing an extracted SQL script.
 
 ### Changed
 - `ddl-analyze --database` operational analysis was hardened with explicit status/error classification for MON$ collection outcomes (success, partial, or failure context in report metadata).
