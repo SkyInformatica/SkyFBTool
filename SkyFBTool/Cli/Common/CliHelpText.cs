@@ -2,163 +2,177 @@ namespace SkyFBTool.Cli.Common;
 
 public static class CliHelpText
 {
-    public static string ObterTextoCompleto()
+    public static string ObterResumoComandos()
     {
         return @"
-SkyFBTool - CLI Firebird para exportação, importação, execução de scripts, extração, diff e análise DDL
---------------------------------------------------------
+SkyFBTool - CLI Firebird
+------------------------
 
 USO:
-  SkyFBTool export   [opções]
-  SkyFBTool import   [opções]
-  SkyFBTool exec-sql [opções]
-  SkyFBTool ddl-extract [opções]
-  SkyFBTool ddl-diff    [opções]
-  SkyFBTool ddl-analyze [opções]
+  SkyFBTool <comando> [opções]
+  SkyFBTool <comando> --help
 
+COMANDOS:
+  export
+  create-db
+  import
+  exec-sql
+  ddl-extract
+  ddl-diff
+  ddl-analyze
 
-======================
- COMANDO: EXPORT
-======================
+EXEMPLOS:
+  SkyFBTool export --help
+  SkyFBTool ddl-analyze --help
+";
+    }
+
+    public static string? ObterAjudaComando(string comando)
+    {
+        return comando.ToLowerInvariant() switch
+        {
+            "export" => AjudaExport,
+            "create-db" => AjudaCreateDb,
+            "import" => AjudaImport,
+            "exec-sql" => AjudaImport,
+            "ddl-extract" => AjudaDdlExtract,
+            "ddl-diff" => AjudaDdlDiff,
+            "ddl-analyze" => AjudaDdlAnalyze,
+            _ => null
+        };
+    }
+
+    private const string AjudaExport = @"
+COMANDO: export
 
 OPÇÕES:
-  --database CAMINHO          Caminho do banco .fdb / Database path
-  --table TABELA              Tabela de origem / Source table
-  --target-table NOME         Tabela destino no INSERT / Target table in INSERT
-  --output ARQUIVO.SQL        Saída SQL (arquivo ou diretório) / SQL output (file or directory)
+  --database CAMINHO
+  --table TABELA
+  --target-table NOME
+  --output ARQUIVO.SQL
   --charset CHARSET           WIN1252 | ISO8859_1 | UTF8 | NONE
   --blob-format FORMATO       Hex (padrão) | Base64
-  --insert-mode MODO          Insert (padrão) | Upsert (UPDATE OR INSERT ... MATCHING PK)
-  --commit-every N            COMMIT a cada N linhas / COMMIT every N rows
-  --split-size-mb N           Divide em partes de N MB (padrão: 100; 0 desativa)
-  --progress-every N          Exibe progresso / Progress interval
-  --legacy-win1252            Modo legado WIN1252 para bases NONE / Legacy mode for NONE
-  --sanitize-text             Sanitiza texto / Sanitize text
-  --escape-newlines           Escapa quebras de linha / Escape newlines
-  --filter CONDICAO           Filtro simples inline ou arquivo / Simple inline filter or file
-  --filter-file CAMINHO       Filtro simples em arquivo / Simple filter from file
-  --query-file CAMINHO        SELECT completo em arquivo / Full SELECT from file
-  --continue-on-error         Continua em erro / Continue on error
+  --insert-mode MODO          Insert (padrão) | Upsert
+  --commit-every N
+  --split-size-mb N
+  --progress-every N
+  --legacy-win1252
+  --sanitize-text
+  --escape-newlines
+  --filter CONDICAO
+  --filter-file CAMINHO
+  --query-file CAMINHO
+  --continue-on-error
 
 EXEMPLO:
-  SkyFBTool export --database C:\banco.fdb --table PESSOAS --output PESSOAS.SQL --charset WIN1252
+  SkyFBTool export --database C:\banco.fdb --table PESSOAS --output PESSOAS.SQL
+";
 
-VALIDAÇÕES:
-  --table aceita identificador simples ou entre aspas / simple or quoted identifier
-  --filter pode começar com WHERE (o prefixo é removido) / WHERE prefix is removed
-  --query-file deve conter SELECT completo / must contain full SELECT
-  --query-file não pode ser usado com --filter ou --filter-file
-  --filter-file/--query-file acima de 64 KB emitem aviso de desempenho/estabilidade
-
-PADRÃO DO ARQUIVO (quando --output não for informado):
-  <TABELA>_yyyyMMdd_HHmmss_fff.sql
-
-PADRÃO DE DIVISÃO DE ARQUIVO:
-  100 MB por arquivo (gera sufixo _part002, _part003...)
-  Parte 1 mantém o nome base informado em --output
-  Cada parte inicia com o mesmo cabeçalho SQL (SET SQL DIALECT / SET NAMES)
-
-
-
-======================
- COMANDO: IMPORT
-======================
+    private const string AjudaCreateDb = @"
+COMANDO: create-db
 
 OPÇÕES:
-  --database CAMINHO          Caminho do banco .fdb
-  --input ARQUIVO.SQL         Arquivo SQL a importar
-  --script ARQUIVO.SQL        Alias explícito de --input
-  --inputs-batch PADRAO       Wildcard de arquivos SQL (ex.: C:\exports\*.sql)
-  --input-batch PADRAO        Alias de --inputs-batch
-  --scripts-batch PADRAO      Alias de --inputs-batch
+  --database CAMINHO          (obrigatório)
   --host SERVIDOR             (padrão: localhost)
   --port PORTA                (padrão: 3050)
   --user USUARIO              (padrão: sysdba)
   --password SENHA            (padrão: masterkey)
-  --progress-every N          Exibe progresso
-  --continue-on-error         Continua mesmo se ocorrer erro
+  --charset CHARSET           (padrão: UTF8)
+  --page-size N               (padrão: 8192)
+  --forced-writes MODO        on (padrão) | off
+  --overwrite                 recria arquivo existente
+  --ddl-file ARQUIVO.SQL      aplica script após criar
+
+EXEMPLO:
+  SkyFBTool create-db --database C:\dados\novo.fdb --ddl-file C:\ddl\estrutura.sql
+";
+
+    private const string AjudaImport = @"
+COMANDO: import / exec-sql
+
+OPÇÕES:
+  --database CAMINHO
+  --input ARQUIVO.SQL
+  --script ARQUIVO.SQL
+  --inputs-batch PADRAO
+  --input-batch PADRAO
+  --scripts-batch PADRAO
+  --host SERVIDOR             (padrão: localhost)
+  --port PORTA                (padrão: 3050)
+  --user USUARIO              (padrão: sysdba)
+  --password SENHA            (padrão: masterkey)
+  --progress-every N
+  --continue-on-error
 
 EXEMPLO:
   SkyFBTool import --database C:\banco.fdb --input PESSOAS.SQL
-  SkyFBTool import --database C:\banco.fdb --inputs-batch C:\exports\*.sql --continue-on-error
-  SkyFBTool exec-sql --database C:\banco.fdb --script ajuste_schema.sql
+";
 
-
-===========================
- COMANDO: DDL-EXTRACT
-===========================
+    private const string AjudaDdlExtract = @"
+COMANDO: ddl-extract
 
 OPÇÕES:
-  --database CAMINHO          Caminho do banco .fdb
-  --output CAMINHO            Prefixo/arquivo/diretório de saída
+  --database CAMINHO
+  --output CAMINHO
   --host SERVIDOR             (padrão: localhost)
   --port PORTA                (padrão: 3050)
   --user USUARIO              (padrão: sysdba)
   --password SENHA            (padrão: masterkey)
-  --charset CHARSET           (opcional)
+  --charset CHARSET
 
 SAÍDA:
-  <prefixo>.sql               DDL legível
-  <prefixo>.schema.json       Snapshot normalizado
+  <prefixo>.sql
+  <prefixo>.schema.json
 
 EXEMPLO:
   SkyFBTool ddl-extract --database C:\banco.fdb --output C:\ddl\origem
+";
 
-
-========================
- COMANDO: DDL-DIFF
-========================
+    private const string AjudaDdlDiff = @"
+COMANDO: ddl-diff
 
 OPÇÕES:
-  --source ARQUIVO            Origem (.schema.json ou .sql gerado no extract)
-  --target ARQUIVO            Alvo (.schema.json ou .sql gerado no extract)
-  --output CAMINHO            Prefixo/arquivo/diretório de saída
-  --include-domains           Inclui domains na comparação (padrão: ignorado)
+  --source ARQUIVO
+  --target ARQUIVO
+  --output CAMINHO
+  --include-domains
 
 SAÍDA:
-  <prefixo>.sql               Script de ajuste do alvo para origem
-  <prefixo>.json              Diferenças estruturadas
-  <prefixo>.html              Relatório visual em HTML
+  <prefixo>.sql
+  <prefixo>.json
+  <prefixo>.html
 
 EXEMPLO:
   SkyFBTool ddl-diff --source C:\ddl\origem.schema.json --target C:\ddl\alvo.schema.json --output C:\ddl\comparacao
+";
 
-
-===========================
- COMANDO: DDL-ANALYZE
-===========================
+    private const string AjudaDdlAnalyze = @"
+COMANDO: ddl-analyze
 
 OPÇÕES:
-  --input ARQUIVO            Entrada por arquivo (.schema.json ou .sql)
-  --source ARQUIVO           Alias de --input
-  --database CAMINHO         Entrada por conexão direta em banco único
-  --databases-batch PADRAO   Entrada em lote por wildcard (ex.: C:\dados\*.fdb)
-  --host SERVIDOR            (padrão: localhost)
-  --port PORTA               (padrão: 3050)
-  --user USUARIO             (padrão: sysdba)
-  --password SENHA           (padrão: masterkey)
-  --charset CHARSET          (opcional)
-  --output CAMINHO           Prefixo/arquivo/diretório de saída
-  --ignore-table-prefix TXT  Ignora tabelas por prefixo (pode repetir)
-  --ignore-table-prefixes L  Ignora prefixos separados por vírgula
-  --severity-config ARQ.JSON Sobrescreve severidade por código de achado
-  --description TEXTO        Description text included in JSON/HTML report
-  --volume-analysis MODO     on (padrão) | off
-  --volume-count-exact MODO  on | off (padrão: off; on executa COUNT(*) por tabela)
+  --input ARQUIVO
+  --source ARQUIVO
+  --database CAMINHO
+  --databases-batch PADRAO
+  --host SERVIDOR             (padrão: localhost)
+  --port PORTA                (padrão: 3050)
+  --user USUARIO              (padrão: sysdba)
+  --password SENHA            (padrão: masterkey)
+  --charset CHARSET
+  --output CAMINHO
+  --ignore-table-prefix TXT
+  --ignore-table-prefixes L
+  --severity-config ARQ.JSON
+  --description TEXTO
+  --volume-analysis MODO      on (padrão) | off
+  --volume-count-exact MODO   on | off (padrão: off)
 
 SAÍDA:
-  <prefixo>.json             Achados estruturados
-  <prefixo>.html             Relatório visual de risco DDL
-  (modo lote)                batch_analysis_summary_*.json/.html
+  <prefixo>.json
+  <prefixo>.html
+  (modo lote) batch_analysis_summary_*.json/.html
 
 EXEMPLO:
   SkyFBTool ddl-analyze --input C:\ddl\origem.schema.json --output C:\ddl\analise
-  SkyFBTool ddl-analyze --input C:\ddl\origem.schema.json --ignore-table-prefix LOG_ --ignore-table-prefixes TMP_,IBE$
-  SkyFBTool ddl-analyze --database C:\dados\origem.fdb --output C:\ddl\analise_db
-  SkyFBTool ddl-analyze --databases-batch C:\dados\*.fdb --output C:\ddl\analises\
-  SkyFBTool ddl-analyze --input C:\ddl\origem.schema.json --severity-config .\docs\examples\ddl-severity.sample.json
-  SkyFBTool ddl-analyze --input C:\ddl\origem.schema.json --description ""Analysis performed on customer database / Análise realizada no banco de dados do cliente""
-
 ";
-    }
 }
