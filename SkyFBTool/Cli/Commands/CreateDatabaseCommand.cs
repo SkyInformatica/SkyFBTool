@@ -106,8 +106,8 @@ public static class CreateDatabaseCommand
         Console.WriteLine(TextoLocalizado.Obter(idioma, "Database created successfully.", "Banco criado com sucesso."));
         Console.WriteLine($"{TextoLocalizado.Obter(idioma, "Path", "Caminho")}: {caminhoBanco}");
         Console.WriteLine($"{TextoLocalizado.Obter(idioma, "Charset", "Charset")}: {op.Charset}");
-        Console.WriteLine($"{TextoLocalizado.Obter(idioma, "Page size", "Page size")}: {op.PageSize}");
-        Console.WriteLine($"{TextoLocalizado.Obter(idioma, "Forced writes", "Forced writes")}: {(op.ForcedWrites ? "on" : "off")}");
+        Console.WriteLine($"{TextoLocalizado.Obter(idioma, "Page size", "Tamanho da página")}: {op.PageSize}");
+        Console.WriteLine($"{TextoLocalizado.Obter(idioma, "Forced writes", "Escritas forçadas")}: {(op.ForcedWrites ? TextoLocalizado.Obter(idioma, "on", "ligado") : TextoLocalizado.Obter(idioma, "off", "desligado"))}");
 
         if (!string.IsNullOrWhiteSpace(op.ArquivoDdl))
         {
@@ -135,7 +135,7 @@ public static class CreateDatabaseCommand
                 ContinuarEmCasoDeErro = false
             };
 
-            await ImportadorSql.ImportarAsync(opImportacao);
+            await ImportadorSql.ImportarAsync(opImportacao, idioma);
 
             Console.WriteLine(TextoLocalizado.Obter(idioma, "DDL script applied successfully.", "Script DDL aplicado com sucesso."));
         }
