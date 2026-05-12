@@ -71,6 +71,7 @@ public static class ExtratorDdlFirebird
         snapshot.FuncoesExternas = await CarregarFuncoesExternasAsync(conexao);
         snapshot.Views = await CarregarViewsAsync(conexao);
         snapshot.Gatilhos = await CarregarGatilhosAsync(conexao);
+        snapshot.Excecoes = await CarregarExcecoesAsync(conexao);
 
         foreach (var nomeTabela in tabelas)
         {
@@ -572,6 +573,33 @@ public static class ExtratorDdlFirebird
         }
 
         return views;
+    }
+
+    private static async Task<List<ExcecaoSchema>> CarregarExcecoesAsync(FbConnection conexao)
+    {
+        const string sql = """
+                           SELECT
+                               TRIM(e.rdb$exception_name) AS exception_name,
+                               COALESCE(TRIM(e.rdb$message), '') AS exception_message
+                           FROM rdb$exceptions e
+                           WHERE COALESCE(e.rdb$system_flag, 0) = 0
+                           ORDER BY e.rdb$exception_name
+                           """;
+
+        await using var cmd = new FbCommand(sql, conexao);
+        await using var reader = await cmd.ExecuteReaderAsync();
+
+        var excecoes = new List<ExcecaoSchema>();
+        while (await reader.ReadAsync())
+        {
+            excecoes.Add(new ExcecaoSchema
+            {
+                Nome = reader.GetString(reader.GetOrdinal("exception_name")),
+                Mensagem = reader.GetString(reader.GetOrdinal("exception_message"))
+            });
+        }
+
+        return excecoes;
     }
 
     private static async Task<List<string>> CarregarTabelasAsync(FbConnection conexao)

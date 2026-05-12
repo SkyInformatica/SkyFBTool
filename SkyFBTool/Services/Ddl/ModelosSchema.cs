@@ -11,6 +11,7 @@ public class SnapshotSchema
     public List<FuncaoSchema> Funcoes { get; set; } = [];
     public List<FuncaoExternaSchema> FuncoesExternas { get; set; } = [];
     public List<GatilhoSchema> Gatilhos { get; set; } = [];
+    public List<ExcecaoSchema> Excecoes { get; set; } = [];
     public List<DominioSchema> Dominios { get; set; } = [];
     public List<SequenciaSchema> Sequencias { get; set; } = [];
 }
@@ -118,6 +119,12 @@ public class GatilhoSchema
     public bool Ativo { get; set; } = true;
     public int Sequencia { get; set; }
     public string SourceSql { get; set; } = string.Empty;
+}
+
+public class ExcecaoSchema
+{
+    public string Nome { get; set; } = string.Empty;
+    public string Mensagem { get; set; } = string.Empty;
 }
 
 public class ParametroProcedimentoSchema

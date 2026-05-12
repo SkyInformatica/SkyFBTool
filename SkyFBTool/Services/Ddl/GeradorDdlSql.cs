@@ -43,6 +43,7 @@ public static class GeradorDdlSql
         AdicionarSecao(sb, tabelasOrdenadas.SelectMany(t => t.Indices.OrderBy(i => i.Nome, StringComparer.OrdinalIgnoreCase).Select(indice => GerarCreateIndex(t, indice))));
         AdicionarSecao(sb, snapshot.FuncoesExternas.OrderBy(f => f.Nome, StringComparer.OrdinalIgnoreCase).Select(f => f.SourceSql));
         AdicionarSecao(sb, snapshot.Views.OrderBy(v => v.Nome, StringComparer.OrdinalIgnoreCase).Select(GerarCreateView));
+        AdicionarSecao(sb, snapshot.Excecoes.OrderBy(e => e.Nome, StringComparer.OrdinalIgnoreCase).Select(GerarCreateException));
 
         if (snapshot.Funcoes.Count > 0)
         {
@@ -62,11 +63,18 @@ public static class GeradorDdlSql
         if (snapshot.Procedimentos.Count > 0 || snapshot.Gatilhos.Count > 0)
         {
             AjustarDefaultsParametrosProcedimentoParaCompatibilidade(snapshot.Procedimentos);
+            var procedimentosOrdenados = OrdenarProcedimentosPorDependencia(snapshot.Procedimentos);
 
             sb.AppendLine("SET TERM ^;");
             sb.AppendLine();
 
-            foreach (var procedimento in OrdenarProcedimentosPorDependencia(snapshot.Procedimentos))
+            foreach (var procedimento in procedimentosOrdenados)
+            {
+                sb.AppendLine(GerarCreateProcedureStub(procedimento));
+                sb.AppendLine();
+            }
+
+            foreach (var procedimento in procedimentosOrdenados)
             {
                 sb.AppendLine(GerarCreateProcedure(procedimento));
                 sb.AppendLine();
@@ -131,6 +139,12 @@ public static class GeradorDdlSql
         return $"CREATE VIEW {Q(view.Nome)} AS {view.SelectSql.Trim()};";
     }
 
+    public static string GerarCreateException(ExcecaoSchema excecao)
+    {
+        string mensagem = (excecao.Mensagem ?? string.Empty).Replace("'", "''");
+        return $"CREATE EXCEPTION {Q(excecao.Nome)} '{mensagem}';";
+    }
+
     public static string GerarCreateProcedure(ProcedimentoSchema procedimento)
     {
         var sb = new StringBuilder();
@@ -152,6 +166,32 @@ public static class GeradorDdlSql
 
         sb.AppendLine("AS");
         sb.AppendLine(NormalizarBlocoFonteProcedimento(procedimento.SourceSql));
+        sb.Append(" ^");
+        return sb.ToString();
+    }
+
+    public static string GerarCreateProcedureStub(ProcedimentoSchema procedimento)
+    {
+        var sb = new StringBuilder();
+        sb.AppendLine($"CREATE OR ALTER PROCEDURE {Q(procedimento.Nome)}");
+
+        if (procedimento.ParametrosEntrada.Count > 0)
+        {
+            sb.AppendLine("(");
+            sb.AppendLine(string.Join("," + Environment.NewLine, procedimento.ParametrosEntrada.Select(FormatarParametro)));
+            sb.AppendLine(")");
+        }
+
+        if (procedimento.ParametrosSaida.Count > 0)
+        {
+            sb.AppendLine("RETURNS (");
+            sb.AppendLine(string.Join("," + Environment.NewLine, procedimento.ParametrosSaida.Select(FormatarParametro)));
+            sb.AppendLine(")");
+        }
+
+        sb.AppendLine("AS");
+        sb.AppendLine("BEGIN");
+        sb.AppendLine("END");
         sb.Append(" ^");
         return sb.ToString();
     }

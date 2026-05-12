@@ -1,3 +1,4 @@
+using System.Text.RegularExpressions;
 using SkyFBTool.Services.Ddl;
 using Xunit;
 
@@ -429,5 +430,68 @@ public class GeradorDdlSqlTests
 
         string sql = GeradorDdlSql.Gerar(snapshot);
         Assert.Contains("\"S_LIVROPARCIAL\" VARCHAR(2) = null", sql, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public void Gerar_QuandoProceduresTiveremDependenciaCiclica_DeveGerarStubEAposCorpoCompleto()
+    {
+        var snapshot = new SnapshotSchema
+        {
+            CharsetBanco = "UTF8",
+            Procedimentos =
+            [
+                new ProcedimentoSchema
+                {
+                    Nome = "PROC_A",
+                    SourceSql = """
+                                AS
+                                BEGIN
+                                  SELECT X FROM PROC_B INTO :X;
+                                  SUSPEND;
+                                END
+                                """,
+                    ParametrosSaida = [new ParametroProcedimentoSchema { Nome = "X", TipoSql = "INTEGER", AceitaNulo = true }]
+                },
+                new ProcedimentoSchema
+                {
+                    Nome = "PROC_B",
+                    SourceSql = """
+                                AS
+                                BEGIN
+                                  SELECT X FROM PROC_A INTO :X;
+                                  SUSPEND;
+                                END
+                                """,
+                    ParametrosSaida = [new ParametroProcedimentoSchema { Nome = "X", TipoSql = "INTEGER", AceitaNulo = true }]
+                }
+            ]
+        };
+
+        string sql = GeradorDdlSql.Gerar(snapshot);
+        int ocorrenciasA = Regex.Matches(sql, "CREATE OR ALTER PROCEDURE \"PROC_A\"", RegexOptions.IgnoreCase).Count;
+        int ocorrenciasB = Regex.Matches(sql, "CREATE OR ALTER PROCEDURE \"PROC_B\"", RegexOptions.IgnoreCase).Count;
+
+        Assert.Equal(2, ocorrenciasA);
+        Assert.Equal(2, ocorrenciasB);
+    }
+
+    [Fact]
+    public void Gerar_QuandoHouverExcecaoCustom_DeveEmitirCreateException()
+    {
+        var snapshot = new SnapshotSchema
+        {
+            CharsetBanco = "UTF8",
+            Excecoes =
+            [
+                new ExcecaoSchema
+                {
+                    Nome = "VALORINVALIDO",
+                    Mensagem = "Valor invalido d'origem"
+                }
+            ]
+        };
+
+        string sql = GeradorDdlSql.Gerar(snapshot);
+        Assert.Contains("CREATE EXCEPTION \"VALORINVALIDO\" 'Valor invalido d''origem';", sql, StringComparison.OrdinalIgnoreCase);
     }
 }
