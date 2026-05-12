@@ -1,9 +1,12 @@
 using System.Text;
+using System.Text.RegularExpressions;
 
 namespace SkyFBTool.Services.Ddl;
 
 public static class GeradorDdlSql
 {
+    private static readonly Regex RegexConstraintInteg = new("^INTEG_\\d+$", RegexOptions.IgnoreCase | RegexOptions.Compiled);
+
     public static string Gerar(SnapshotSchema snapshot)
     {
         var sb = new StringBuilder();
@@ -31,9 +34,13 @@ public static class GeradorDdlSql
             .Select(dominio => GerarCreateDomain(dominio, snapshot.CharsetBanco)));
         AdicionarSecao(sb, snapshot.Sequencias.OrderBy(s => s.Nome, StringComparer.OrdinalIgnoreCase).Select(GerarCreateSequence));
         AdicionarSecao(sb, snapshot.Tabelas.OrderBy(t => t.Nome, StringComparer.OrdinalIgnoreCase).Select(tabela => GerarCreateTable(tabela, snapshot.CharsetBanco)));
-        AdicionarSecao(sb, snapshot.Tabelas.OrderBy(t => t.Nome, StringComparer.OrdinalIgnoreCase).SelectMany(GerarDefinicoesTabela));
-        AdicionarSecao(sb, snapshot.Tabelas.OrderBy(t => t.Nome, StringComparer.OrdinalIgnoreCase).SelectMany(t => t.Indices.OrderBy(i => i.Nome, StringComparer.OrdinalIgnoreCase).Select(indice => GerarCreateIndex(t, indice))));
-        AdicionarSecao(sb, snapshot.Tabelas.OrderBy(t => t.Nome, StringComparer.OrdinalIgnoreCase).SelectMany(t => t.ChavesUnicas.OrderBy(u => u.Nome, StringComparer.OrdinalIgnoreCase).Select(unica => GerarAddUnique(t, unica))));
+        var tabelasOrdenadas = snapshot.Tabelas.OrderBy(t => t.Nome, StringComparer.OrdinalIgnoreCase).ToList();
+
+        AdicionarSecao(sb, tabelasOrdenadas.Where(t => t.ChavePrimaria is not null).Select(GerarAddPk));
+        AdicionarSecao(sb, tabelasOrdenadas.SelectMany(t => t.ChavesUnicas.OrderBy(u => u.Nome, StringComparer.OrdinalIgnoreCase).Select(unica => GerarAddUnique(t, unica))));
+        AdicionarSecao(sb, tabelasOrdenadas.SelectMany(t => t.RestricoesCheck.OrderBy(c => c.Nome, StringComparer.OrdinalIgnoreCase).Select(check => GerarAddCheck(t, check))));
+        AdicionarSecao(sb, tabelasOrdenadas.SelectMany(t => t.ChavesEstrangeiras.OrderBy(f => f.Nome, StringComparer.OrdinalIgnoreCase).Select(fk => GerarAddFk(t, fk))));
+        AdicionarSecao(sb, tabelasOrdenadas.SelectMany(t => t.Indices.OrderBy(i => i.Nome, StringComparer.OrdinalIgnoreCase).Select(indice => GerarCreateIndex(t, indice))));
         AdicionarSecao(sb, snapshot.FuncoesExternas.OrderBy(f => f.Nome, StringComparer.OrdinalIgnoreCase).Select(f => f.SourceSql));
         AdicionarSecao(sb, snapshot.Views.OrderBy(v => v.Nome, StringComparer.OrdinalIgnoreCase).Select(GerarCreateView));
 
@@ -54,10 +61,12 @@ public static class GeradorDdlSql
 
         if (snapshot.Procedimentos.Count > 0 || snapshot.Gatilhos.Count > 0)
         {
+            AjustarDefaultsParametrosProcedimentoParaCompatibilidade(snapshot.Procedimentos);
+
             sb.AppendLine("SET TERM ^;");
             sb.AppendLine();
 
-            foreach (var procedimento in snapshot.Procedimentos.OrderBy(p => p.Nome, StringComparer.OrdinalIgnoreCase))
+            foreach (var procedimento in OrdenarProcedimentosPorDependencia(snapshot.Procedimentos))
             {
                 sb.AppendLine(GerarCreateProcedure(procedimento));
                 sb.AppendLine();
@@ -80,18 +89,6 @@ public static class GeradorDdlSql
     {
         string? charset = snapshot.CharsetBanco?.Trim();
         return string.IsNullOrWhiteSpace(charset) ? "UTF8" : charset;
-    }
-
-    private static IEnumerable<string> GerarDefinicoesTabela(TabelaSchema tabela)
-    {
-        if (tabela.ChavePrimaria is not null)
-            yield return GerarAddPk(tabela);
-
-        foreach (var check in tabela.RestricoesCheck.OrderBy(c => c.Nome, StringComparer.OrdinalIgnoreCase))
-            yield return GerarAddCheck(tabela, check);
-
-        foreach (var fk in tabela.ChavesEstrangeiras.OrderBy(f => f.Nome, StringComparer.OrdinalIgnoreCase))
-            yield return GerarAddFk(tabela, fk);
     }
 
     private static void AdicionarSecao(StringBuilder sb, IEnumerable<string> comandos)
@@ -245,9 +242,332 @@ public static class GeradorDdlSql
             sb.Append(" NOT NULL");
 
         if (!string.IsNullOrWhiteSpace(parametro.DefaultSql))
-            sb.Append($" {parametro.DefaultSql}");
+            sb.Append($" {NormalizarDefaultParametroProcedimento(parametro.DefaultSql)}");
 
         return sb.ToString();
+    }
+
+    private static string NormalizarDefaultParametroProcedimento(string defaultSql)
+    {
+        string texto = defaultSql.Trim();
+        if (texto.StartsWith("DEFAULT", StringComparison.OrdinalIgnoreCase))
+        {
+            texto = texto["DEFAULT".Length..].Trim();
+        }
+
+        if (texto.StartsWith("="))
+        {
+            string valor = texto[1..].Trim();
+            return $"= {valor}";
+        }
+
+        return $"= {texto}";
+    }
+
+    private static void AjustarDefaultsParametrosProcedimentoParaCompatibilidade(IReadOnlyList<ProcedimentoSchema> procedimentos)
+    {
+        if (procedimentos.Count == 0)
+            return;
+
+        var porNome = procedimentos.ToDictionary(p => p.Nome, StringComparer.OrdinalIgnoreCase);
+        var menorQuantidadeArgumentos = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+
+        foreach (var procedimentoChamador in procedimentos)
+        {
+            string fonte = procedimentoChamador.SourceSql ?? string.Empty;
+            foreach (var procedimentoAlvo in procedimentos)
+            {
+                if (string.Equals(procedimentoChamador.Nome, procedimentoAlvo.Nome, StringComparison.OrdinalIgnoreCase))
+                    continue;
+
+                foreach (int qtdArgumentos in ExtrairChamadasQuantidadeArgumentos(fonte, procedimentoAlvo.Nome))
+                {
+                    if (menorQuantidadeArgumentos.TryGetValue(procedimentoAlvo.Nome, out int atual))
+                    {
+                        if (qtdArgumentos < atual)
+                            menorQuantidadeArgumentos[procedimentoAlvo.Nome] = qtdArgumentos;
+                    }
+                    else
+                    {
+                        menorQuantidadeArgumentos[procedimentoAlvo.Nome] = qtdArgumentos;
+                    }
+                }
+            }
+        }
+
+        foreach (var item in menorQuantidadeArgumentos)
+        {
+            if (!porNome.TryGetValue(item.Key, out var procedimento))
+                continue;
+
+            int quantidadeParametros = procedimento.ParametrosEntrada.Count;
+            if (item.Value >= quantidadeParametros)
+                continue;
+
+            for (int i = item.Value; i < quantidadeParametros; i++)
+            {
+                var parametro = procedimento.ParametrosEntrada[i];
+                if (parametro.AceitaNulo && string.IsNullOrWhiteSpace(parametro.DefaultSql))
+                    parametro.DefaultSql = "null";
+            }
+        }
+    }
+
+    private static IEnumerable<int> ExtrairChamadasQuantidadeArgumentos(string sourceSql, string nomeProcedimento)
+    {
+        if (string.IsNullOrWhiteSpace(sourceSql) || string.IsNullOrWhiteSpace(nomeProcedimento))
+            yield break;
+
+        string nomeEscapado = Regex.Escape(nomeProcedimento);
+        string padrao = $@"\b(?:FROM|JOIN|EXECUTE\s+PROCEDURE)\s+(?:""{nomeEscapado}""|{nomeEscapado})\s*\(";
+        foreach (Match match in Regex.Matches(sourceSql, padrao, RegexOptions.IgnoreCase | RegexOptions.CultureInvariant))
+        {
+            int inicioArgs = match.Index + match.Length;
+            if (!TentarExtrairArgumentos(sourceSql, inicioArgs, out string argumentos))
+                continue;
+
+            yield return ContarArgumentos(argumentos);
+        }
+    }
+
+    private static bool TentarExtrairArgumentos(string texto, int inicio, out string argumentos)
+    {
+        argumentos = string.Empty;
+        int profundidade = 1;
+        bool emString = false;
+        var sb = new StringBuilder();
+
+        for (int i = inicio; i < texto.Length; i++)
+        {
+            char ch = texto[i];
+            if (emString)
+            {
+                sb.Append(ch);
+                if (ch == '\'')
+                {
+                    if (i + 1 < texto.Length && texto[i + 1] == '\'')
+                    {
+                        sb.Append(texto[i + 1]);
+                        i++;
+                    }
+                    else
+                    {
+                        emString = false;
+                    }
+                }
+
+                continue;
+            }
+
+            if (ch == '\'')
+            {
+                emString = true;
+                sb.Append(ch);
+                continue;
+            }
+
+            if (ch == '(')
+            {
+                profundidade++;
+                sb.Append(ch);
+                continue;
+            }
+
+            if (ch == ')')
+            {
+                profundidade--;
+                if (profundidade == 0)
+                {
+                    argumentos = sb.ToString();
+                    return true;
+                }
+
+                sb.Append(ch);
+                continue;
+            }
+
+            sb.Append(ch);
+        }
+
+        return false;
+    }
+
+    private static int ContarArgumentos(string argumentos)
+    {
+        if (string.IsNullOrWhiteSpace(argumentos))
+            return 0;
+
+        int quantidade = 1;
+        int profundidade = 0;
+        bool emString = false;
+
+        for (int i = 0; i < argumentos.Length; i++)
+        {
+            char ch = argumentos[i];
+            if (emString)
+            {
+                if (ch == '\'')
+                {
+                    if (i + 1 < argumentos.Length && argumentos[i + 1] == '\'')
+                        i++;
+                    else
+                        emString = false;
+                }
+
+                continue;
+            }
+
+            if (ch == '\'')
+            {
+                emString = true;
+                continue;
+            }
+
+            if (ch == '(')
+            {
+                profundidade++;
+                continue;
+            }
+
+            if (ch == ')')
+            {
+                if (profundidade > 0)
+                    profundidade--;
+                continue;
+            }
+
+            if (ch == ',' && profundidade == 0)
+                quantidade++;
+        }
+
+        return quantidade;
+    }
+
+    private static IReadOnlyList<ProcedimentoSchema> OrdenarProcedimentosPorDependencia(IEnumerable<ProcedimentoSchema> procedimentos)
+    {
+        var lista = procedimentos.OrderBy(p => p.Nome, StringComparer.OrdinalIgnoreCase).ToList();
+        if (lista.Count <= 1)
+            return lista;
+
+        var porNome = lista.ToDictionary(p => p.Nome, StringComparer.OrdinalIgnoreCase);
+        var dependencias = new Dictionary<string, HashSet<string>>(StringComparer.OrdinalIgnoreCase);
+        var dependentes = new Dictionary<string, HashSet<string>>(StringComparer.OrdinalIgnoreCase);
+        var grauEntrada = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+
+        foreach (var procedimento in lista)
+        {
+            dependencias[procedimento.Nome] = [];
+            dependentes[procedimento.Nome] = [];
+            grauEntrada[procedimento.Nome] = 0;
+        }
+
+        foreach (var procedimento in lista)
+        {
+            foreach (var dependencia in ExtrairDependenciasProcedimento(procedimento.SourceSql))
+            {
+                if (!porNome.ContainsKey(dependencia) || string.Equals(dependencia, procedimento.Nome, StringComparison.OrdinalIgnoreCase))
+                    continue;
+
+                if (!dependencias[procedimento.Nome].Add(dependencia))
+                    continue;
+
+                dependentes[dependencia].Add(procedimento.Nome);
+                grauEntrada[procedimento.Nome]++;
+            }
+        }
+
+        var fila = new PriorityQueue<string, string>(StringComparer.OrdinalIgnoreCase);
+        foreach (var nome in grauEntrada.Where(kv => kv.Value == 0).Select(kv => kv.Key))
+            fila.Enqueue(nome, nome);
+
+        var ordenados = new List<ProcedimentoSchema>(lista.Count);
+        while (fila.Count > 0)
+        {
+            string nome = fila.Dequeue();
+            ordenados.Add(porNome[nome]);
+
+            foreach (var dependente in dependentes[nome].OrderBy(n => n, StringComparer.OrdinalIgnoreCase))
+            {
+                grauEntrada[dependente]--;
+                if (grauEntrada[dependente] == 0)
+                    fila.Enqueue(dependente, dependente);
+            }
+        }
+
+        if (ordenados.Count == lista.Count)
+            return ordenados;
+
+        var restantes = lista
+            .Where(p => !ordenados.Any(o => string.Equals(o.Nome, p.Nome, StringComparison.OrdinalIgnoreCase)))
+            .OrderBy(p => p.Nome, StringComparer.OrdinalIgnoreCase);
+        ordenados.AddRange(restantes);
+        return ordenados;
+    }
+
+    private static IEnumerable<string> ExtrairDependenciasProcedimento(string sourceSql)
+    {
+        if (string.IsNullOrWhiteSpace(sourceSql))
+            yield break;
+
+        const string padraoExecuteProcedure = @"EXECUTE\s+PROCEDURE\s+(?:""(?<nomeq>[^""]+)""|(?<nome>[A-Z0-9_$]+))";
+        const string padraoSelectFromProcedure = @"\bFROM\s+(?:""(?<nomeq>[^""]+)""|(?<nome>[A-Z0-9_$]+))\s*\(";
+        const string padraoSelectFromSemParametros = @"\bFROM\s+(?:""(?<nomeq>[^""]+)""|(?<nome>[A-Z0-9_$]+))\b";
+        const string padraoJoinProcedure = @"\bJOIN\s+(?:""(?<nomeq>[^""]+)""|(?<nome>[A-Z0-9_$]+))\s*\(";
+        const string padraoJoinSemParametros = @"\bJOIN\s+(?:""(?<nomeq>[^""]+)""|(?<nome>[A-Z0-9_$]+))\b";
+        var nomes = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+        foreach (Match match in Regex.Matches(sourceSql, padraoExecuteProcedure, RegexOptions.IgnoreCase | RegexOptions.CultureInvariant))
+        {
+            string nome = match.Groups["nomeq"].Success
+                ? match.Groups["nomeq"].Value
+                : match.Groups["nome"].Value;
+
+            if (!string.IsNullOrWhiteSpace(nome))
+                nomes.Add(nome.Trim());
+        }
+
+        foreach (Match match in Regex.Matches(sourceSql, padraoSelectFromProcedure, RegexOptions.IgnoreCase | RegexOptions.CultureInvariant))
+        {
+            string nome = match.Groups["nomeq"].Success
+                ? match.Groups["nomeq"].Value
+                : match.Groups["nome"].Value;
+
+            if (!string.IsNullOrWhiteSpace(nome))
+                nomes.Add(nome.Trim());
+        }
+
+        foreach (Match match in Regex.Matches(sourceSql, padraoSelectFromSemParametros, RegexOptions.IgnoreCase | RegexOptions.CultureInvariant))
+        {
+            string nome = match.Groups["nomeq"].Success
+                ? match.Groups["nomeq"].Value
+                : match.Groups["nome"].Value;
+
+            if (!string.IsNullOrWhiteSpace(nome))
+                nomes.Add(nome.Trim());
+        }
+
+        foreach (Match match in Regex.Matches(sourceSql, padraoJoinProcedure, RegexOptions.IgnoreCase | RegexOptions.CultureInvariant))
+        {
+            string nome = match.Groups["nomeq"].Success
+                ? match.Groups["nomeq"].Value
+                : match.Groups["nome"].Value;
+
+            if (!string.IsNullOrWhiteSpace(nome))
+                nomes.Add(nome.Trim());
+        }
+
+        foreach (Match match in Regex.Matches(sourceSql, padraoJoinSemParametros, RegexOptions.IgnoreCase | RegexOptions.CultureInvariant))
+        {
+            string nome = match.Groups["nomeq"].Success
+                ? match.Groups["nomeq"].Value
+                : match.Groups["nome"].Value;
+
+            if (!string.IsNullOrWhiteSpace(nome))
+                nomes.Add(nome.Trim());
+        }
+
+        foreach (string nome in nomes)
+            yield return nome;
     }
 
     private static bool EhDominioImplicito(string nomeDominio)
@@ -265,11 +585,17 @@ public static class GeradorDdlSql
     public static string GerarAddPk(TabelaSchema tabela)
     {
         var pk = tabela.ChavePrimaria!;
+        if (DeveOmitirNomeConstraint(pk.Nome))
+            return $"ALTER TABLE {Q(tabela.Nome)} ADD PRIMARY KEY ({ListaColunas(pk.Colunas)});";
+
         return $"ALTER TABLE {Q(tabela.Nome)} ADD CONSTRAINT {Q(pk.Nome)} PRIMARY KEY ({ListaColunas(pk.Colunas)});";
     }
 
     public static string GerarAddUnique(TabelaSchema tabela, ChaveUnicaSchema unica)
     {
+        if (DeveOmitirNomeConstraint(unica.Nome))
+            return $"ALTER TABLE {Q(tabela.Nome)} ADD UNIQUE ({ListaColunas(unica.Colunas)});";
+
         return $"ALTER TABLE {Q(tabela.Nome)} ADD CONSTRAINT {Q(unica.Nome)} UNIQUE ({ListaColunas(unica.Colunas)});";
     }
 
@@ -279,13 +605,20 @@ public static class GeradorDdlSql
         if (!sql.StartsWith("CHECK", StringComparison.OrdinalIgnoreCase))
             sql = $"CHECK ({sql})";
 
+        if (DeveOmitirNomeConstraint(check.Nome))
+            return $"ALTER TABLE {Q(tabela.Nome)} ADD {sql};";
+
         return $"ALTER TABLE {Q(tabela.Nome)} ADD CONSTRAINT {Q(check.Nome)} {sql};";
     }
 
     public static string GerarAddFk(TabelaSchema tabela, ChaveEstrangeiraSchema fk)
     {
+        string prefixo = DeveOmitirNomeConstraint(fk.Nome)
+            ? $"ALTER TABLE {Q(tabela.Nome)} ADD "
+            : $"ALTER TABLE {Q(tabela.Nome)} ADD CONSTRAINT {Q(fk.Nome)} ";
+
         string sql =
-            $"ALTER TABLE {Q(tabela.Nome)} ADD CONSTRAINT {Q(fk.Nome)} " +
+            prefixo +
             $"FOREIGN KEY ({ListaColunas(fk.Colunas)}) REFERENCES {Q(fk.TabelaReferencia)} ({ListaColunas(fk.ColunasReferencia)})";
 
         if (!string.Equals(fk.RegraUpdate, "RESTRICT", StringComparison.OrdinalIgnoreCase))
@@ -296,11 +629,28 @@ public static class GeradorDdlSql
         return sql + ";";
     }
 
+    private static bool DeveOmitirNomeConstraint(string nomeConstraint)
+    {
+        return RegexConstraintInteg.IsMatch(nomeConstraint.Trim());
+    }
+
     public static string GerarCreateIndex(TabelaSchema tabela, IndiceSchema indice)
     {
-        string prefixo = indice.Unico ? "CREATE UNIQUE INDEX" : "CREATE INDEX";
-        string desc = indice.Descendente ? " DESCENDING" : string.Empty;
-        return $"{prefixo} {Q(indice.Nome)} ON {Q(tabela.Nome)}{desc} ({ListaColunas(indice.Colunas)});";
+        string prefixo;
+        if (indice.Unico)
+        {
+            prefixo = "CREATE UNIQUE INDEX";
+        }
+        else if (indice.Descendente)
+        {
+            prefixo = "CREATE DESCENDING INDEX";
+        }
+        else
+        {
+            prefixo = "CREATE INDEX";
+        }
+
+        return $"{prefixo} {Q(indice.Nome)} ON {Q(tabela.Nome)} ({ListaColunas(indice.Colunas)});";
     }
 
     public static string GerarDefinicaoColuna(ColunaSchema coluna, string? charsetPadrao = null)
