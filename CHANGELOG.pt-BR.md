@@ -9,6 +9,8 @@ e o projeto adota [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Não Lançado]
 
+## [0.6.0] - 2026-05-12
+
 ### Adicionado
 - Importação e exportação agora aplicam política de retry automático para falhas transitórias (até 3 tentativas) em cenários de instabilidade de execução e escrita.
 - `ddl-diff` agora suporta `--include-domains` para comparar objetos `DOMAIN` de forma opcional, mantendo a ignorância por padrão para revisões mais práticas.
@@ -35,6 +37,15 @@ e o projeto adota [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Resumo do `import` em lote agora classifica corretamente arquivos com erros de comandos SQL em `--continue-on-error` como `Sucesso com erros`, em vez de `Sucesso`.
 - Títulos dos relatórios DDL agora preservam corretamente acentuação UTF-8 nos fluxos de impressão/geração de PDF (exemplo: `Análise de Risco DDL`).
 - Tratamento silencioso de exceção na coleta da data de manutenção foi substituído por tratamento resiliente explícito para manter diagnóstico consistente.
+- O pipeline `ddl-extract`/`create-db --ddl-file` agora trata cenários críticos de compatibilidade na inicialização de schema:
+  - ordenação determinística de PK/UNIQUE/FK para evitar falhas de dependência de metadados;
+  - geração da sintaxe correta de índice descendente no Firebird (`CREATE DESCENDING INDEX`);
+  - normalização de default de parâmetros de procedure para assinaturas PSQL válidas;
+  - ordenação de rotinas orientada a dependência, incluindo padrões de uso via `FROM` e `JOIN`;
+  - suporte a referências circulares entre rotinas com emissão em duas fases (stub + corpo completo);
+  - correção do mapeamento de tipos modernos do Firebird (`DOUBLE PRECISION`, `TIME WITH TIME ZONE`, `TIMESTAMP WITH TIME ZONE`);
+  - extração e geração de objetos `EXCEPTION` customizados exigidos por procedures.
+- `create-db` agora propaga consistentemente o locale detectado da CLI para a importação do DDL, evitando mistura de mensagens PT-BR/EN na mesma execução.
 
 ## [0.4.0] - 2026-04-29
 
@@ -113,7 +124,9 @@ e o projeto adota [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Compatibilidade com Firebird 2.5, 3.0, 4.0 e 5.0 nos fluxos de exportação/importação.
 - Suíte de testes unitários e de integração.
 
-[Não Lançado]: https://github.com/SkyInformatica/SkyFBTool/compare/v0.4.0...HEAD
+[Não Lançado]: https://github.com/SkyInformatica/SkyFBTool/compare/v0.6.0...HEAD
+[0.6.0]: https://github.com/SkyInformatica/SkyFBTool/compare/v0.5.0...v0.6.0
+[0.5.0]: https://github.com/SkyInformatica/SkyFBTool/compare/v0.4.0...v0.5.0
 [0.4.0]: https://github.com/SkyInformatica/SkyFBTool/compare/v0.3.0...v0.4.0
 [0.3.0]: https://github.com/SkyInformatica/SkyFBTool/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/SkyInformatica/SkyFBTool/compare/v0.1.0...v0.2.0
