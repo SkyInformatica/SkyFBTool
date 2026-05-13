@@ -84,6 +84,21 @@ public static class CreateDatabaseCommand
                 $"Arquivo de banco já existe: {caminhoBanco}. Use --overwrite para recriá-lo."));
         }
 
+        string? arquivoDdl = null;
+        if (!string.IsNullOrWhiteSpace(op.ArquivoDdl))
+        {
+            arquivoDdl = Path.GetFullPath(op.ArquivoDdl.Trim());
+            if (!File.Exists(arquivoDdl))
+            {
+                throw new FileNotFoundException(
+                    TextoLocalizado.Obter(
+                        idioma,
+                        $"DDL file not found: {arquivoDdl}",
+                        $"Arquivo DDL não encontrado: {arquivoDdl}"),
+                    arquivoDdl);
+            }
+        }
+
         var csb = new FbConnectionStringBuilder
         {
             DataSource = op.Host,
@@ -109,19 +124,8 @@ public static class CreateDatabaseCommand
         Console.WriteLine($"{TextoLocalizado.Obter(idioma, "Page size", "Tamanho da página")}: {op.PageSize}");
         Console.WriteLine($"{TextoLocalizado.Obter(idioma, "Forced writes", "Escritas forçadas")}: {(op.ForcedWrites ? TextoLocalizado.Obter(idioma, "on", "ligado") : TextoLocalizado.Obter(idioma, "off", "desligado"))}");
 
-        if (!string.IsNullOrWhiteSpace(op.ArquivoDdl))
+        if (!string.IsNullOrWhiteSpace(arquivoDdl))
         {
-            string arquivoDdl = Path.GetFullPath(op.ArquivoDdl.Trim());
-            if (!File.Exists(arquivoDdl))
-            {
-                throw new FileNotFoundException(
-                    TextoLocalizado.Obter(
-                        idioma,
-                        $"DDL file not found: {arquivoDdl}",
-                        $"Arquivo DDL não encontrado: {arquivoDdl}"),
-                    arquivoDdl);
-            }
-
             Console.WriteLine(TextoLocalizado.Obter(idioma, "Applying DDL script...", "Aplicando script DDL..."));
 
             var opImportacao = new OpcoesImportacao

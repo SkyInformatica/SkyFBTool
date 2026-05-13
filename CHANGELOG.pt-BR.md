@@ -9,6 +9,11 @@ e o projeto adota [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Não Lançado]
 
+## [0.6.2] - 2026-05-13
+
+### Corrigido
+- `create-db` agora valida a existência de `--ddl-file` antes de tentar criação/conexão do banco, garantindo comportamento determinístico de `FileNotFoundException` nos testes da CLI em diferentes ambientes.
+
 ## [0.6.1] - 2026-05-13
 
 ### Corrigido
@@ -137,7 +142,8 @@ e o projeto adota [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Compatibilidade com Firebird 2.5, 3.0, 4.0 e 5.0 nos fluxos de exportação/importação.
 - Suíte de testes unitários e de integração.
 
-[Não Lançado]: https://github.com/SkyInformatica/SkyFBTool/compare/v0.6.1...HEAD
+[Não Lançado]: https://github.com/SkyInformatica/SkyFBTool/compare/v0.6.2...HEAD
+[0.6.2]: https://github.com/SkyInformatica/SkyFBTool/compare/v0.6.1...v0.6.2
 [0.6.1]: https://github.com/SkyInformatica/SkyFBTool/compare/v0.6.0...v0.6.1
 [0.6.0]: https://github.com/SkyInformatica/SkyFBTool/compare/v0.5.0...v0.6.0
 [0.5.0]: https://github.com/SkyInformatica/SkyFBTool/compare/v0.4.0...v0.5.0
