@@ -9,6 +9,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.6.1] - 2026-05-13
+
+### Fixed
+- Release workflow now disables optional private NuGet source `SkyInfo.Infra` before restore, preventing `401 Unauthorized` failures when the feed is not required for build/test.
+
 ## [0.6.0] - 2026-05-12
 
 ### Added
@@ -133,7 +138,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Firebird 2.5, 3.0, 4.0, and 5.0 compatibility for export/import workflows.
 - Unit and integration test suite.
 
-[Unreleased]: https://github.com/SkyInformatica/SkyFBTool/compare/v0.6.0...HEAD
+[Unreleased]: https://github.com/SkyInformatica/SkyFBTool/compare/v0.6.1...HEAD
+[0.6.1]: https://github.com/SkyInformatica/SkyFBTool/compare/v0.6.0...v0.6.1
 [0.6.0]: https://github.com/SkyInformatica/SkyFBTool/compare/v0.5.0...v0.6.0
 [0.5.0]: https://github.com/SkyInformatica/SkyFBTool/compare/v0.4.0...v0.5.0
 [0.4.0]: https://github.com/SkyInformatica/SkyFBTool/compare/v0.3.0...v0.4.0

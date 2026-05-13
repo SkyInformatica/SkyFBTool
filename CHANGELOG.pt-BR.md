@@ -9,6 +9,11 @@ e o projeto adota [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Não Lançado]
 
+## [0.6.1] - 2026-05-13
+
+### Corrigido
+- Workflow de release agora desabilita a fonte privada opcional NuGet `SkyInfo.Infra` antes do restore, evitando falhas `401 Unauthorized` quando esse feed não é necessário para build/testes.
+
 ## [0.6.0] - 2026-05-12
 
 ### Adicionado
@@ -132,7 +137,8 @@ e o projeto adota [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Compatibilidade com Firebird 2.5, 3.0, 4.0 e 5.0 nos fluxos de exportação/importação.
 - Suíte de testes unitários e de integração.
 
-[Não Lançado]: https://github.com/SkyInformatica/SkyFBTool/compare/v0.6.0...HEAD
+[Não Lançado]: https://github.com/SkyInformatica/SkyFBTool/compare/v0.6.1...HEAD
+[0.6.1]: https://github.com/SkyInformatica/SkyFBTool/compare/v0.6.0...v0.6.1
 [0.6.0]: https://github.com/SkyInformatica/SkyFBTool/compare/v0.5.0...v0.6.0
 [0.5.0]: https://github.com/SkyInformatica/SkyFBTool/compare/v0.4.0...v0.5.0
 [0.4.0]: https://github.com/SkyInformatica/SkyFBTool/compare/v0.3.0...v0.4.0
