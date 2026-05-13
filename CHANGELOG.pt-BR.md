@@ -12,13 +12,31 @@ e o projeto adota [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ## [0.6.0] - 2026-05-12
 
 ### Adicionado
-- Importação e exportação agora aplicam política de retry automático para falhas transitórias (até 3 tentativas) em cenários de instabilidade de execução e escrita.
-- `ddl-diff` agora suporta `--include-domains` para comparar objetos `DOMAIN` de forma opcional, mantendo a ignorância por padrão para revisões mais práticas.
 - Cobertura de integração foi ampliada para fluxos de relatórios DDL:
   - `ddl-analyze` em lote valida severidade máxima `none` para bases sem achados;
   - `ddl-diff` valida geração de HTML com estilo de impressão e marcadores visuais de indicadores.
 - Novo comando `create-db` para provisionar arquivos de banco Firebird com opções operacionais explícitas (`charset`, `page-size`, `forced-writes`) e comportamento seguro de sobrescrita.
 - `create-db` agora suporta `--ddl-file` para inicializar o schema logo após a criação do banco, executando um script SQL extraído.
+
+### Alterado
+- Mensagem de console em PT-BR do `ddl-analyze --databases-batch` foi refinada para texto mais claro (`Padrão de bancos correspondeu a ... arquivo(s)`).
+
+### Corrigido
+- O pipeline `ddl-extract`/`create-db --ddl-file` agora trata cenários críticos de compatibilidade na inicialização de schema:
+  - ordenação determinística de PK/UNIQUE/FK para evitar falhas de dependência de metadados;
+  - geração da sintaxe correta de índice descendente no Firebird (`CREATE DESCENDING INDEX`);
+  - normalização de default de parâmetros de procedure para assinaturas PSQL válidas;
+  - ordenação de rotinas orientada a dependência, incluindo padrões de uso via `FROM` e `JOIN`;
+  - suporte a referências circulares entre rotinas com emissão em duas fases (stub + corpo completo);
+  - correção do mapeamento de tipos modernos do Firebird (`DOUBLE PRECISION`, `TIME WITH TIME ZONE`, `TIMESTAMP WITH TIME ZONE`);
+  - extração e geração de objetos `EXCEPTION` customizados exigidos por procedures.
+- `create-db` agora propaga consistentemente o locale detectado da CLI para a importação do DDL, evitando mistura de mensagens PT-BR/EN na mesma execução.
+
+## [0.5.0] - 2026-05-10
+
+### Adicionado
+- Importação e exportação agora aplicam política de retry automático para falhas transitórias (até 3 tentativas) em cenários de instabilidade de execução e escrita.
+- `ddl-diff` agora suporta `--include-domains` para comparar objetos `DOMAIN` de forma opcional, mantendo a ignorância por padrão para revisões mais práticas.
 
 ### Alterado
 - A análise operacional de `ddl-analyze --database` foi reforçada com classificação explícita de status/erro da coleta MON$ (sucesso, parcial ou falha com contexto nos metadados do relatório).
@@ -31,21 +49,11 @@ e o projeto adota [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Artefatos de exemplo DDL e documentação de comandos foram atualizados para refletir o comportamento visual/funcional atual.
 - README (EN/PT-BR) foi reestruturado como portal estratégico de documentação, e os documentos conceituais foram organizados em `docs/concepts/en` e `docs/concepts/pt-BR` com navegação bilíngue.
 - O resumo da análise DDL em lote agora usa `Não aplicável` para bases sem achados, evitando senso falso de urgência na maior severidade.
-- Mensagem de console em PT-BR do `ddl-analyze --databases-batch` foi refinada para texto mais claro (`Padrão de bancos correspondeu a ... arquivo(s)`).
 
 ### Corrigido
 - Resumo do `import` em lote agora classifica corretamente arquivos com erros de comandos SQL em `--continue-on-error` como `Sucesso com erros`, em vez de `Sucesso`.
 - Títulos dos relatórios DDL agora preservam corretamente acentuação UTF-8 nos fluxos de impressão/geração de PDF (exemplo: `Análise de Risco DDL`).
 - Tratamento silencioso de exceção na coleta da data de manutenção foi substituído por tratamento resiliente explícito para manter diagnóstico consistente.
-- O pipeline `ddl-extract`/`create-db --ddl-file` agora trata cenários críticos de compatibilidade na inicialização de schema:
-  - ordenação determinística de PK/UNIQUE/FK para evitar falhas de dependência de metadados;
-  - geração da sintaxe correta de índice descendente no Firebird (`CREATE DESCENDING INDEX`);
-  - normalização de default de parâmetros de procedure para assinaturas PSQL válidas;
-  - ordenação de rotinas orientada a dependência, incluindo padrões de uso via `FROM` e `JOIN`;
-  - suporte a referências circulares entre rotinas com emissão em duas fases (stub + corpo completo);
-  - correção do mapeamento de tipos modernos do Firebird (`DOUBLE PRECISION`, `TIME WITH TIME ZONE`, `TIMESTAMP WITH TIME ZONE`);
-  - extração e geração de objetos `EXCEPTION` customizados exigidos por procedures.
-- `create-db` agora propaga consistentemente o locale detectado da CLI para a importação do DDL, evitando mistura de mensagens PT-BR/EN na mesma execução.
 
 ## [0.4.0] - 2026-04-29
 

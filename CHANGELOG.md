@@ -12,13 +12,31 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.6.0] - 2026-05-12
 
 ### Added
-- Import/export now apply automatic transient retry policy (up to 3 attempts) for command execution and file write instability scenarios.
-- `ddl-diff` now supports `--include-domains` to optionally compare `DOMAIN` objects, while ignoring them by default for practical reviews.
 - Integration coverage was expanded for DDL report flows:
   - batch `ddl-analyze` validates `none` highest severity for databases without findings;
   - `ddl-diff` validates HTML report print-style and visual KPI markers generation.
 - New `create-db` command to provision Firebird database files with explicit operational options (`charset`, `page-size`, `forced-writes`) and safe overwrite behavior.
 - `create-db` now supports `--ddl-file` to bootstrap schema immediately after database creation by executing an extracted SQL script.
+
+### Changed
+- PT-BR console message for `ddl-analyze --databases-batch` was refined to clearer wording (`Padrão de bancos correspondeu a ... arquivo(s)`).
+
+### Fixed
+- `ddl-extract`/`create-db --ddl-file` pipeline now handles critical schema bootstrap compatibility scenarios:
+  - deterministic ordering for PK/UNIQUE/FK to avoid metadata dependency failures;
+  - Firebird descending index syntax generation (`CREATE DESCENDING INDEX`);
+  - procedure parameter default normalization for valid PSQL signatures;
+  - dependency-aware routine ordering including `FROM`/`JOIN` usage patterns;
+  - circular routine references handled through two-phase procedure emission (stub + full body);
+  - Firebird modern type mapping correction (`DOUBLE PRECISION`, `TIME WITH TIME ZONE`, `TIMESTAMP WITH TIME ZONE`);
+  - extraction and generation of custom `EXCEPTION` objects required by procedures.
+- `create-db` now consistently propagates detected CLI locale to DDL import output, avoiding mixed PT-BR/EN console messages in a single run.
+
+## [0.5.0] - 2026-05-10
+
+### Added
+- Import/export now apply automatic transient retry policy (up to 3 attempts) for command execution and file write instability scenarios.
+- `ddl-diff` now supports `--include-domains` to optionally compare `DOMAIN` objects, while ignoring them by default for practical reviews.
 
 ### Changed
 - `ddl-analyze --database` operational analysis was hardened with explicit status/error classification for MON$ collection outcomes (success, partial, or failure context in report metadata).
@@ -31,21 +49,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - DDL sample artifacts and command docs were refreshed to reflect current report/UI behavior.
 - README (EN/PT-BR) was restructured as a strategic documentation portal, and conceptual docs were organized under `docs/concepts/en` and `docs/concepts/pt-BR` with bilingual navigation.
 - Batch DDL analysis summary now uses `Not applicable` for databases without findings, preventing false urgency in highest-severity presentation.
-- PT-BR console message for `ddl-analyze --databases-batch` was refined to clearer wording (`Padrão de bancos correspondeu a ... arquivo(s)`).
 
 ### Fixed
 - Batch `import` summary now correctly classifies files with SQL command errors under `--continue-on-error` as `Succeeded with errors` instead of plain `Succeeded`.
 - DDL report titles now preserve UTF-8 accents correctly in generated PDF/print flows (for example: `Análise de Risco DDL`).
 - Silent exception handling in maintenance timestamp collection was replaced with explicit resilient handling to keep diagnostics consistent.
-- `ddl-extract`/`create-db --ddl-file` pipeline now handles critical schema bootstrap compatibility scenarios:
-  - deterministic ordering for PK/UNIQUE/FK to avoid metadata dependency failures;
-  - Firebird descending index syntax generation (`CREATE DESCENDING INDEX`);
-  - procedure parameter default normalization for valid PSQL signatures;
-  - dependency-aware routine ordering including `FROM`/`JOIN` usage patterns;
-  - circular routine references handled through two-phase procedure emission (stub + full body);
-  - Firebird modern type mapping correction (`DOUBLE PRECISION`, `TIME WITH TIME ZONE`, `TIMESTAMP WITH TIME ZONE`);
-  - extraction and generation of custom `EXCEPTION` objects required by procedures.
-- `create-db` now consistently propagates detected CLI locale to DDL import output, avoiding mixed PT-BR/EN console messages in a single run.
 
 
 ## [0.4.0] - 2026-04-29
