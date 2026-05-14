@@ -11,16 +11,6 @@ e o projeto adota [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [0.6.2] - 2026-05-13
 
-### Corrigido
-- `create-db` agora valida a existência de `--ddl-file` antes de tentar criação/conexão do banco, garantindo comportamento determinístico de `FileNotFoundException` nos testes da CLI em diferentes ambientes.
-
-## [0.6.1] - 2026-05-13
-
-### Corrigido
-- Workflow de release agora desabilita a fonte privada opcional NuGet `SkyInfo.Infra` antes do restore, evitando falhas `401 Unauthorized` quando esse feed não é necessário para build/testes.
-
-## [0.6.0] - 2026-05-12
-
 ### Adicionado
 - Cobertura de integração foi ampliada para fluxos de relatórios DDL:
   - `ddl-analyze` em lote valida severidade máxima `none` para bases sem achados;
@@ -32,6 +22,7 @@ e o projeto adota [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Mensagem de console em PT-BR do `ddl-analyze --databases-batch` foi refinada para texto mais claro (`Padrão de bancos correspondeu a ... arquivo(s)`).
 
 ### Corrigido
+- `create-db` agora valida a existência de `--ddl-file` antes de tentar criação/conexão do banco, garantindo comportamento determinístico de `FileNotFoundException` nos testes da CLI em diferentes ambientes.
 - O pipeline `ddl-extract`/`create-db --ddl-file` agora trata cenários críticos de compatibilidade na inicialização de schema:
   - ordenação determinística de PK/UNIQUE/FK para evitar falhas de dependência de metadados;
   - geração da sintaxe correta de índice descendente no Firebird (`CREATE DESCENDING INDEX`);
@@ -143,9 +134,7 @@ e o projeto adota [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Suíte de testes unitários e de integração.
 
 [Não Lançado]: https://github.com/SkyInformatica/SkyFBTool/compare/v0.6.2...HEAD
-[0.6.2]: https://github.com/SkyInformatica/SkyFBTool/compare/v0.6.1...v0.6.2
-[0.6.1]: https://github.com/SkyInformatica/SkyFBTool/compare/v0.6.0...v0.6.1
-[0.6.0]: https://github.com/SkyInformatica/SkyFBTool/compare/v0.5.0...v0.6.0
+[0.6.2]: https://github.com/SkyInformatica/SkyFBTool/compare/v0.5.0...v0.6.2
 [0.5.0]: https://github.com/SkyInformatica/SkyFBTool/compare/v0.4.0...v0.5.0
 [0.4.0]: https://github.com/SkyInformatica/SkyFBTool/compare/v0.3.0...v0.4.0
 [0.3.0]: https://github.com/SkyInformatica/SkyFBTool/compare/v0.2.0...v0.3.0
