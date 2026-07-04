@@ -9,6 +9,11 @@ e o projeto adota [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Não Lançado]
 
+## [0.6.3] - 2026-07-04
+
+### Segurança
+- `Scriban` atualizado de 7.1.0 para 7.2.5 para remover advisories conhecidos de vulnerabilidade de negação de serviço que afetavam a versão 7.1.0.
+
 ### Corrigido
 - `ddl-analyze` não reporta mais índices por expressão, como `UPPER(DESCRICAO)`, como `INDICE_COLUNA_INEXISTENTE`.
 
