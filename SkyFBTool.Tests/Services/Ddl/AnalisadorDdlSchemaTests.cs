@@ -253,6 +253,97 @@ public class AnalisadorDdlSchemaTests
     }
 
     [Fact]
+    public void Analisar_QuandoIndiceUsaExpressao_NaoDeveRegistrarColunaInexistente()
+    {
+        var snapshot = new SnapshotSchema
+        {
+            Tabelas =
+            [
+                new TabelaSchema
+                {
+                    Nome = "AGRUPAMENTODOCUMENTO",
+                    Colunas =
+                    [
+                        new ColunaSchema { Nome = "ID", TipoSql = "INTEGER", AceitaNulo = false },
+                        new ColunaSchema { Nome = "DESCRICAO", TipoSql = "VARCHAR(100)", AceitaNulo = true }
+                    ],
+                    ChavePrimaria = new ChavePrimariaSchema
+                    {
+                        Nome = "PK_AGRUPAMENTODOCUMENTO",
+                        Colunas = ["ID"]
+                    },
+                    Indices =
+                    [
+                        new IndiceSchema
+                        {
+                            Nome = "IND_AGRUPAMENTODOCUMENTO_1",
+                            Colunas = ["UPPER(DESCRICAO)"]
+                        },
+                        new IndiceSchema
+                        {
+                            Nome = "IND_ARISPARQUIVO_2",
+                            Colunas = ["CAST(DATAGERACAO AS DATE)"]
+                        },
+                        new IndiceSchema
+                        {
+                            Nome = "IND_BENSINDISPONIVEIS_11",
+                            Colunas = ["CASE WHEN COALESCE(CODIGOCNIB, 0) > 0 THEN 'T' ELSE 'F' END"]
+                        },
+                        new IndiceSchema
+                        {
+                            Nome = "IND_ENCAMINHAMENTO_24",
+                            Colunas = ["DATA + 30"]
+                        }
+                    ]
+                }
+            ]
+        };
+
+        var resultado = AnalisadorDdlSchema.Analisar(snapshot);
+
+        Assert.DoesNotContain(resultado.Achados, a => a.Codigo == "INDICE_COLUNA_INEXISTENTE");
+    }
+
+    [Fact]
+    public void Analisar_QuandoIndiceReferenciaColunaInexistente_DeveRegistrarAchadoHigh()
+    {
+        var snapshot = new SnapshotSchema
+        {
+            Tabelas =
+            [
+                new TabelaSchema
+                {
+                    Nome = "MOVIMENTO",
+                    Colunas =
+                    [
+                        new ColunaSchema { Nome = "ID", TipoSql = "INTEGER", AceitaNulo = false }
+                    ],
+                    ChavePrimaria = new ChavePrimariaSchema
+                    {
+                        Nome = "PK_MOVIMENTO",
+                        Colunas = ["ID"]
+                    },
+                    Indices =
+                    [
+                        new IndiceSchema
+                        {
+                            Nome = "IDX_MOVIMENTO_DATA",
+                            Colunas = ["DATA"]
+                        }
+                    ]
+                }
+            ]
+        };
+
+        var resultado = AnalisadorDdlSchema.Analisar(snapshot);
+
+        Assert.Contains(resultado.Achados, a =>
+            a.Codigo == "INDICE_COLUNA_INEXISTENTE" &&
+            a.Severidade == "high" &&
+            a.Escopo == "MOVIMENTO.IDX_MOVIMENTO_DATA");
+    }
+
+    [Fact]
     public void Analisar_QuandoIndicePrefixoRedundante_DeveRegistrarAchadoMedium()
     {
         var snapshot = new SnapshotSchema

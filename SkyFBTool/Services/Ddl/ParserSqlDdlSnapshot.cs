@@ -185,16 +185,19 @@ internal static class ParserSqlDdlSnapshot
 
     private static bool TentarProcessarCreateTable(string sql, Dictionary<string, TabelaSchema> tabelas)
     {
-        if (!sql.StartsWith("CREATE TABLE", StringComparison.OrdinalIgnoreCase))
+        var match = Regex.Match(
+            sql,
+            $"^CREATE\\s+(?:GLOBAL\\s+TEMPORARY\\s+)?TABLE\\s+(?<nome>{PadraoIdentificador})\\s*\\(",
+            RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
+
+        if (!match.Success)
             return false;
 
         int indiceAbreParenteses = EncontrarPrimeiroParentesesForaAspas(sql);
         if (indiceAbreParenteses < 0)
             return false;
 
-        string prefixo = sql[..indiceAbreParenteses].Trim();
-        string nomeTabelaToken = prefixo["CREATE TABLE".Length..].Trim();
-        string nomeTabela = DesquotarIdentificador(nomeTabelaToken);
+        string nomeTabela = DesquotarIdentificador(match.Groups["nome"].Value);
         if (string.IsNullOrWhiteSpace(nomeTabela))
             return false;
 

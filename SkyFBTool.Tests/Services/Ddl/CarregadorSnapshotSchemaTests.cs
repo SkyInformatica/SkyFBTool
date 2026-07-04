@@ -126,6 +126,33 @@ public class CarregadorSnapshotSchemaTests
     }
 
     [Fact]
+    public async Task CarregarSnapshotComOrigemAsync_QuandoTabelaTemporariaGlobal_DeveParsearColunas()
+    {
+        string pasta = CriarPastaTemporaria();
+        string arquivoSql = Path.Combine(pasta, "origem.sql");
+
+        string ddl = """
+                     CREATE GLOBAL TEMPORARY TABLE TMP_PROTOCOLOSENTRADA (
+                         DATA DATE,
+                         CODIGOUSUARIO INTEGER,
+                         SEQUENCIA INTEGER,
+                         PROTOCOLO INTEGER
+                     ) ON COMMIT PRESERVE ROWS;
+                     CREATE INDEX IND_TMP_PROTOCOLOSENTRADA_1 ON TMP_PROTOCOLOSENTRADA (DATA, CODIGOUSUARIO);
+                     """;
+
+        await File.WriteAllTextAsync(arquivoSql, ddl);
+
+        var (snapshot, _) = await CarregadorSnapshotSchema.CarregarSnapshotComOrigemAsync(arquivoSql);
+
+        var tabela = Assert.Single(snapshot.Tabelas);
+        Assert.Equal("TMP_PROTOCOLOSENTRADA", tabela.Nome);
+        Assert.Contains(tabela.Colunas, c => c.Nome == "DATA");
+        Assert.Contains(tabela.Colunas, c => c.Nome == "CODIGOUSUARIO");
+        Assert.Contains(tabela.Indices, i => i.Nome == "IND_TMP_PROTOCOLOSENTRADA_1");
+    }
+
+    [Fact]
     public async Task AnalisarAsync_QuandoEntradaSqlPuro_DeveGerarRelatorio()
     {
         string pasta = CriarPastaTemporaria();

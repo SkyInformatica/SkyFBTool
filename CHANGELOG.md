@@ -9,6 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- `ddl-analyze` no longer reports expression indexes such as `UPPER(DESCRIPTION)` as `INDICE_COLUNA_INEXISTENTE`.
+
 ## [0.6.2] - 2026-05-13
 
 ### Added

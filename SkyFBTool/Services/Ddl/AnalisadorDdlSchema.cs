@@ -1,5 +1,6 @@
 using System.Text;
 using System.Text.Json;
+using System.Text.RegularExpressions;
 using SkyFBTool.Core;
 
 namespace SkyFBTool.Services.Ddl;
@@ -474,6 +475,9 @@ public static class AnalisadorDdlSchema
 
             foreach (var colunaIndice in indice.Colunas)
             {
+                if (EhExpressaoIndice(colunaIndice))
+                    continue;
+
                 if (colunas.ContainsKey(colunaIndice))
                     continue;
 
@@ -487,6 +491,18 @@ public static class AnalisadorDdlSchema
                     severidadesOverride);
             }
         }
+    }
+
+    private static bool EhExpressaoIndice(string colunaIndice)
+    {
+        string valor = colunaIndice.Trim();
+        if (valor.Contains('(') || valor.Contains(')') || valor.Contains('\''))
+            return true;
+
+        if (RegexOperadorExpressaoIndice.IsMatch(valor))
+            return true;
+
+        return RegexPalavraChaveExpressaoIndice.IsMatch(valor);
     }
 
     private static void ValidarDuplicidadeIndices(
@@ -1070,4 +1086,12 @@ public static class AnalisadorDdlSchema
     };
 
     private static readonly UTF8Encoding EncodingUtf8ComBom = new(encoderShouldEmitUTF8Identifier: true);
+
+    private static readonly Regex RegexOperadorExpressaoIndice = new(
+        @"(?:\s[+\-*/]\s|<>|<=|>=|=|<|>)",
+        RegexOptions.Compiled | RegexOptions.CultureInvariant);
+
+    private static readonly Regex RegexPalavraChaveExpressaoIndice = new(
+        @"\b(?:CASE|WHEN|THEN|ELSE|END|FROM|AS|IS|NULL|NOT|AND|OR)\b",
+        RegexOptions.Compiled | RegexOptions.CultureInvariant | RegexOptions.IgnoreCase);
 }

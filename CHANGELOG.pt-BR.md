@@ -9,6 +9,9 @@ e o projeto adota [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Não Lançado]
 
+### Corrigido
+- `ddl-analyze` não reporta mais índices por expressão, como `UPPER(DESCRICAO)`, como `INDICE_COLUNA_INEXISTENTE`.
+
 ## [0.6.2] - 2026-05-13
 
 ### Adicionado
