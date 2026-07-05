@@ -127,7 +127,7 @@ Quick summary:
 
 ### 3) Risk triage workflow (DBA)
 1. Run `ddl-analyze` (prefer `--database` when possible).
-2. Start from prioritized tables in HTML report.
+2. Start from prioritized objects in HTML report.
 3. Remediate `critical/high`, then `medium`.
 4. Keep `low` findings as optimization backlog after plan validation.
 

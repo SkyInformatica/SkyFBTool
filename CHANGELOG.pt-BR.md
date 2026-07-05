@@ -17,6 +17,7 @@ e o projeto adota [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Alterado
 - `ddl-analyze` agora possui uma estrutura interna de motor de regras, com validações de estrutura de tabela, chaves estrangeiras, índices, compatibilidade de campos e corpo PSQL movidas para classes de regra dedicadas.
+- O relatório HTML do `ddl-analyze` agora identifica a priorização de correção por objeto/escopo em vez de tabela, evitando confusão quando achados se referem a triggers, procedures ou outros objetos.
 
 ### Corrigido
 - `ddl-extract` agora filtra metadados de funções Firebird com mais precisão para que UDFs legadas, funções UDR e funções de pacotes não sejam classificadas como funções armazenadas PSQL de nível superior.

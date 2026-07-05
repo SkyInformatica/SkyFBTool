@@ -17,6 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 - `ddl-analyze` now has an internal rule engine structure, with table structure, foreign key, index, field compatibility, and PSQL body validations moved into dedicated rule classes.
+- `ddl-analyze` HTML report now labels remediation prioritization by object/scope instead of table to avoid confusion when findings refer to triggers, procedures, or other objects.
 
 ### Fixed
 - `ddl-extract` now filters Firebird function metadata more precisely so legacy UDFs, UDR functions, and package functions are not misclassified as top-level PSQL stored functions.

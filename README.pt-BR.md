@@ -126,7 +126,7 @@ Resumo rápido:
 
 ### 3) Fluxo de triagem de risco (DBA)
 1. Execute `ddl-analyze` (preferencialmente com `--database`).
-2. Comece pelas tabelas priorizadas no relatório HTML.
+2. Comece pelos objetos priorizados no relatório HTML.
 3. Trate `critical/high` primeiro, depois `medium`.
 4. Mantenha `low` como fila de otimização após validação por plano/carga.
 
