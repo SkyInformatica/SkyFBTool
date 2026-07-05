@@ -214,6 +214,60 @@ public class DdlExtractIntegrationTests
         }
     }
 
+    [Fact]
+    public async Task DdlExtract_QuandoObjetoPsqlTemSourceNulo_DevePreservarNoSnapshot()
+    {
+        if (!IntegracaoHabilitada())
+            return;
+
+        string pastaTemp = CriarPastaTemp();
+        string arquivoBanco = Path.Combine(pastaTemp, "ddl_extract_empty_psql.fdb");
+        string saidaBase = Path.Combine(pastaTemp, "schema_empty_psql");
+
+        try
+        {
+            await CriarBancoAsync(arquivoBanco, "UTF8");
+
+            await using (var conexao = new FbConnection(CriarConnectionString(arquivoBanco, "UTF8")))
+            {
+                await conexao.OpenAsync();
+                await ExecutarAsync(conexao, "CREATE TABLE CLIENTES (ID INTEGER)");
+                await ExecutarAsync(conexao, "CREATE OR ALTER PROCEDURE SP_SEM_SOURCE AS BEGIN SUSPEND; END");
+                await ExecutarAsync(conexao, "CREATE OR ALTER TRIGGER TRG_SEM_SOURCE FOR CLIENTES AS BEGIN NEW.ID = NEW.ID; END");
+                await ExecutarAsync(conexao, "UPDATE RDB$PROCEDURES SET RDB$PROCEDURE_SOURCE = NULL WHERE RDB$PROCEDURE_NAME = 'SP_SEM_SOURCE'");
+                await ExecutarAsync(conexao, "UPDATE RDB$TRIGGERS SET RDB$TRIGGER_SOURCE = NULL WHERE RDB$TRIGGER_NAME = 'TRG_SEM_SOURCE'");
+            }
+
+            var opcoes = new OpcoesDdlExtracao
+            {
+                Host = ObterHost(),
+                Porta = ObterPorta(),
+                Usuario = ObterUsuario(),
+                Senha = ObterSenha(),
+                Database = arquivoBanco,
+                Charset = "UTF8",
+                Saida = saidaBase
+            };
+
+            var (_, arquivoJson, _) = await ExtratorDdlFirebird.ExtrairAsync(opcoes);
+
+            string textoJson = await File.ReadAllTextAsync(arquivoJson);
+            var snapshot = JsonSerializer.Deserialize<SnapshotSchema>(textoJson);
+            Assert.NotNull(snapshot);
+
+            Assert.Contains(snapshot!.Procedimentos, p =>
+                p.Nome == "SP_SEM_SOURCE" &&
+                p.SourceSql == string.Empty);
+            Assert.Contains(snapshot.Gatilhos, t =>
+                t.Nome == "TRG_SEM_SOURCE" &&
+                t.SourceSql == string.Empty);
+        }
+        finally
+        {
+            TentarExcluirDiretorio(pastaTemp);
+        }
+    }
+
     private static bool IntegracaoHabilitada()
     {
         string? flag = Environment.GetEnvironmentVariable("SKYFBTOOL_TEST_RUN_INTEGRATION");
@@ -264,11 +318,16 @@ public class DdlExtractIntegrationTests
 
         foreach (var comando in comandos)
         {
-            await using var cmd = new FbCommand(comando, conexao);
-            await cmd.ExecuteNonQueryAsync();
+            await ExecutarAsync(conexao, comando);
         }
 
         return suportaFuncoes;
+    }
+
+    private static async Task ExecutarAsync(FbConnection conexao, string sql)
+    {
+        await using var cmd = new FbCommand(sql, conexao);
+        await cmd.ExecuteNonQueryAsync();
     }
 
     private static string CriarConnectionString(string arquivoBanco, string charset)

@@ -52,7 +52,7 @@ public static class GeradorDdlSql
 
             foreach (var funcao in snapshot.Funcoes.OrderBy(f => f.Nome, StringComparer.OrdinalIgnoreCase))
             {
-                sb.AppendLine(GerarBlocoPsql(funcao.SourceSql));
+                sb.AppendLine(GerarBlocoPsql(funcao.SourceSql, "FUNCTION", funcao.Nome));
                 sb.AppendLine();
             }
 
@@ -68,7 +68,7 @@ public static class GeradorDdlSql
             sb.AppendLine("SET TERM ^;");
             sb.AppendLine();
 
-            foreach (var procedimento in procedimentosOrdenados)
+            foreach (var procedimento in procedimentosOrdenados.Where(PossuiFontePsql))
             {
                 sb.AppendLine(GerarCreateProcedureStub(procedimento));
                 sb.AppendLine();
@@ -76,13 +76,17 @@ public static class GeradorDdlSql
 
             foreach (var procedimento in procedimentosOrdenados)
             {
-                sb.AppendLine(GerarCreateProcedure(procedimento));
+                sb.AppendLine(PossuiFontePsql(procedimento)
+                    ? GerarCreateProcedure(procedimento)
+                    : GerarComentarioPsqlSemFonte("PROCEDURE", procedimento.Nome));
                 sb.AppendLine();
             }
 
             foreach (var gatilho in snapshot.Gatilhos.OrderBy(g => g.Nome, StringComparer.OrdinalIgnoreCase))
             {
-                sb.AppendLine(GerarCreateTrigger(gatilho));
+                sb.AppendLine(PossuiFontePsql(gatilho)
+                    ? GerarCreateTrigger(gatilho)
+                    : GerarComentarioPsqlSemFonte("TRIGGER", gatilho.Nome));
                 sb.AppendLine();
             }
 
@@ -147,6 +151,9 @@ public static class GeradorDdlSql
 
     public static string GerarCreateProcedure(ProcedimentoSchema procedimento)
     {
+        if (!PossuiFontePsql(procedimento))
+            return GerarComentarioPsqlSemFonte("PROCEDURE", procedimento.Nome);
+
         var sb = new StringBuilder();
         sb.AppendLine($"CREATE OR ALTER PROCEDURE {Q(procedimento.Nome)}");
 
@@ -198,11 +205,22 @@ public static class GeradorDdlSql
 
     public static string GerarBlocoPsql(string fonte)
     {
+        return GerarBlocoPsql(fonte, "PSQL object", null);
+    }
+
+    private static string GerarBlocoPsql(string fonte, string tipoObjeto, string? nomeObjeto)
+    {
+        if (string.IsNullOrWhiteSpace(fonte))
+            return GerarComentarioPsqlSemFonte(tipoObjeto, nomeObjeto);
+
         return fonte.Trim().TrimEnd(';') + " ^";
     }
 
     public static string GerarCreateTrigger(GatilhoSchema gatilho)
     {
+        if (!PossuiFontePsql(gatilho))
+            return GerarComentarioPsqlSemFonte("TRIGGER", gatilho.Nome);
+
         var sb = new StringBuilder();
         sb.Append($"CREATE OR ALTER TRIGGER {Q(gatilho.Nome)}");
 
@@ -242,6 +260,21 @@ public static class GeradorDdlSql
             return corpo[2..].TrimStart();
 
         return corpo;
+    }
+
+    private static bool PossuiFontePsql(ProcedimentoSchema procedimento) =>
+        !string.IsNullOrWhiteSpace(procedimento.SourceSql);
+
+    private static bool PossuiFontePsql(GatilhoSchema gatilho) =>
+        !string.IsNullOrWhiteSpace(gatilho.SourceSql);
+
+    private static string GerarComentarioPsqlSemFonte(string tipoObjeto, string? nomeObjeto)
+    {
+        string nome = string.IsNullOrWhiteSpace(nomeObjeto)
+            ? "unknown"
+            : Q(nomeObjeto);
+
+        return $"-- [WARNING] {tipoObjeto} {nome} exists in metadata but has no PSQL source; DDL was not generated for this object.";
     }
 
     private static string FormatarCabecalhoTrigger(int tipoTrigger)

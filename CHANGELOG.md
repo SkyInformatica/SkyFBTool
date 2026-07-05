@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - `ddl-analyze` now reports procedures, functions, and triggers without a valid PSQL body.
+- `ddl-extract` now preserves procedures, functions, and triggers with empty metadata source for downstream analysis, while emitting warning comments instead of invalid SQL for those objects.
 
 ## [0.6.3] - 2026-07-04
 

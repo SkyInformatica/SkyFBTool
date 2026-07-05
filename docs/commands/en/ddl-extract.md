@@ -12,6 +12,7 @@ Today the snapshot includes tables, columns, domains, sequences/generators, view
 
 The generated `.sql` is script-ready for Firebird PSQL objects: `PROCEDURE`, `FUNCTION`, and `TRIGGER` blocks are wrapped with `SET TERM` so the file can be executed by `isql` or a compatible runner without manual edits.
 Trigger headers are reconstructed from metadata so relation name, activity state, timing, and position are preserved in the output.
+When a procedure, function, or trigger exists in metadata but its PSQL source is empty, the object is preserved in `.schema.json` for `ddl-analyze`; the `.sql` file emits a warning comment and does not generate invalid DDL for that object.
 
 ## When to use
 - DBA: capture current schema baseline before maintenance or migration.

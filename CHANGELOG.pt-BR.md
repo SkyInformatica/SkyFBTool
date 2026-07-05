@@ -11,6 +11,7 @@ e o projeto adota [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Adicionado
 - `ddl-analyze` agora reporta procedures, functions e triggers sem corpo PSQL válido.
+- `ddl-extract` agora preserva procedures, functions e triggers com fonte vazia nos metadados para a análise posterior, emitindo comentários de aviso em vez de SQL inválido para esses objetos.
 
 ## [0.6.3] - 2026-07-04
 

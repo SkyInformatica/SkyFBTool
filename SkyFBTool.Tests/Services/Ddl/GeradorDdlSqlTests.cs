@@ -123,6 +123,51 @@ public class GeradorDdlSqlTests
     }
 
     [Fact]
+    public void Gerar_QuandoObjetoPsqlNaoTiverFonte_DeveEmitirAvisoSemGerarDdlInvalido()
+    {
+        var snapshot = new SnapshotSchema
+        {
+            CharsetBanco = "UTF8",
+            Funcoes =
+            [
+                new FuncaoSchema
+                {
+                    Nome = "FN_SEM_SOURCE",
+                    SourceSql = string.Empty
+                }
+            ],
+            Procedimentos =
+            [
+                new ProcedimentoSchema
+                {
+                    Nome = "SP_SEM_SOURCE",
+                    SourceSql = string.Empty
+                }
+            ],
+            Gatilhos =
+            [
+                new GatilhoSchema
+                {
+                    Nome = "TRG_SEM_SOURCE",
+                    RelacaoNome = "CLIENTES",
+                    SourceSql = string.Empty
+                }
+            ]
+        };
+
+        string sql = GeradorDdlSql.Gerar(snapshot);
+
+        Assert.Contains("-- [WARNING] FUNCTION \"FN_SEM_SOURCE\" exists in metadata but has no PSQL source", sql);
+        Assert.Contains("-- [WARNING] PROCEDURE \"SP_SEM_SOURCE\" exists in metadata but has no PSQL source", sql);
+        Assert.Contains("-- [WARNING] TRIGGER \"TRG_SEM_SOURCE\" exists in metadata but has no PSQL source", sql);
+        Assert.DoesNotContain("CREATE OR ALTER FUNCTION \"FN_SEM_SOURCE\"", sql, StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("CREATE OR ALTER PROCEDURE \"SP_SEM_SOURCE\"", sql, StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("CREATE OR ALTER TRIGGER \"TRG_SEM_SOURCE\"", sql, StringComparison.OrdinalIgnoreCase);
+        Assert.StartsWith("-- [WARNING] PROCEDURE \"SP_SEM_SOURCE\"", GeradorDdlSql.GerarCreateProcedure(snapshot.Procedimentos[0]));
+        Assert.StartsWith("-- [WARNING] TRIGGER \"TRG_SEM_SOURCE\"", GeradorDdlSql.GerarCreateTrigger(snapshot.Gatilhos[0]));
+    }
+
+    [Fact]
     public void Gerar_QuandoFkReferenciarTabelaComPk_DeveEmitirPkAntesDaFk()
     {
         var snapshot = new SnapshotSchema

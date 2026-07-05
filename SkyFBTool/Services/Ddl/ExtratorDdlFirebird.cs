@@ -233,9 +233,6 @@ public static class ExtratorDdlFirebird
                 ? null
                 : reader.GetString(reader.GetOrdinal("procedure_source"));
 
-            if (string.IsNullOrWhiteSpace(source))
-                continue;
-
             var parametros = await CarregarParametrosProcedimentoAsync(conexao, nome);
             procedimentos.Add(new ProcedimentoSchema
             {
@@ -367,9 +364,6 @@ public static class ExtratorDdlFirebird
                 string? source = reader.IsDBNull(reader.GetOrdinal("function_source"))
                     ? null
                     : reader.GetString(reader.GetOrdinal("function_source"));
-
-                if (string.IsNullOrWhiteSpace(source))
-                    continue;
 
                 funcoes.Add(new FuncaoSchema
                 {
@@ -521,9 +515,6 @@ public static class ExtratorDdlFirebird
             string? source = reader.IsDBNull(reader.GetOrdinal("trigger_source"))
                 ? null
                 : reader.GetString(reader.GetOrdinal("trigger_source"));
-
-            if (string.IsNullOrWhiteSpace(source))
-                continue;
 
             gatilhos.Add(new GatilhoSchema
             {
@@ -1023,8 +1014,11 @@ public static class ExtratorDdlFirebird
                 .Split(new[] { '\r', '\n', '\t', ' ' }, StringSplitOptions.RemoveEmptyEntries));
     }
 
-    private static string NormalizarEspacosFonte(string fonte)
+    private static string NormalizarEspacosFonte(string? fonte)
     {
+        if (string.IsNullOrWhiteSpace(fonte))
+            return string.Empty;
+
         return fonte.Replace("\r\n", "\n").Replace("\r", "\n").Trim();
     }
 
