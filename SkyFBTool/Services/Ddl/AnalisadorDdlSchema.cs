@@ -2,6 +2,7 @@ using System.Text;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 using SkyFBTool.Core;
+using SkyFBTool.Services.Ddl.Rules;
 
 namespace SkyFBTool.Services.Ddl;
 
@@ -122,10 +123,6 @@ public static class AnalisadorDdlSchema
 
         foreach (var tabela in tabelasVisiveis.OrderBy(t => t.Nome, StringComparer.OrdinalIgnoreCase))
         {
-            ValidarTabelaSemColunas(tabela, resultado, idioma, severidadesOverride);
-            ValidarColunasDuplicadas(tabela, resultado, idioma, severidadesOverride);
-            ValidarTiposDesconhecidos(tabela, resultado, idioma, severidadesOverride);
-            ValidarPk(tabela, resultado, idioma, severidadesOverride);
             ValidarFks(tabela, mapaTabelas, tabelasIgnoradas, resultado, idioma, severidadesOverride);
             ValidarIndices(tabela, resultado, idioma, severidadesOverride);
             ValidarDuplicidadeIndices(tabela, resultado, idioma, severidadesOverride);
@@ -133,26 +130,21 @@ public static class AnalisadorDdlSchema
             ValidarDuplicidadeFks(tabela, resultado, idioma, severidadesOverride);
         }
 
-        AdicionarAchadosCompatibilidadeCampos(snapshot, resultado, idioma, severidadesOverride);
-        ValidarObjetosPsqlSemCorpo(snapshot, resultado, idioma, severidadesOverride);
+        MotorRegrasAnaliseDdl.Executar(
+            new ContextoAnaliseDdl(snapshot, resultado, idioma, tabelasVisiveis, severidadesOverride),
+            CriarRegrasAnalise());
 
-        resultado.Achados = resultado.Achados
-            .OrderByDescending(a => a.ScoreRisco)
-            .ThenByDescending(a => PesoSeveridade(a.Severidade))
-            .ThenBy(a => a.Codigo, StringComparer.OrdinalIgnoreCase)
-            .ThenBy(a => a.Escopo, StringComparer.OrdinalIgnoreCase)
-            .ToList();
-
-        resultado.TotalAchados = resultado.Achados.Count;
-        resultado.TotalCriticos = resultado.Achados.Count(a => a.Severidade == "critical");
-        resultado.TotalAltos = resultado.Achados.Count(a => a.Severidade == "high");
-        resultado.TotalMedios = resultado.Achados.Count(a => a.Severidade == "medium");
-        resultado.TotalBaixos = resultado.Achados.Count(a => a.Severidade == "low");
-        resultado.ResumoPorCodigo = MontarResumo(resultado.Achados, a => a.Codigo);
-        resultado.ResumoPorTabela = MontarResumo(resultado.Achados, a => NomeTabelaDoEscopo(a.Escopo));
+        resultado.AtualizarResumo();
 
         return resultado;
     }
+
+    private static IReadOnlyList<IRegraAnaliseDdl> CriarRegrasAnalise() =>
+    [
+        new RegraEstruturaTabelaDdl(),
+        new RegraCompatibilidadeCamposDdl(),
+        new RegraObjetosPsqlSemCorpoDdl()
+    ];
 
     private static List<string> NormalizarPrefixos(IEnumerable<string>? prefixos)
     {
@@ -178,122 +170,6 @@ public static class AnalisadorDdlSchema
         }
 
         return false;
-    }
-
-    private static void ValidarTabelaSemColunas(
-        TabelaSchema tabela,
-        ResultadoAnaliseDdl resultado,
-        IdiomaSaida idioma,
-        IReadOnlyDictionary<string, string>? severidadesOverride)
-    {
-        if (tabela.Colunas.Count > 0)
-            return;
-
-        AdicionarAchado(
-            resultado,
-            "critical",
-            "TABELA_SEM_COLUNAS",
-            tabela.Nome,
-            TextoLocalizado.Obter(idioma, $"Table {tabela.Nome} has no columns.", $"Tabela {tabela.Nome} não possui colunas."),
-            TextoLocalizado.Obter(idioma, "Re-extract metadata and validate this table directly in system catalogs.", "Reextraia o metadado e valide esta tabela diretamente nos catálogos do Firebird."),
-            severidadesOverride);
-    }
-
-    private static void ValidarColunasDuplicadas(
-        TabelaSchema tabela,
-        ResultadoAnaliseDdl resultado,
-        IdiomaSaida idioma,
-        IReadOnlyDictionary<string, string>? severidadesOverride)
-    {
-        var duplicadas = tabela.Colunas
-            .GroupBy(c => c.Nome, StringComparer.OrdinalIgnoreCase)
-            .Where(g => g.Count() > 1)
-            .Select(g => g.Key);
-
-        foreach (var coluna in duplicadas.OrderBy(n => n, StringComparer.OrdinalIgnoreCase))
-        {
-            AdicionarAchado(
-                resultado,
-                "critical",
-                "COLUNA_DUPLICADA",
-                $"{tabela.Nome}.{coluna}",
-                TextoLocalizado.Obter(idioma, $"Duplicated column in table {tabela.Nome}: {coluna}.", $"Coluna duplicada na tabela {tabela.Nome}: {coluna}."),
-                TextoLocalizado.Obter(idioma, "Inspect metadata consistency and rebuild affected objects if needed.", "Inspecione consistência de metadados e recrie objetos afetados se necessário."),
-                severidadesOverride);
-        }
-    }
-
-    private static void ValidarTiposDesconhecidos(
-        TabelaSchema tabela,
-        ResultadoAnaliseDdl resultado,
-        IdiomaSaida idioma,
-        IReadOnlyDictionary<string, string>? severidadesOverride)
-    {
-        foreach (var coluna in tabela.Colunas)
-        {
-            if (!coluna.TipoSql.StartsWith("TYPE_", StringComparison.OrdinalIgnoreCase))
-                continue;
-
-            AdicionarAchado(
-                resultado,
-                "high",
-                "TIPO_DESCONHECIDO",
-                $"{tabela.Nome}.{coluna.Nome}",
-                TextoLocalizado.Obter(idioma,
-                    $"Column {tabela.Nome}.{coluna.Nome} has unknown type mapping: {coluna.TipoSql}.",
-                    $"Coluna {tabela.Nome}.{coluna.Nome} possui mapeamento de tipo desconhecido: {coluna.TipoSql}."),
-                TextoLocalizado.Obter(idioma, "Validate database version compatibility and inspect field definition in RDB$FIELDS.", "Valide compatibilidade de versão e confira a definição no RDB$FIELDS."),
-                severidadesOverride);
-        }
-    }
-
-    private static void ValidarPk(
-        TabelaSchema tabela,
-        ResultadoAnaliseDdl resultado,
-        IdiomaSaida idioma,
-        IReadOnlyDictionary<string, string>? severidadesOverride)
-    {
-        if (tabela.ChavePrimaria is null)
-        {
-            AdicionarAchado(
-                resultado,
-                "high",
-                "TABELA_SEM_PK",
-                tabela.Nome,
-                TextoLocalizado.Obter(idioma, $"Table {tabela.Nome} has no primary key.", $"Tabela {tabela.Nome} não possui chave primária."),
-                TextoLocalizado.Obter(idioma, "Review if this is expected. Missing PK may hide duplicate rows over time.", "Revise se isso é esperado. Ausência de PK pode mascarar duplicidades."),
-                severidadesOverride);
-            return;
-        }
-
-        if (tabela.ChavePrimaria.Colunas.Count == 0)
-        {
-            AdicionarAchado(
-                resultado,
-                "critical",
-                "PK_SEM_COLUNAS",
-                tabela.Nome,
-                TextoLocalizado.Obter(idioma, $"Primary key {tabela.ChavePrimaria.Nome} in {tabela.Nome} has no columns.", $"Chave primária {tabela.ChavePrimaria.Nome} em {tabela.Nome} não possui colunas."),
-                TextoLocalizado.Obter(idioma, "Rebuild this PK from validated column metadata.", "Recrie esta PK a partir de metadados validados."),
-                severidadesOverride);
-            return;
-        }
-
-        var colunas = tabela.Colunas.ToDictionary(c => c.Nome, StringComparer.OrdinalIgnoreCase);
-        foreach (var colunaPk in tabela.ChavePrimaria.Colunas)
-        {
-            if (colunas.ContainsKey(colunaPk))
-                continue;
-
-            AdicionarAchado(
-                resultado,
-                "critical",
-                "PK_REFERENCIA_COLUNA_INEXISTENTE",
-                tabela.Nome,
-                TextoLocalizado.Obter(idioma, $"PK {tabela.ChavePrimaria.Nome} references missing column {colunaPk}.", $"PK {tabela.ChavePrimaria.Nome} referencia coluna inexistente {colunaPk}."),
-                TextoLocalizado.Obter(idioma, "Recreate PK and validate relation fields catalog.", "Recrie a PK e valide o catálogo de campos da relação."),
-                severidadesOverride);
-        }
     }
 
     private static void ValidarFks(
@@ -380,183 +256,6 @@ public static class AnalisadorDdlSchema
                 TextoLocalizado.Obter(idioma, "Validate relation fields and rebuild FK.", "Valide os campos da relação e recrie a FK."),
                 severidadesOverride);
         }
-    }
-
-    private static void ValidarObjetosPsqlSemCorpo(
-        SnapshotSchema snapshot,
-        ResultadoAnaliseDdl resultado,
-        IdiomaSaida idioma,
-        IReadOnlyDictionary<string, string>? severidadesOverride)
-    {
-        foreach (var procedimento in snapshot.Procedimentos.OrderBy(p => p.Nome, StringComparer.OrdinalIgnoreCase))
-        {
-            ValidarObjetoPsqlSemCorpo(
-                procedimento.Nome,
-                procedimento.SourceSql,
-                "PROCEDURE_SEM_CORPO",
-                "Procedure",
-                "Procedure",
-                "RDB$PROCEDURES.RDB$PROCEDURE_SOURCE",
-                resultado,
-                idioma,
-                severidadesOverride);
-        }
-
-        foreach (var funcao in snapshot.Funcoes.OrderBy(f => f.Nome, StringComparer.OrdinalIgnoreCase))
-        {
-            ValidarObjetoPsqlSemCorpo(
-                funcao.Nome,
-                funcao.SourceSql,
-                "FUNCTION_SEM_CORPO",
-                "Function",
-                "Function",
-                "RDB$FUNCTIONS.RDB$FUNCTION_SOURCE",
-                resultado,
-                idioma,
-                severidadesOverride);
-        }
-
-        foreach (var gatilho in snapshot.Gatilhos.OrderBy(g => g.Nome, StringComparer.OrdinalIgnoreCase))
-        {
-            ValidarObjetoPsqlSemCorpo(
-                gatilho.Nome,
-                gatilho.SourceSql,
-                "TRIGGER_SEM_CORPO",
-                "Trigger",
-                "Trigger",
-                "RDB$TRIGGERS.RDB$TRIGGER_SOURCE",
-                resultado,
-                idioma,
-                severidadesOverride);
-        }
-    }
-
-    private static void ValidarObjetoPsqlSemCorpo(
-        string nome,
-        string sourceSql,
-        string codigo,
-        string tipoIngles,
-        string tipoPortugues,
-        string fonteCatalogo,
-        ResultadoAnaliseDdl resultado,
-        IdiomaSaida idioma,
-        IReadOnlyDictionary<string, string>? severidadesOverride)
-    {
-        if (PossuiCorpoPsql(sourceSql))
-            return;
-
-        AdicionarAchado(
-            resultado,
-            "critical",
-            codigo,
-            nome,
-            TextoLocalizado.Obter(idioma,
-                $"{tipoIngles} {nome} has no valid PSQL body.",
-                $"{tipoPortugues} {nome} não possui corpo PSQL válido."),
-            TextoLocalizado.Obter(idioma,
-                $"Re-extract metadata and validate {fonteCatalogo} before generating or applying DDL.",
-                $"Reextraia o metadado e valide {fonteCatalogo} antes de gerar ou aplicar o DDL."),
-            severidadesOverride);
-    }
-
-    private static bool PossuiCorpoPsql(string sourceSql)
-    {
-        if (string.IsNullOrWhiteSpace(sourceSql))
-            return false;
-
-        if (!RegexCorpoPsqlAs.IsMatch(sourceSql))
-            return false;
-
-        string semComentarios = RemoverComentariosSqlPreservandoStrings(sourceSql);
-        var matchBegin = RegexCorpoPsqlBegin.Match(semComentarios);
-        if (!matchBegin.Success)
-            return false;
-
-        int indiceEnd = RegexCorpoPsqlEnd.Matches(semComentarios)
-            .Cast<Match>()
-            .LastOrDefault()
-            ?.Index ?? -1;
-        if (indiceEnd <= matchBegin.Index + matchBegin.Length)
-            return false;
-
-        string corpo = semComentarios[(matchBegin.Index + matchBegin.Length)..indiceEnd];
-        return corpo.Any(c => !char.IsWhiteSpace(c) && c != ';');
-    }
-
-    private static string RemoverComentariosSqlPreservandoStrings(string sql)
-    {
-        var sb = new StringBuilder(sql.Length);
-        bool dentroString = false;
-        bool dentroComentarioLinha = false;
-        bool dentroComentarioBloco = false;
-
-        for (int i = 0; i < sql.Length; i++)
-        {
-            char c = sql[i];
-
-            if (dentroComentarioLinha)
-            {
-                if (c is '\r' or '\n')
-                {
-                    dentroComentarioLinha = false;
-                    sb.Append(c);
-                }
-
-                continue;
-            }
-
-            if (dentroComentarioBloco)
-            {
-                if (c == '*' && i + 1 < sql.Length && sql[i + 1] == '/')
-                {
-                    dentroComentarioBloco = false;
-                    i++;
-                }
-
-                continue;
-            }
-
-            if (dentroString)
-            {
-                sb.Append(c);
-                if (c == '\'' && i + 1 < sql.Length && sql[i + 1] == '\'')
-                {
-                    sb.Append(sql[i + 1]);
-                    i++;
-                    continue;
-                }
-
-                if (c == '\'')
-                    dentroString = false;
-
-                continue;
-            }
-
-            if (c == '\'')
-            {
-                dentroString = true;
-                sb.Append(c);
-                continue;
-            }
-
-            if (c == '-' && i + 1 < sql.Length && sql[i + 1] == '-')
-            {
-                dentroComentarioLinha = true;
-                i++;
-                continue;
-            }
-
-            if (c == '/' && i + 1 < sql.Length && sql[i + 1] == '*')
-            {
-                dentroComentarioBloco = true;
-                i++;
-                continue;
-            }
-
-            sb.Append(c);
-        }
-
-        return sb.ToString();
     }
 
     private static void ValidarReferenciaFk(
@@ -785,33 +484,6 @@ public static class AnalisadorDdlSchema
         }
     }
 
-    private static List<ItemResumoAnaliseDdl> MontarResumo(IReadOnlyCollection<AchadoAnaliseDdl> achados, Func<AchadoAnaliseDdl, string> chave)
-    {
-        if (achados.Count == 0)
-            return [];
-
-        return achados
-            .GroupBy(chave, StringComparer.OrdinalIgnoreCase)
-            .Select(g => new ItemResumoAnaliseDdl
-            {
-                Chave = g.Key,
-                Quantidade = g.Count(),
-                Percentual = Math.Round((decimal)g.Count() * 100m / achados.Count, 2)
-            })
-            .OrderByDescending(i => i.Quantidade)
-            .ThenBy(i => i.Chave, StringComparer.OrdinalIgnoreCase)
-            .ToList();
-    }
-
-    private static string NomeTabelaDoEscopo(string escopo)
-    {
-        if (string.IsNullOrWhiteSpace(escopo))
-            return "?";
-
-        int idx = escopo.IndexOf('.');
-        return idx < 0 ? escopo : escopo[..idx];
-    }
-
     private static string AssinaturaIndice(IndiceSchema indice)
     {
         return $"{(indice.Unico ? "U" : "N")}|{(indice.Descendente ? "D" : "A")}|{string.Join("|", indice.Colunas).ToUpperInvariant()}";
@@ -877,101 +549,7 @@ public static class AnalisadorDdlSchema
         string recomendacao,
         IReadOnlyDictionary<string, string>? severidadesOverride)
     {
-        string severidadeFinal = ConfiguracaoSeveridadeDdl.AplicarOverride(codigo, severidade, severidadesOverride);
-        int scoreRisco = CalcularScoreRisco(severidadeFinal, codigo);
-
-        resultado.Achados.Add(new AchadoAnaliseDdl
-        {
-            Severidade = severidadeFinal,
-            ScoreRisco = scoreRisco,
-            Prioridade = CalcularPrioridade(scoreRisco),
-            Codigo = codigo,
-            Escopo = escopo,
-            Descricao = descricao,
-            Recomendacao = recomendacao
-        });
-    }
-
-    private static void AdicionarAchadosCompatibilidadeCampos(
-        SnapshotSchema snapshot,
-        ResultadoAnaliseDdl resultado,
-        IdiomaSaida idioma,
-        IReadOnlyDictionary<string, string>? severidadesOverride)
-    {
-        var achados = ValidadorCompatibilidadeCamposFirebird.Validar(snapshot, snapshot.VersaoMajor);
-        foreach (var achado in achados)
-        {
-            AdicionarAchado(
-                resultado,
-                achado.Severidade,
-                achado.Codigo,
-                achado.Escopo,
-                MontarDescricaoCompatibilidadeCampo(achado, idioma),
-                MontarRecomendacaoCompatibilidadeCampo(achado, idioma),
-                severidadesOverride);
-        }
-    }
-
-    private static string MontarDescricaoCompatibilidadeCampo(AchadoCompatibilidadeCampoDdl achado, IdiomaSaida idioma)
-    {
-        return achado.Codigo switch
-        {
-            "CAMPO_TAMANHO_CHAR_EXCEDIDO" => TextoLocalizado.Obter(
-                idioma,
-                $"Column {achado.Escopo} declares CHAR({achado.Valor:N0}), above the Firebird limit of {achado.Limite:N0} bytes.",
-                $"Coluna {achado.Escopo} declara CHAR({achado.Valor:N0}), acima do limite do Firebird de {achado.Limite:N0} bytes."),
-            "CAMPO_TAMANHO_VARCHAR_EXCEDIDO" => TextoLocalizado.Obter(
-                idioma,
-                $"Column {achado.Escopo} declares VARCHAR({achado.Valor:N0}), above the Firebird limit of {achado.Limite:N0} bytes.",
-                $"Coluna {achado.Escopo} declara VARCHAR({achado.Valor:N0}), acima do limite do Firebird de {achado.Limite:N0} bytes."),
-            "CAMPO_PRECISAO_NUMERICA_INVALIDA" => TextoLocalizado.Obter(
-                idioma,
-                $"Column {achado.Escopo} declares an invalid numeric precision/scale for Firebird ({achado.TipoSql}).",
-                $"Coluna {achado.Escopo} declara precisão/escala numérica inválida para Firebird ({achado.TipoSql})."),
-            "CAMPO_PRECISAO_NUMERICA_INCOMPATIVEL" => TextoLocalizado.Obter(
-                idioma,
-                $"Column {achado.Escopo} uses {achado.TipoSql}, which requires Firebird {achado.VersaoMinimaMajor}+.",
-                $"Coluna {achado.Escopo} usa {achado.TipoSql}, que exige Firebird {achado.VersaoMinimaMajor}+."),
-            "CAMPO_TIPO_INCOMPATIVEL_VERSAO" => TextoLocalizado.Obter(
-                idioma,
-                $"Column {achado.Escopo} uses {achado.TipoSql}, which requires Firebird {achado.VersaoMinimaMajor}+.",
-                $"Coluna {achado.Escopo} usa {achado.TipoSql}, que exige Firebird {achado.VersaoMinimaMajor}+."),
-            _ => TextoLocalizado.Obter(
-                idioma,
-                $"Column {achado.Escopo} has a compatibility issue ({achado.Codigo}).",
-                $"Coluna {achado.Escopo} possui um problema de compatibilidade ({achado.Codigo}).")
-        };
-    }
-
-    private static string MontarRecomendacaoCompatibilidadeCampo(AchadoCompatibilidadeCampoDdl achado, IdiomaSaida idioma)
-    {
-        return achado.Codigo switch
-        {
-            "CAMPO_TAMANHO_CHAR_EXCEDIDO" => TextoLocalizado.Obter(
-                idioma,
-                "Reduce the declared size or revisit the charset/encoding strategy before recreating the column.",
-                "Reduza o tamanho declarado ou revise a estratégia de charset/encoding antes de recriar a coluna."),
-            "CAMPO_TAMANHO_VARCHAR_EXCEDIDO" => TextoLocalizado.Obter(
-                idioma,
-                "Reduce the declared size or revisit the charset/encoding strategy before recreating the column.",
-                "Reduza o tamanho declarado ou revise a estratégia de charset/encoding antes de recriar a coluna."),
-            "CAMPO_PRECISAO_NUMERICA_INVALIDA" => TextoLocalizado.Obter(
-                idioma,
-                "Correct the precision/scale definition before generating the script.",
-                "Corrija a definição de precisão/escala antes de gerar o script."),
-            "CAMPO_PRECISAO_NUMERICA_INCOMPATIVEL" => TextoLocalizado.Obter(
-                idioma,
-                "Adjust the numeric precision to a Firebird version supported by the target environment.",
-                "Ajuste a precisão numérica para uma versão do Firebird suportada pelo ambiente alvo."),
-            "CAMPO_TIPO_INCOMPATIVEL_VERSAO" => TextoLocalizado.Obter(
-                idioma,
-                "Adjust the data type or target Firebird version before exporting the script.",
-                "Ajuste o tipo de dado ou a versão alvo do Firebird antes de exportar o script."),
-            _ => TextoLocalizado.Obter(
-                idioma,
-                "Review the column definition and compare it with the target Firebird version.",
-                "Revise a definição da coluna e compare com a versão alvo do Firebird.")
-        };
+        resultado.AdicionarAchado(severidade, codigo, escopo, descricao, recomendacao, severidadesOverride);
     }
 
     private static async Task EnriquecerComAchadosOperacionaisAsync(
@@ -1059,20 +637,7 @@ public static class AnalisadorDdlSchema
                 $"MON$DATABASE.MON$CREATION_DATE (indisponível: {ex.GetType().Name}: {ex.Message})");
         }
 
-        resultado.Achados = resultado.Achados
-            .OrderByDescending(a => a.ScoreRisco)
-            .ThenByDescending(a => PesoSeveridade(a.Severidade))
-            .ThenBy(a => a.Codigo, StringComparer.OrdinalIgnoreCase)
-            .ThenBy(a => a.Escopo, StringComparer.OrdinalIgnoreCase)
-            .ToList();
-
-        resultado.TotalAchados = resultado.Achados.Count;
-        resultado.TotalCriticos = resultado.Achados.Count(a => a.Severidade == "critical");
-        resultado.TotalAltos = resultado.Achados.Count(a => a.Severidade == "high");
-        resultado.TotalMedios = resultado.Achados.Count(a => a.Severidade == "medium");
-        resultado.TotalBaixos = resultado.Achados.Count(a => a.Severidade == "low");
-        resultado.ResumoPorCodigo = MontarResumo(resultado.Achados, a => a.Codigo);
-        resultado.ResumoPorTabela = MontarResumo(resultado.Achados, a => NomeTabelaDoEscopo(a.Escopo));
+        resultado.AtualizarResumo();
     }
 
     private static int AdicionarAchadosPrioridadeVolume(
@@ -1088,7 +653,7 @@ public static class AnalisadorDdlSchema
 
         var achadosPorTabela = resultado.Achados
             .Where(a => !a.Escopo.StartsWith("OPERACIONAL.", StringComparison.OrdinalIgnoreCase))
-            .GroupBy(a => NomeTabelaDoEscopo(a.Escopo), StringComparer.OrdinalIgnoreCase)
+            .GroupBy(a => ResultadoAnaliseDdlExtensions.NomeTabelaDoEscopo(a.Escopo), StringComparer.OrdinalIgnoreCase)
             .ToDictionary(g => g.Key, g => g.Count(), StringComparer.OrdinalIgnoreCase);
 
         foreach (var metrica in metricasVolume.OrderByDescending(m => m.RegistrosEstimados).Take(20))
@@ -1183,51 +748,6 @@ public static class AnalisadorDdlSchema
         };
     }
 
-    private static int PesoSeveridade(string severidade)
-    {
-        return severidade switch
-        {
-            "critical" => 4,
-            "high" => 3,
-            "medium" => 2,
-            _ => 1
-        };
-    }
-
-    private static int CalcularScoreRisco(string severidade, string codigo)
-    {
-        int baseScore = severidade switch
-        {
-            "critical" => 90,
-            "high" => 70,
-            "medium" => 45,
-            _ => 25
-        };
-
-        int ajusteCodigo = codigo switch
-        {
-            "OPERACIONAL_VOLUME_PRIORIDADE_ALTA" => 10,
-            "OPERACIONAL_VOLUME_PRIORIDADE_MEDIA" => 8,
-            "OPERACIONAL_VOLUME_PRIORIDADE_BAIXA" => 5,
-            "FK_SEM_INDICE_COBERTURA" => 5,
-            "INDICE_REDUNDANTE_PREFIXO" => -5,
-            "INDICE_DUPLICADO" => -8,
-            "FK_DUPLICADA" => -8,
-            _ => 0
-        };
-
-        int score = baseScore + ajusteCodigo;
-        return Math.Max(0, Math.Min(100, score));
-    }
-
-    private static string CalcularPrioridade(int scoreRisco)
-    {
-        if (scoreRisco >= 85) return "P0";
-        if (scoreRisco >= 70) return "P1";
-        if (scoreRisco >= 45) return "P2";
-        return "P3";
-    }
-
     private static (string ArquivoJson, string ArquivoHtml) ResolverArquivosSaida(OpcoesDdlAnalise opcoes)
     {
         string timestamp = DateTime.Now.ToString("yyyyMMdd_HHmmss_fff");
@@ -1273,15 +793,4 @@ public static class AnalisadorDdlSchema
         @"\b(?:CASE|WHEN|THEN|ELSE|END|FROM|AS|IS|NULL|NOT|AND|OR)\b",
         RegexOptions.Compiled | RegexOptions.CultureInvariant | RegexOptions.IgnoreCase);
 
-    private static readonly Regex RegexCorpoPsqlAs = new(
-        @"\bAS\b",
-        RegexOptions.Compiled | RegexOptions.CultureInvariant | RegexOptions.IgnoreCase);
-
-    private static readonly Regex RegexCorpoPsqlBegin = new(
-        @"\bBEGIN\b",
-        RegexOptions.Compiled | RegexOptions.CultureInvariant | RegexOptions.IgnoreCase);
-
-    private static readonly Regex RegexCorpoPsqlEnd = new(
-        @"\bEND\b",
-        RegexOptions.Compiled | RegexOptions.CultureInvariant | RegexOptions.IgnoreCase);
 }

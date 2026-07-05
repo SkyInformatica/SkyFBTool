@@ -13,6 +13,9 @@ e o projeto adota [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - `ddl-analyze` agora reporta procedures, functions e triggers sem corpo PSQL válido.
 - `ddl-extract` agora preserva procedures, functions e triggers com fonte vazia nos metadados para a análise posterior, emitindo comentários de aviso em vez de SQL inválido para esses objetos.
 
+### Alterado
+- `ddl-analyze` agora possui uma estrutura interna de motor de regras, com validações de estrutura de tabela, compatibilidade de campos e corpo PSQL movidas para classes de regra dedicadas.
+
 ### Corrigido
 - `ddl-extract` agora filtra metadados de funções Firebird com mais precisão para que UDFs legadas, funções UDR e funções de pacotes não sejam classificadas como funções armazenadas PSQL de nível superior.
 
