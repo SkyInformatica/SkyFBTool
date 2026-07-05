@@ -233,7 +233,7 @@ public class DdlExtractIntegrationTests
                 await conexao.OpenAsync();
                 await ExecutarAsync(conexao, "CREATE TABLE CLIENTES (ID INTEGER)");
                 await ExecutarAsync(conexao, "CREATE OR ALTER PROCEDURE SP_SEM_SOURCE AS BEGIN SUSPEND; END");
-                await ExecutarAsync(conexao, "CREATE OR ALTER TRIGGER TRG_SEM_SOURCE FOR CLIENTES AS BEGIN NEW.ID = NEW.ID; END");
+                await ExecutarAsync(conexao, "CREATE OR ALTER TRIGGER TRG_SEM_SOURCE FOR CLIENTES ACTIVE BEFORE INSERT POSITION 0 AS BEGIN NEW.ID = NEW.ID; END");
                 await ExecutarAsync(conexao, "UPDATE RDB$PROCEDURES SET RDB$PROCEDURE_SOURCE = NULL WHERE RDB$PROCEDURE_NAME = 'SP_SEM_SOURCE'");
                 await ExecutarAsync(conexao, "UPDATE RDB$TRIGGERS SET RDB$TRIGGER_SOURCE = NULL WHERE RDB$TRIGGER_NAME = 'TRG_SEM_SOURCE'");
             }
