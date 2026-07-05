@@ -9,6 +9,9 @@ e o projeto adota [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Não Lançado]
 
+### Adicionado
+- `ddl-analyze` agora reporta procedures, functions e triggers sem corpo PSQL válido.
+
 ## [0.6.3] - 2026-07-04
 
 ### Segurança

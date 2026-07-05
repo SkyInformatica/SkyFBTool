@@ -344,6 +344,139 @@ public class AnalisadorDdlSchemaTests
     }
 
     [Fact]
+    public void Analisar_QuandoObjetoPsqlSemCorpo_DeveRegistrarAchadoCritico()
+    {
+        var snapshot = new SnapshotSchema
+        {
+            Procedimentos =
+            [
+                new ProcedimentoSchema
+                {
+                    Nome = "SP_SEM_CORPO",
+                    SourceSql = "CREATE OR ALTER PROCEDURE SP_SEM_CORPO (P_ID INTEGER)"
+                }
+            ],
+            Funcoes =
+            [
+                new FuncaoSchema
+                {
+                    Nome = "FN_SEM_CORPO",
+                    SourceSql = "CREATE OR ALTER FUNCTION FN_SEM_CORPO RETURNS INTEGER"
+                }
+            ],
+            Gatilhos =
+            [
+                new GatilhoSchema
+                {
+                    Nome = "TRG_SEM_CORPO",
+                    SourceSql = string.Empty
+                }
+            ]
+        };
+
+        var resultado = AnalisadorDdlSchema.Analisar(snapshot);
+
+        Assert.Contains(resultado.Achados, a =>
+            a.Codigo == "PROCEDURE_SEM_CORPO" &&
+            a.Severidade == "critical" &&
+            a.Escopo == "SP_SEM_CORPO");
+        Assert.Contains(resultado.Achados, a =>
+            a.Codigo == "FUNCTION_SEM_CORPO" &&
+            a.Severidade == "critical" &&
+            a.Escopo == "FN_SEM_CORPO");
+        Assert.Contains(resultado.Achados, a =>
+            a.Codigo == "TRIGGER_SEM_CORPO" &&
+            a.Severidade == "critical" &&
+            a.Escopo == "TRG_SEM_CORPO");
+    }
+
+    [Fact]
+    public void Analisar_QuandoObjetoPsqlTemSomenteComentariosNoCorpo_DeveRegistrarAchadoCritico()
+    {
+        var snapshot = new SnapshotSchema
+        {
+            Procedimentos =
+            [
+                new ProcedimentoSchema
+                {
+                    Nome = "SP_COMENTADA",
+                    SourceSql = """
+                                CREATE OR ALTER PROCEDURE SP_COMENTADA
+                                AS
+                                BEGIN
+                                  -- rotina desativada temporariamente
+                                  /* sem instrução executável */
+                                END
+                                """
+                }
+            ],
+            Gatilhos =
+            [
+                new GatilhoSchema
+                {
+                    Nome = "TRG_COMENTADA",
+                    SourceSql = """
+                                CREATE OR ALTER TRIGGER TRG_COMENTADA FOR CLIENTES
+                                AS
+                                BEGIN
+                                  /*
+                                    NEW.ID = NEW.ID;
+                                  */
+                                END
+                                """
+                }
+            ]
+        };
+
+        var resultado = AnalisadorDdlSchema.Analisar(snapshot);
+
+        Assert.Contains(resultado.Achados, a =>
+            a.Codigo == "PROCEDURE_SEM_CORPO" &&
+            a.Severidade == "critical" &&
+            a.Escopo == "SP_COMENTADA");
+        Assert.Contains(resultado.Achados, a =>
+            a.Codigo == "TRIGGER_SEM_CORPO" &&
+            a.Severidade == "critical" &&
+            a.Escopo == "TRG_COMENTADA");
+    }
+
+    [Fact]
+    public void Analisar_QuandoObjetoPsqlTemCorpo_NaoDeveRegistrarAchadoSemCorpo()
+    {
+        var snapshot = new SnapshotSchema
+        {
+            Procedimentos =
+            [
+                new ProcedimentoSchema
+                {
+                    Nome = "SP_OK",
+                    SourceSql = "CREATE OR ALTER PROCEDURE SP_OK AS BEGIN SUSPEND; END"
+                }
+            ],
+            Funcoes =
+            [
+                new FuncaoSchema
+                {
+                    Nome = "FN_OK",
+                    SourceSql = "CREATE OR ALTER FUNCTION FN_OK RETURNS INTEGER AS BEGIN RETURN 1; END"
+                }
+            ],
+            Gatilhos =
+            [
+                new GatilhoSchema
+                {
+                    Nome = "TRG_OK",
+                    SourceSql = "CREATE OR ALTER TRIGGER TRG_OK FOR CLIENTES AS BEGIN NEW.ID = NEW.ID; END"
+                }
+            ]
+        };
+
+        var resultado = AnalisadorDdlSchema.Analisar(snapshot);
+
+        Assert.DoesNotContain(resultado.Achados, a => a.Codigo is "PROCEDURE_SEM_CORPO" or "FUNCTION_SEM_CORPO" or "TRIGGER_SEM_CORPO");
+    }
+
+    [Fact]
     public void Analisar_QuandoIndicePrefixoRedundante_DeveRegistrarAchadoMedium()
     {
         var snapshot = new SnapshotSchema

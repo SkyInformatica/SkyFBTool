@@ -18,6 +18,9 @@
     { "code": "INDEX_MISSING_COLUMN", "severity": "high" },
     { "code": "REDUNDANT_PREFIX_INDEX", "severity": "medium" },
     { "code": "DUPLICATED_FK", "severity": "low" },
+    { "code": "PROCEDURE_WITHOUT_BODY", "severity": "critical" },
+    { "code": "FUNCTION_WITHOUT_BODY", "severity": "critical" },
+    { "code": "TRIGGER_WITHOUT_BODY", "severity": "critical" },
 
     { "code": "OPERATIONAL_OIT_OAT_GAP_CRITICAL", "severity": "critical" },
     { "code": "OPERATIONAL_OIT_OAT_GAP_HIGH", "severity": "high" },

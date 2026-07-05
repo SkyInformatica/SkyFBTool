@@ -134,6 +134,7 @@ public static class AnalisadorDdlSchema
         }
 
         AdicionarAchadosCompatibilidadeCampos(snapshot, resultado, idioma, severidadesOverride);
+        ValidarObjetosPsqlSemCorpo(snapshot, resultado, idioma, severidadesOverride);
 
         resultado.Achados = resultado.Achados
             .OrderByDescending(a => a.ScoreRisco)
@@ -379,6 +380,183 @@ public static class AnalisadorDdlSchema
                 TextoLocalizado.Obter(idioma, "Validate relation fields and rebuild FK.", "Valide os campos da relação e recrie a FK."),
                 severidadesOverride);
         }
+    }
+
+    private static void ValidarObjetosPsqlSemCorpo(
+        SnapshotSchema snapshot,
+        ResultadoAnaliseDdl resultado,
+        IdiomaSaida idioma,
+        IReadOnlyDictionary<string, string>? severidadesOverride)
+    {
+        foreach (var procedimento in snapshot.Procedimentos.OrderBy(p => p.Nome, StringComparer.OrdinalIgnoreCase))
+        {
+            ValidarObjetoPsqlSemCorpo(
+                procedimento.Nome,
+                procedimento.SourceSql,
+                "PROCEDURE_SEM_CORPO",
+                "Procedure",
+                "Procedure",
+                "RDB$PROCEDURES.RDB$PROCEDURE_SOURCE",
+                resultado,
+                idioma,
+                severidadesOverride);
+        }
+
+        foreach (var funcao in snapshot.Funcoes.OrderBy(f => f.Nome, StringComparer.OrdinalIgnoreCase))
+        {
+            ValidarObjetoPsqlSemCorpo(
+                funcao.Nome,
+                funcao.SourceSql,
+                "FUNCTION_SEM_CORPO",
+                "Function",
+                "Function",
+                "RDB$FUNCTIONS.RDB$FUNCTION_SOURCE",
+                resultado,
+                idioma,
+                severidadesOverride);
+        }
+
+        foreach (var gatilho in snapshot.Gatilhos.OrderBy(g => g.Nome, StringComparer.OrdinalIgnoreCase))
+        {
+            ValidarObjetoPsqlSemCorpo(
+                gatilho.Nome,
+                gatilho.SourceSql,
+                "TRIGGER_SEM_CORPO",
+                "Trigger",
+                "Trigger",
+                "RDB$TRIGGERS.RDB$TRIGGER_SOURCE",
+                resultado,
+                idioma,
+                severidadesOverride);
+        }
+    }
+
+    private static void ValidarObjetoPsqlSemCorpo(
+        string nome,
+        string sourceSql,
+        string codigo,
+        string tipoIngles,
+        string tipoPortugues,
+        string fonteCatalogo,
+        ResultadoAnaliseDdl resultado,
+        IdiomaSaida idioma,
+        IReadOnlyDictionary<string, string>? severidadesOverride)
+    {
+        if (PossuiCorpoPsql(sourceSql))
+            return;
+
+        AdicionarAchado(
+            resultado,
+            "critical",
+            codigo,
+            nome,
+            TextoLocalizado.Obter(idioma,
+                $"{tipoIngles} {nome} has no valid PSQL body.",
+                $"{tipoPortugues} {nome} não possui corpo PSQL válido."),
+            TextoLocalizado.Obter(idioma,
+                $"Re-extract metadata and validate {fonteCatalogo} before generating or applying DDL.",
+                $"Reextraia o metadado e valide {fonteCatalogo} antes de gerar ou aplicar o DDL."),
+            severidadesOverride);
+    }
+
+    private static bool PossuiCorpoPsql(string sourceSql)
+    {
+        if (string.IsNullOrWhiteSpace(sourceSql))
+            return false;
+
+        if (!RegexCorpoPsqlAs.IsMatch(sourceSql))
+            return false;
+
+        string semComentarios = RemoverComentariosSqlPreservandoStrings(sourceSql);
+        var matchBegin = RegexCorpoPsqlBegin.Match(semComentarios);
+        if (!matchBegin.Success)
+            return false;
+
+        int indiceEnd = RegexCorpoPsqlEnd.Matches(semComentarios)
+            .Cast<Match>()
+            .LastOrDefault()
+            ?.Index ?? -1;
+        if (indiceEnd <= matchBegin.Index + matchBegin.Length)
+            return false;
+
+        string corpo = semComentarios[(matchBegin.Index + matchBegin.Length)..indiceEnd];
+        return corpo.Any(c => !char.IsWhiteSpace(c) && c != ';');
+    }
+
+    private static string RemoverComentariosSqlPreservandoStrings(string sql)
+    {
+        var sb = new StringBuilder(sql.Length);
+        bool dentroString = false;
+        bool dentroComentarioLinha = false;
+        bool dentroComentarioBloco = false;
+
+        for (int i = 0; i < sql.Length; i++)
+        {
+            char c = sql[i];
+
+            if (dentroComentarioLinha)
+            {
+                if (c is '\r' or '\n')
+                {
+                    dentroComentarioLinha = false;
+                    sb.Append(c);
+                }
+
+                continue;
+            }
+
+            if (dentroComentarioBloco)
+            {
+                if (c == '*' && i + 1 < sql.Length && sql[i + 1] == '/')
+                {
+                    dentroComentarioBloco = false;
+                    i++;
+                }
+
+                continue;
+            }
+
+            if (dentroString)
+            {
+                sb.Append(c);
+                if (c == '\'' && i + 1 < sql.Length && sql[i + 1] == '\'')
+                {
+                    sb.Append(sql[i + 1]);
+                    i++;
+                    continue;
+                }
+
+                if (c == '\'')
+                    dentroString = false;
+
+                continue;
+            }
+
+            if (c == '\'')
+            {
+                dentroString = true;
+                sb.Append(c);
+                continue;
+            }
+
+            if (c == '-' && i + 1 < sql.Length && sql[i + 1] == '-')
+            {
+                dentroComentarioLinha = true;
+                i++;
+                continue;
+            }
+
+            if (c == '/' && i + 1 < sql.Length && sql[i + 1] == '*')
+            {
+                dentroComentarioBloco = true;
+                i++;
+                continue;
+            }
+
+            sb.Append(c);
+        }
+
+        return sb.ToString();
     }
 
     private static void ValidarReferenciaFk(
@@ -1093,5 +1271,17 @@ public static class AnalisadorDdlSchema
 
     private static readonly Regex RegexPalavraChaveExpressaoIndice = new(
         @"\b(?:CASE|WHEN|THEN|ELSE|END|FROM|AS|IS|NULL|NOT|AND|OR)\b",
+        RegexOptions.Compiled | RegexOptions.CultureInvariant | RegexOptions.IgnoreCase);
+
+    private static readonly Regex RegexCorpoPsqlAs = new(
+        @"\bAS\b",
+        RegexOptions.Compiled | RegexOptions.CultureInvariant | RegexOptions.IgnoreCase);
+
+    private static readonly Regex RegexCorpoPsqlBegin = new(
+        @"\bBEGIN\b",
+        RegexOptions.Compiled | RegexOptions.CultureInvariant | RegexOptions.IgnoreCase);
+
+    private static readonly Regex RegexCorpoPsqlEnd = new(
+        @"\bEND\b",
         RegexOptions.Compiled | RegexOptions.CultureInvariant | RegexOptions.IgnoreCase);
 }

@@ -4,7 +4,6 @@ Backlog curto e prático para próximos ciclos de melhoria.
 
 ## DDL
 
-- `ddl-analyze`: sinalizar `PROCEDURE`, `FUNCTION` e `TRIGGER` sem corpo como achado de análise.
 - `ddl-extract`: revisar eventual diferença de metadata em Firebird 2.5 a 5.0 para `FUNCTION` e `TRIGGER` em bases legadas.
 
 ## Documentação
