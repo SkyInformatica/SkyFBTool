@@ -201,15 +201,15 @@ $env:SKYFBTOOL_TEST_RUN_INTEGRATION="true"
 
 This repository includes a GitHub Actions release pipeline at `.github/workflows/release.yml`.
 
-- Trigger: tag push in `v*` format (example: `v0.1.0`)
+- Trigger: tag push in `v*` format (example: `v1.0.0`)
 - Pipeline: restore, build, test, publish (`win-x64`, `linux-x64`)
 - Output: GitHub Release with compiled artifacts (`.tar.gz`)
 
 Tag example:
 
 ```bash
-git tag v0.1.0
-git push origin v0.1.0
+git tag v1.0.0
+git push origin v1.0.0
 ```
 
 ## Dependencies

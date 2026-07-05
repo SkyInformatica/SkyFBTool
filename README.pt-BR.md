@@ -200,15 +200,15 @@ $env:SKYFBTOOL_TEST_RUN_INTEGRATION="true"
 
 Este repositório inclui uma esteira de publicação em `.github/workflows/release.yml`.
 
-- Disparo: envio de tag no formato `v*` (ex.: `v0.1.0`)
+- Disparo: envio de tag no formato `v*` (ex.: `v1.0.0`)
 - Pipeline: restore, build, testes, publish (`win-x64`, `linux-x64`)
 - Saída: GitHub Release com artefatos compilados (`.tar.gz`)
 
 Exemplo de tag:
 
 ```bash
-git tag v0.1.0
-git push origin v0.1.0
+git tag v1.0.0
+git push origin v1.0.0
 ```
 
 ## Dependências
