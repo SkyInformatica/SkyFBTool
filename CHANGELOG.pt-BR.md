@@ -20,6 +20,7 @@ e o projeto adota [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Corrigido
 - `ddl-extract` agora filtra metadados de funções Firebird com mais precisão para que UDFs legadas, funções UDR e funções de pacotes não sejam classificadas como funções armazenadas PSQL de nível superior.
+- `ddl-analyze` não reporta mais índices por expressão usando concatenação de strings do Firebird (`||`) ou outras expressões que não são colunas como `INDICE_COLUNA_INEXISTENTE`.
 
 ## [0.6.3] - 2026-07-04
 

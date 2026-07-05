@@ -293,6 +293,26 @@ public class AnalisadorDdlSchemaTests
                         {
                             Nome = "IND_ENCAMINHAMENTO_24",
                             Colunas = ["DATA + 30"]
+                        },
+                        new IndiceSchema
+                        {
+                            Nome = "IND_LOTESELOSSC_12",
+                            Colunas = ["NUMEROSEQUENCIALOTE || NUMEROSEQUENCIASELO || DIGITOVERIFICADOR"]
+                        },
+                        new IndiceSchema
+                        {
+                            Nome = "IND_LOTESELOSSC_13",
+                            Colunas = ["NUMEROSEQUENCIALOTE||NUMEROSEQUENCIASELO||DIGITOVERIFICADOR"]
+                        },
+                        new IndiceSchema
+                        {
+                            Nome = "IND_ENCAMINHAMENTO_25",
+                            Colunas = ["DATA+30"]
+                        },
+                        new IndiceSchema
+                        {
+                            Nome = "IND_PESSOAL_COLLATE",
+                            Colunas = ["NOME COLLATE PT_BR"]
                         }
                     ]
                 }

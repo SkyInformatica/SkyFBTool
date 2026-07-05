@@ -6,11 +6,15 @@ namespace SkyFBTool.Services.Ddl.Rules;
 internal sealed class RegraIndicesDdl : IRegraAnaliseDdl
 {
     private static readonly Regex RegexOperadorExpressaoIndice = new(
-        @"(?:\s[+\-*/]\s|<>|<=|>=|=|<|>)",
+        @"(?:\s[+\-*/]\s|\|\||<>|<=|>=|=|<|>)",
         RegexOptions.Compiled | RegexOptions.CultureInvariant);
 
     private static readonly Regex RegexPalavraChaveExpressaoIndice = new(
         @"\b(?:CASE|WHEN|THEN|ELSE|END|FROM|AS|IS|NULL|NOT|AND|OR)\b",
+        RegexOptions.Compiled | RegexOptions.CultureInvariant | RegexOptions.IgnoreCase);
+
+    private static readonly Regex RegexIdentificadorSimples = new(
+        @"^[A-Z_][A-Z0-9_$]*$",
         RegexOptions.Compiled | RegexOptions.CultureInvariant | RegexOptions.IgnoreCase);
 
     public void Avaliar(ContextoAnaliseDdl contexto)
@@ -50,10 +54,10 @@ internal sealed class RegraIndicesDdl : IRegraAnaliseDdl
 
             foreach (var colunaIndice in indice.Colunas)
             {
-                if (EhExpressaoIndice(colunaIndice))
+                if (colunas.ContainsKey(colunaIndice))
                     continue;
 
-                if (colunas.ContainsKey(colunaIndice))
+                if (EhExpressaoIndice(colunaIndice))
                     continue;
 
                 contexto.AdicionarAchado(
@@ -75,6 +79,9 @@ internal sealed class RegraIndicesDdl : IRegraAnaliseDdl
     private static bool EhExpressaoIndice(string colunaIndice)
     {
         string valor = colunaIndice.Trim();
+        if (!RegexIdentificadorSimples.IsMatch(valor))
+            return true;
+
         if (valor.Contains('(') || valor.Contains(')') || valor.Contains('\''))
             return true;
 
