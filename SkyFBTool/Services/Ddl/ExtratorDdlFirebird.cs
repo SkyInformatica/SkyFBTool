@@ -343,17 +343,31 @@ public static class ExtratorDdlFirebird
         if (!TryObterVersaoMajor(conexao.ServerVersion, out int major) || major < 3)
             return [];
 
-        const string sql = """
-                           SELECT
-                               TRIM(f.rdb$function_name) AS function_name,
-                               f.rdb$function_source AS function_source
-                           FROM rdb$functions f
-                           WHERE COALESCE(f.rdb$system_flag, 0) = 0
-                           ORDER BY f.rdb$function_name
-                           """;
-
         try
         {
+            if (!await ColunaExisteAsync(conexao, "RDB$FUNCTIONS", "RDB$FUNCTION_SOURCE"))
+                return [];
+
+            bool possuiLegacyFlag = await ColunaExisteAsync(conexao, "RDB$FUNCTIONS", "RDB$LEGACY_FLAG");
+            bool possuiEngineName = await ColunaExisteAsync(conexao, "RDB$FUNCTIONS", "RDB$ENGINE_NAME");
+            bool possuiPackageName = await ColunaExisteAsync(conexao, "RDB$FUNCTIONS", "RDB$PACKAGE_NAME");
+            bool possuiPrivateFlag = await ColunaExisteAsync(conexao, "RDB$FUNCTIONS", "RDB$PRIVATE_FLAG");
+
+            string sql = $"""
+                          SELECT
+                              TRIM(f.rdb$function_name) AS function_name,
+                              f.rdb$function_source AS function_source,
+                              TRIM(COALESCE(f.rdb$module_name, '')) AS module_name,
+                              TRIM(COALESCE(f.rdb$entrypoint, '')) AS entrypoint,
+                              {(possuiLegacyFlag ? "f.rdb$legacy_flag" : "CAST(NULL AS SMALLINT)")} AS legacy_flag,
+                              {(possuiEngineName ? "TRIM(COALESCE(f.rdb$engine_name, ''))" : "CAST('' AS VARCHAR(31))")} AS engine_name,
+                              {(possuiPackageName ? "TRIM(COALESCE(f.rdb$package_name, ''))" : "CAST('' AS VARCHAR(31))")} AS package_name,
+                              {(possuiPrivateFlag ? "f.rdb$private_flag" : "CAST(NULL AS SMALLINT)")} AS private_flag
+                          FROM rdb$functions f
+                          WHERE COALESCE(f.rdb$system_flag, 0) = 0
+                          ORDER BY f.rdb$function_name
+                          """;
+
             await using var cmd = new FbCommand(sql, conexao);
             await using var reader = await cmd.ExecuteReaderAsync();
 
@@ -364,6 +378,19 @@ public static class ExtratorDdlFirebird
                 string? source = reader.IsDBNull(reader.GetOrdinal("function_source"))
                     ? null
                     : reader.GetString(reader.GetOrdinal("function_source"));
+                string moduleName = reader.GetString(reader.GetOrdinal("module_name"));
+                string entrypoint = reader.GetString(reader.GetOrdinal("entrypoint"));
+                int? legacyFlag = reader.IsDBNull(reader.GetOrdinal("legacy_flag"))
+                    ? null
+                    : Convert.ToInt32(reader.GetValue(reader.GetOrdinal("legacy_flag")));
+                string engineName = reader.GetString(reader.GetOrdinal("engine_name"));
+                string packageName = reader.GetString(reader.GetOrdinal("package_name"));
+                int? privateFlag = reader.IsDBNull(reader.GetOrdinal("private_flag"))
+                    ? null
+                    : Convert.ToInt32(reader.GetValue(reader.GetOrdinal("private_flag")));
+
+                if (!EhFuncaoPsqlArmazenada(moduleName, entrypoint, legacyFlag, engineName, packageName, privateFlag))
+                    continue;
 
                 funcoes.Add(new FuncaoSchema
                 {
@@ -378,6 +405,29 @@ public static class ExtratorDdlFirebird
         {
             return [];
         }
+    }
+
+    internal static bool EhFuncaoPsqlArmazenada(
+        string? moduleName,
+        string? entrypoint,
+        int? legacyFlag,
+        string? engineName,
+        string? packageName,
+        int? privateFlag)
+    {
+        if (!string.IsNullOrWhiteSpace(moduleName) || !string.IsNullOrWhiteSpace(entrypoint))
+            return false;
+
+        if (legacyFlag == 1)
+            return false;
+
+        if (!string.IsNullOrWhiteSpace(engineName))
+            return false;
+
+        if (!string.IsNullOrWhiteSpace(packageName) || privateFlag is 0 or 1)
+            return false;
+
+        return true;
     }
 
     private static async Task<List<FuncaoExternaSchema>> CarregarFuncoesExternasAsync(FbConnection conexao)
@@ -715,6 +765,23 @@ public static class ExtratorDdlFirebird
             return valorPadrao;
 
         return Convert.ToInt32(reader.GetValue(ordinal));
+    }
+
+    private static async Task<bool> ColunaExisteAsync(FbConnection conexao, string tabela, string coluna)
+    {
+        const string sql = """
+                           SELECT 1
+                           FROM rdb$relation_fields rf
+                           WHERE rf.rdb$relation_name = @tabela
+                             AND rf.rdb$field_name = @coluna
+                           """;
+
+        await using var cmd = new FbCommand(sql, conexao);
+        cmd.Parameters.AddWithValue("@tabela", tabela);
+        cmd.Parameters.AddWithValue("@coluna", coluna);
+
+        object? resultado = await cmd.ExecuteScalarAsync();
+        return resultado is not null;
     }
 
     private static bool MensagemTokenDesconhecidoParaCharacterLength(FbException ex)

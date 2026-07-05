@@ -9,6 +9,7 @@ Extrai metadados de schema Firebird e gera duas saídas sincronizadas:
 `ddl-extract` é a etapa canônica antes de `ddl-diff` e `ddl-analyze` quando você quer artefatos reprodutíveis de metadados.
 
 Hoje o snapshot inclui tabelas, colunas, domínios, sequências/geradores, views, procedimentos, funções armazenadas, gatilhos, chaves primárias, chaves únicas, restrições `CHECK`, chaves estrangeiras e índices de usuário.
+Funções armazenadas do Firebird são extraídas como funções PSQL de nível superior apenas quando os metadados do catálogo identificam objetos regulares de `CREATE FUNCTION`; UDFs legadas, funções UDR e funções de pacotes ficam fora dessa lista de funções PSQL.
 
 O `.sql` gerado já fica pronto para objetos PSQL do Firebird: blocos de `PROCEDURE`, `FUNCTION` e `TRIGGER` são envoltos com `SET TERM`, o que permite executar o arquivo no `isql` ou em um runner compatível sem edição manual.
 Os cabeçalhos de trigger são reconstruídos a partir da metadata, preservando relação, estado ativo/inativo, timing e posição no resultado.

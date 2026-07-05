@@ -9,6 +9,7 @@ Extracts Firebird schema metadata and generates two synchronized outputs:
 `ddl-extract` is the canonical entry point before `ddl-diff` and `ddl-analyze` when you want reproducible metadata artifacts.
 
 Today the snapshot includes tables, columns, domains, sequences/generators, views, procedures, stored functions, triggers, primary keys, unique keys, `CHECK` constraints, foreign keys, and user indexes.
+Firebird stored functions are extracted as top-level PSQL functions only when catalog metadata identifies them as regular `CREATE FUNCTION` objects; legacy UDFs, UDR functions, and package functions are kept out of that PSQL function list.
 
 The generated `.sql` is script-ready for Firebird PSQL objects: `PROCEDURE`, `FUNCTION`, and `TRIGGER` blocks are wrapped with `SET TERM` so the file can be executed by `isql` or a compatible runner without manual edits.
 Trigger headers are reconstructed from metadata so relation name, activity state, timing, and position are preserved in the output.
