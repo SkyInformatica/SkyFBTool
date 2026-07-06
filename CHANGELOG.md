@@ -13,8 +13,12 @@ No changes recorded.
 
 ## [1.0.1] - 2026-07-05
 
+### Added
+- `ddl-analyze` now reports procedures, functions, and triggers whose body only executes `SUSPEND` as inert PSQL objects.
+
 ### Changed
 - `ddl-analyze` HTML report now labels remediation prioritization by object/scope instead of table to avoid confusion when findings refer to triggers, procedures, or other objects.
+- `ddl-analyze --databases-batch` now names each per-database report as `<database>_schema_analysis_<timestamp>` to make batch output easier to scan.
 
 ### Fixed
 - `ddl-analyze` no longer reports procedures extracted from database metadata as `PROCEDURE_SEM_CORPO` only because their stored source contains the PSQL body without the surrounding `AS` clause.

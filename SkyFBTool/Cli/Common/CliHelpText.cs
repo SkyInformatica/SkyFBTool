@@ -170,6 +170,7 @@ OPÇÕES:
 SAÍDA:
   <prefixo>.json
   <prefixo>.html
+  (modo lote) <banco>_schema_analysis_<timestamp>.json/.html
   (modo lote) batch_analysis_summary_*.json/.html
 
 EXEMPLO:

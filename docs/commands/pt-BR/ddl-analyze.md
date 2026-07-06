@@ -37,7 +37,7 @@ SkyFBTool ddl-analyze --databases-batch "C:\dados\*.fdb" --output DIRETÓRIO [op
 - `--user`: usuário (padrão: `sysdba`).
 - `--password`: senha (padrão: `masterkey`).
 - `--charset`: charset opcional da conexão.
-- `--output`: prefixo/arquivo base/diretório de saída.
+- `--output`: prefixo/arquivo base/diretório de saída. No modo em lote, é tratado como diretório de saída e cada relatório por banco é nomeado como `<banco>_schema_analysis_<timestamp>.json/.html`.
 - `--ignore-table-prefix`: ignora prefixo de tabela (repetível).
 - `--ignore-table-prefixes`: lista de prefixos ignorados separados por vírgula.
 - `--severity-config`: JSON de override de severidade.
@@ -73,6 +73,7 @@ SkyFBTool ddl-analyze --input "C:\ddl\origem.schema.json" --description "anális
 - Saída simples: `docs/examples/ddl-analyze-sample.html` e `docs/examples/ddl-analyze-sample.json`
 - Entrada rica: `docs/examples/ddl-analyze-sample-rich-input.sql`
 - Saída rica: `docs/examples/ddl-analyze-sample-rich.html` e `docs/examples/ddl-analyze-sample-rich.json`
+- Saída por banco no modo em lote: `<banco>_schema_analysis_<timestamp>.json/.html`
 - Saída de resumo em lote: `docs/examples/ddl-analyze-batch-summary-sample.html` e `docs/examples/ddl-analyze-batch-summary-sample.json`
 
 ## Critérios de classificação e validações

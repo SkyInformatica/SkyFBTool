@@ -46,6 +46,10 @@ public class DdlReportsIntegrationTests
                 .GetFiles(pastaSaida, "batch_analysis_summary_*.json", SearchOption.TopDirectoryOnly)
                 .OrderByDescending(a => a, StringComparer.OrdinalIgnoreCase)
                 .First();
+            Assert.Single(Directory.GetFiles(pastaSaida, "db_com_achado_schema_analysis_*.json", SearchOption.TopDirectoryOnly));
+            Assert.Single(Directory.GetFiles(pastaSaida, "db_com_achado_schema_analysis_*.html", SearchOption.TopDirectoryOnly));
+            Assert.Single(Directory.GetFiles(pastaSaida, "db_sem_achado_schema_analysis_*.json", SearchOption.TopDirectoryOnly));
+            Assert.Single(Directory.GetFiles(pastaSaida, "db_sem_achado_schema_analysis_*.html", SearchOption.TopDirectoryOnly));
 
             var resumo = JsonSerializer.Deserialize<ResultadoResumoLoteDdl>(await File.ReadAllTextAsync(arquivoResumoJson));
             Assert.NotNull(resumo);

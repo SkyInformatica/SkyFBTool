@@ -37,7 +37,7 @@ SkyFBTool ddl-analyze --databases-batch "C:\data\*.fdb" --output DIRECTORY [opti
 - `--user`: user (default: `sysdba`).
 - `--password`: password (default: `masterkey`).
 - `--charset`: optional connection charset.
-- `--output`: output prefix/file base/directory.
+- `--output`: output prefix/file base/directory. In batch mode, this is treated as an output directory and each database report is named `<database>_schema_analysis_<timestamp>.json/.html`.
 - `--ignore-table-prefix`: ignore table prefix (repeatable).
 - `--ignore-table-prefixes`: comma-separated ignore prefixes.
 - `--severity-config`: severity override JSON.
@@ -73,6 +73,7 @@ SkyFBTool ddl-analyze --input "C:\ddl\source.schema.json" --description "analysi
 - Basic sample output: `docs/examples/ddl-analyze-sample.html` and `docs/examples/ddl-analyze-sample.json`
 - Rich sample input: `docs/examples/ddl-analyze-sample-rich-input.sql`
 - Rich sample output: `docs/examples/ddl-analyze-sample-rich.html` and `docs/examples/ddl-analyze-sample-rich.json`
+- Batch per-database output: `<database>_schema_analysis_<timestamp>.json/.html`
 - Batch summary sample output: `docs/examples/ddl-analyze-batch-summary-sample.html` and `docs/examples/ddl-analyze-batch-summary-sample.json`
 
 ## Classification and validation criteria

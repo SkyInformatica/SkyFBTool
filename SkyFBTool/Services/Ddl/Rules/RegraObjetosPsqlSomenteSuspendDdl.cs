@@ -2,7 +2,7 @@ using SkyFBTool.Core;
 
 namespace SkyFBTool.Services.Ddl.Rules;
 
-internal sealed class RegraObjetosPsqlSemCorpoDdl : IRegraAnaliseDdl
+internal sealed class RegraObjetosPsqlSomenteSuspendDdl : IRegraAnaliseDdl
 {
     public void Avaliar(ContextoAnaliseDdl contexto)
     {
@@ -12,10 +12,9 @@ internal sealed class RegraObjetosPsqlSemCorpoDdl : IRegraAnaliseDdl
                 contexto,
                 procedimento.Nome,
                 procedimento.SourceSql,
-                "PROCEDURE_SEM_CORPO",
+                "PROCEDURE_SOMENTE_SUSPEND",
                 "Procedure",
-                "Procedure",
-                "RDB$PROCEDURES.RDB$PROCEDURE_SOURCE");
+                "Procedure");
         }
 
         foreach (var funcao in contexto.Snapshot.Funcoes.OrderBy(f => f.Nome, StringComparer.OrdinalIgnoreCase))
@@ -24,10 +23,9 @@ internal sealed class RegraObjetosPsqlSemCorpoDdl : IRegraAnaliseDdl
                 contexto,
                 funcao.Nome,
                 funcao.SourceSql,
-                "FUNCTION_SEM_CORPO",
+                "FUNCTION_SOMENTE_SUSPEND",
                 "Function",
-                "Function",
-                "RDB$FUNCTIONS.RDB$FUNCTION_SOURCE");
+                "Function");
         }
 
         foreach (var gatilho in contexto.Snapshot.Gatilhos.OrderBy(g => g.Nome, StringComparer.OrdinalIgnoreCase))
@@ -36,10 +34,9 @@ internal sealed class RegraObjetosPsqlSemCorpoDdl : IRegraAnaliseDdl
                 contexto,
                 gatilho.Nome,
                 gatilho.SourceSql,
-                "TRIGGER_SEM_CORPO",
+                "TRIGGER_SOMENTE_SUSPEND",
                 "Trigger",
-                "Trigger",
-                "RDB$TRIGGERS.RDB$TRIGGER_SOURCE");
+                "Trigger");
         }
     }
 
@@ -49,24 +46,25 @@ internal sealed class RegraObjetosPsqlSemCorpoDdl : IRegraAnaliseDdl
         string sourceSql,
         string codigo,
         string tipoIngles,
-        string tipoPortugues,
-        string fonteCatalogo)
+        string tipoPortugues)
     {
-        if (PsqlCorpoDdl.PossuiInstrucaoExecutavel(sourceSql))
+        if (!PsqlCorpoDdl.TryExtrairCorpoExecutavel(sourceSql, out string corpo))
+            return;
+
+        if (!string.Equals(PsqlCorpoDdl.NormalizarInstrucoes(corpo), "SUSPEND", StringComparison.Ordinal))
             return;
 
         contexto.AdicionarAchado(
-            "critical",
+            "high",
             codigo,
             nome,
             TextoLocalizado.Obter(
                 contexto.Idioma,
-                $"{tipoIngles} {nome} has no valid PSQL body.",
-                $"{tipoPortugues} {nome} não possui corpo PSQL válido."),
+                $"{tipoIngles} {nome} only executes SUSPEND and has no useful PSQL logic.",
+                $"{tipoPortugues} {nome} executa apenas SUSPEND e não possui lógica PSQL útil."),
             TextoLocalizado.Obter(
                 contexto.Idioma,
-                $"Re-extract metadata and validate {fonteCatalogo} before generating or applying DDL.",
-                $"Reextraia o metadado e valide {fonteCatalogo} antes de gerar ou aplicar o DDL."));
+                "Validate whether the routine is intentionally empty; otherwise restore or remove obsolete metadata.",
+                "Valide se a rotina está intencionalmente vazia; caso contrário, restaure ou remova o metadado obsoleto."));
     }
-
 }

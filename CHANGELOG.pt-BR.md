@@ -13,8 +13,12 @@ Nenhuma mudança registrada.
 
 ## [1.0.1] - 2026-07-05
 
+### Adicionado
+- `ddl-analyze` agora reporta procedures, functions e triggers cujo corpo executa apenas `SUSPEND` como objetos PSQL inertes.
+
 ### Alterado
 - O relatório HTML do `ddl-analyze` agora identifica a priorização de correção por objeto/escopo em vez de tabela, evitando confusão quando achados se referem a triggers, procedures ou outros objetos.
+- `ddl-analyze --databases-batch` agora nomeia cada relatório por banco como `<banco>_schema_analysis_<timestamp>` para facilitar a leitura da saída em lote.
 
 ### Corrigido
 - `ddl-analyze` não reporta mais procedures extraídas dos metadados do banco como `PROCEDURE_SEM_CORPO` apenas porque o source armazenado contém o corpo PSQL sem a cláusula `AS` externa.

@@ -135,7 +135,8 @@ public static class AnalisadorDdlSchema
         new RegraChavesEstrangeirasDdl(),
         new RegraIndicesDdl(),
         new RegraCompatibilidadeCamposDdl(),
-        new RegraObjetosPsqlSemCorpoDdl()
+        new RegraObjetosPsqlSemCorpoDdl(),
+        new RegraObjetosPsqlSomenteSuspendDdl()
     ];
 
     private static List<string> NormalizarPrefixos(IEnumerable<string>? prefixos)

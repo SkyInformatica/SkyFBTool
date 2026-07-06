@@ -124,10 +124,11 @@ public static class DdlAnalyzeCommand
             $"Padrão de bancos correspondeu a {bancos.Count} arquivo(s)."));
 
         var entradasResumo = new List<EntradaResumoAnaliseDdlLote>(bancos.Count);
+        string diretorioSaidaLote = ResolverDiretorioSaidaLote(op.Saida);
 
         foreach (var banco in bancos)
         {
-            var opBanco = ClonarParaBanco(op, banco);
+            var opBanco = ClonarParaBanco(op, banco, diretorioSaidaLote);
             var (arquivoJson, arquivoHtml) = await AnalisadorDdlSchema.AnalisarAsync(opBanco);
 
             entradasResumo.Add(new EntradaResumoAnaliseDdlLote
@@ -144,7 +145,7 @@ public static class DdlAnalyzeCommand
         }
 
         var (arquivoResumoJson, arquivoResumoHtml) =
-            await GeradorResumoAnaliseDdlLote.GerarAsync(entradasResumo, op.Saida, idioma);
+            await GeradorResumoAnaliseDdlLote.GerarAsync(entradasResumo, diretorioSaidaLote + Path.DirectorySeparatorChar, idioma);
 
         Console.WriteLine();
         Console.WriteLine(TextoLocalizado.Obter(idioma, "Batch analysis finished.", "Análise em lote concluída."));
@@ -152,7 +153,7 @@ public static class DdlAnalyzeCommand
         Console.WriteLine($"{TextoLocalizado.Obter(idioma, "Batch summary report", "Relatório resumo do lote")}: {arquivoResumoHtml}");
     }
 
-    private static OpcoesDdlAnalise ClonarParaBanco(OpcoesDdlAnalise baseOp, string banco)
+    private static OpcoesDdlAnalise ClonarParaBanco(OpcoesDdlAnalise baseOp, string banco, string diretorioSaidaLote)
     {
         return new OpcoesDdlAnalise
         {
@@ -164,7 +165,7 @@ public static class DdlAnalyzeCommand
             Usuario = baseOp.Usuario,
             Senha = baseOp.Senha,
             Charset = baseOp.Charset,
-            Saida = ResolverSaidaPorBanco(baseOp.Saida, banco),
+            Saida = ResolverSaidaPorBanco(diretorioSaidaLote, banco),
             ArquivoConfiguracaoSeveridade = baseOp.ArquivoConfiguracaoSeveridade,
             Descricao = baseOp.Descricao,
             AnaliseVolumeHabilitada = baseOp.AnaliseVolumeHabilitada,
@@ -227,27 +228,25 @@ public static class DdlAnalyzeCommand
         }
     }
 
-    private static string? ResolverSaidaPorBanco(string? saidaBase, string banco)
+    private static string ResolverSaidaPorBanco(string diretorioSaidaLote, string banco)
+    {
+        string dbNome = SanitizarNomeArquivo(Path.GetFileNameWithoutExtension(banco));
+        string timestamp = DateTime.Now.ToString("yyyyMMdd_HHmmss_fff");
+        Directory.CreateDirectory(diretorioSaidaLote);
+        return Path.Combine(diretorioSaidaLote, $"{dbNome}_schema_analysis_{timestamp}");
+    }
+
+    private static string ResolverDiretorioSaidaLote(string? saidaBase)
     {
         if (string.IsNullOrWhiteSpace(saidaBase))
-            return null;
+            return Directory.GetCurrentDirectory();
 
-        string dbNome = SanitizarNomeArquivo(Path.GetFileNameWithoutExtension(banco));
         string saida = saidaBase.Trim();
-
-        if (Directory.Exists(saida) ||
-            saida.EndsWith(Path.DirectorySeparatorChar) ||
-            saida.EndsWith(Path.AltDirectorySeparatorChar))
-        {
-            string dir = Path.GetFullPath(saida);
-            Directory.CreateDirectory(dir);
-            return Path.Combine(dir, $"{dbNome}_analysis");
-        }
-
         string absoluto = Path.GetFullPath(saida);
-        string dirSaida = Path.GetDirectoryName(absoluto) ?? Directory.GetCurrentDirectory();
-        string nomeSemExt = Path.GetFileNameWithoutExtension(absoluto);
-        return Path.Combine(dirSaida, $"{nomeSemExt}_{dbNome}");
+        if (Path.HasExtension(absoluto))
+            return Path.GetDirectoryName(absoluto) ?? Directory.GetCurrentDirectory();
+
+        return absoluto;
     }
 
     private static string SanitizarNomeArquivo(string valor)
@@ -255,7 +254,8 @@ public static class DdlAnalyzeCommand
         string nome = string.IsNullOrWhiteSpace(valor) ? "database" : valor;
         foreach (char invalido in Path.GetInvalidFileNameChars())
             nome = nome.Replace(invalido, '_');
-        return nome;
+
+        return string.Join("_", nome.Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries));
     }
 
 }

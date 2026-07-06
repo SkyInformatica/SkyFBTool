@@ -507,6 +507,70 @@ public class AnalisadorDdlSchemaTests
     }
 
     [Fact]
+    public void Analisar_QuandoObjetoPsqlTemSomenteSuspend_DeveRegistrarAchadoHigh()
+    {
+        var snapshot = new SnapshotSchema
+        {
+            Procedimentos =
+            [
+                new ProcedimentoSchema
+                {
+                    Nome = "SP_SOMENTE_SUSPEND",
+                    SourceSql = "BEGIN SUSPEND; END"
+                },
+                new ProcedimentoSchema
+                {
+                    Nome = "SP_COM_LOGICA",
+                    SourceSql = "BEGIN RESULTADO = 1; SUSPEND; END"
+                }
+            ],
+            Funcoes =
+            [
+                new FuncaoSchema
+                {
+                    Nome = "FN_SOMENTE_SUSPEND",
+                    SourceSql = "CREATE OR ALTER FUNCTION FN_SOMENTE_SUSPEND RETURNS INTEGER AS BEGIN /* sem logica */ SUSPEND; END"
+                }
+            ],
+            Gatilhos =
+            [
+                new GatilhoSchema
+                {
+                    Nome = "TRG_SOMENTE_SUSPEND",
+                    SourceSql = """
+                                CREATE OR ALTER TRIGGER TRG_SOMENTE_SUSPEND FOR CLIENTES
+                                AS
+                                BEGIN
+                                  -- rotina inerte
+                                  SUSPEND;
+                                END
+                                """
+                }
+            ]
+        };
+
+        var resultado = AnalisadorDdlSchema.Analisar(snapshot);
+
+        Assert.Contains(resultado.Achados, a =>
+            a.Codigo == "PROCEDURE_SOMENTE_SUSPEND" &&
+            a.Severidade == "high" &&
+            a.Escopo == "SP_SOMENTE_SUSPEND");
+        Assert.Contains(resultado.Achados, a =>
+            a.Codigo == "FUNCTION_SOMENTE_SUSPEND" &&
+            a.Severidade == "high" &&
+            a.Escopo == "FN_SOMENTE_SUSPEND");
+        Assert.Contains(resultado.Achados, a =>
+            a.Codigo == "TRIGGER_SOMENTE_SUSPEND" &&
+            a.Severidade == "high" &&
+            a.Escopo == "TRG_SOMENTE_SUSPEND");
+        Assert.DoesNotContain(resultado.Achados, a =>
+            a.Codigo == "PROCEDURE_SOMENTE_SUSPEND" &&
+            a.Escopo == "SP_COM_LOGICA");
+        Assert.DoesNotContain(resultado.Achados, a =>
+            a.Codigo is "PROCEDURE_SEM_CORPO" or "FUNCTION_SEM_CORPO" or "TRIGGER_SEM_CORPO");
+    }
+
+    [Fact]
     public void Analisar_QuandoIndicePrefixoRedundante_DeveRegistrarAchadoMedium()
     {
         var snapshot = new SnapshotSchema
