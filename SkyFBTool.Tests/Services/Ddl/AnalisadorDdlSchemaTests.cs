@@ -471,6 +471,16 @@ public class AnalisadorDdlSchemaTests
                 {
                     Nome = "SP_OK",
                     SourceSql = "CREATE OR ALTER PROCEDURE SP_OK AS BEGIN SUSPEND; END"
+                },
+                new ProcedimentoSchema
+                {
+                    Nome = "SP_CORPO_EXTRAIDO",
+                    SourceSql = """
+                                BEGIN
+                                  RESULTADO = 1;
+                                  SUSPEND;
+                                END
+                                """
                 }
             ],
             Funcoes =

@@ -16,6 +16,9 @@ Nenhuma mudança registrada.
 ### Alterado
 - O relatório HTML do `ddl-analyze` agora identifica a priorização de correção por objeto/escopo em vez de tabela, evitando confusão quando achados se referem a triggers, procedures ou outros objetos.
 
+### Corrigido
+- `ddl-analyze` não reporta mais procedures extraídas dos metadados do banco como `PROCEDURE_SEM_CORPO` apenas porque o source armazenado contém o corpo PSQL sem a cláusula `AS` externa.
+
 ## [1.0.0] - 2026-07-05
 
 ### Adicionado

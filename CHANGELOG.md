@@ -16,6 +16,9 @@ No changes recorded.
 ### Changed
 - `ddl-analyze` HTML report now labels remediation prioritization by object/scope instead of table to avoid confusion when findings refer to triggers, procedures, or other objects.
 
+### Fixed
+- `ddl-analyze` no longer reports procedures extracted from database metadata as `PROCEDURE_SEM_CORPO` only because their stored source contains the PSQL body without the surrounding `AS` clause.
+
 ## [1.0.0] - 2026-07-05
 
 ### Added

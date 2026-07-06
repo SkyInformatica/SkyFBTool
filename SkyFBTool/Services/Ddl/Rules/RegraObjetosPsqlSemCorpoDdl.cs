@@ -6,10 +6,6 @@ namespace SkyFBTool.Services.Ddl.Rules;
 
 internal sealed class RegraObjetosPsqlSemCorpoDdl : IRegraAnaliseDdl
 {
-    private static readonly Regex RegexCorpoPsqlAs = new(
-        @"\bAS\b",
-        RegexOptions.Compiled | RegexOptions.CultureInvariant | RegexOptions.IgnoreCase);
-
     private static readonly Regex RegexCorpoPsqlBegin = new(
         @"\bBEGIN\b",
         RegexOptions.Compiled | RegexOptions.CultureInvariant | RegexOptions.IgnoreCase);
@@ -86,9 +82,6 @@ internal sealed class RegraObjetosPsqlSemCorpoDdl : IRegraAnaliseDdl
     private static bool PossuiCorpoPsql(string sourceSql)
     {
         if (string.IsNullOrWhiteSpace(sourceSql))
-            return false;
-
-        if (!RegexCorpoPsqlAs.IsMatch(sourceSql))
             return false;
 
         string semComentarios = RemoverComentariosSqlPreservandoStrings(sourceSql);
