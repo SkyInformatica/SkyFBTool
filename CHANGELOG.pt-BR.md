@@ -11,6 +11,11 @@ e o projeto adota [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 Nenhuma mudança registrada.
 
+## [1.0.1] - 2026-07-05
+
+### Alterado
+- O relatório HTML do `ddl-analyze` agora identifica a priorização de correção por objeto/escopo em vez de tabela, evitando confusão quando achados se referem a triggers, procedures ou outros objetos.
+
 ## [1.0.0] - 2026-07-05
 
 ### Adicionado
@@ -19,7 +24,6 @@ Nenhuma mudança registrada.
 
 ### Alterado
 - `ddl-analyze` agora possui uma estrutura interna de motor de regras, com validações de estrutura de tabela, chaves estrangeiras, índices, compatibilidade de campos e corpo PSQL movidas para classes de regra dedicadas.
-- O relatório HTML do `ddl-analyze` agora identifica a priorização de correção por objeto/escopo em vez de tabela, evitando confusão quando achados se referem a triggers, procedures ou outros objetos.
 
 ### Corrigido
 - `ddl-extract` agora filtra metadados de funções Firebird com mais precisão para que UDFs legadas, funções UDR e funções de pacotes não sejam classificadas como funções armazenadas PSQL de nível superior.
@@ -157,7 +161,8 @@ Nenhuma mudança registrada.
 - Compatibilidade com Firebird 2.5, 3.0, 4.0 e 5.0 nos fluxos de exportação/importação.
 - Suíte de testes unitários e de integração.
 
-[Não Lançado]: https://github.com/SkyInformatica/SkyFBTool/compare/v1.0.0...HEAD
+[Não Lançado]: https://github.com/SkyInformatica/SkyFBTool/compare/v1.0.1...HEAD
+[1.0.1]: https://github.com/SkyInformatica/SkyFBTool/compare/v1.0.0...v1.0.1
 [1.0.0]: https://github.com/SkyInformatica/SkyFBTool/compare/v0.6.3...v1.0.0
 [0.6.3]: https://github.com/SkyInformatica/SkyFBTool/compare/v0.6.2...v0.6.3
 [0.6.2]: https://github.com/SkyInformatica/SkyFBTool/compare/v0.5.0...v0.6.2

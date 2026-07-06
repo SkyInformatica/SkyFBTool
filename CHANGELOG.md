@@ -11,6 +11,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 No changes recorded.
 
+## [1.0.1] - 2026-07-05
+
+### Changed
+- `ddl-analyze` HTML report now labels remediation prioritization by object/scope instead of table to avoid confusion when findings refer to triggers, procedures, or other objects.
+
 ## [1.0.0] - 2026-07-05
 
 ### Added
@@ -19,7 +24,6 @@ No changes recorded.
 
 ### Changed
 - `ddl-analyze` now has an internal rule engine structure, with table structure, foreign key, index, field compatibility, and PSQL body validations moved into dedicated rule classes.
-- `ddl-analyze` HTML report now labels remediation prioritization by object/scope instead of table to avoid confusion when findings refer to triggers, procedures, or other objects.
 
 ### Fixed
 - `ddl-extract` now filters Firebird function metadata more precisely so legacy UDFs, UDR functions, and package functions are not misclassified as top-level PSQL stored functions.
@@ -158,7 +162,8 @@ No changes recorded.
 - Firebird 2.5, 3.0, 4.0, and 5.0 compatibility for export/import workflows.
 - Unit and integration test suite.
 
-[Unreleased]: https://github.com/SkyInformatica/SkyFBTool/compare/v1.0.0...HEAD
+[Unreleased]: https://github.com/SkyInformatica/SkyFBTool/compare/v1.0.1...HEAD
+[1.0.1]: https://github.com/SkyInformatica/SkyFBTool/compare/v1.0.0...v1.0.1
 [1.0.0]: https://github.com/SkyInformatica/SkyFBTool/compare/v0.6.3...v1.0.0
 [0.6.3]: https://github.com/SkyInformatica/SkyFBTool/compare/v0.6.2...v0.6.3
 [0.6.2]: https://github.com/SkyInformatica/SkyFBTool/compare/v0.5.0...v0.6.2
