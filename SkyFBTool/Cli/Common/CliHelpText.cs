@@ -164,8 +164,6 @@ OPÇÕES:
   --ignore-table-prefixes L
   --severity-config ARQ.JSON
   --description TEXTO
-  --volume-analysis MODO      on (padrão) | off
-  --volume-count-exact MODO   on | off (padrão: off)
 
 SAÍDA:
   <prefixo>.json

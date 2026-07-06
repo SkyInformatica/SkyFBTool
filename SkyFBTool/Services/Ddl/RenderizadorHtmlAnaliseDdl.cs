@@ -37,10 +37,10 @@ public static class RenderizadorHtmlAnaliseDdl
             UltimaManutencao = resultado.DataUltimaManutencaoUtc?.ToString("yyyy-MM-dd HH:mm:ss") ?? string.Empty,
             FonteUltimaManutencao = H(resultado.FonteDataUltimaManutencao),
             TemUltimaManutencao = resultado.DataUltimaManutencaoUtc is not null,
+            ObjetosAnalisadosLabel = TextoLocalizado.Obter(idioma, "Objects analyzed", "Objetos analisados"),
+            ObjetosAnalisadosResumo = H(FormatarResumoObjetosAnalisados(resultado.ObjetosAnalisados, idioma)),
             AnaliseOperacionalLabel = TextoLocalizado.Obter(idioma, "Operational analysis (MON$)", "Análise operacional (MON$)"),
             AnaliseOperacionalResumo = H(FormatarResumoAnaliseOperacional(resultado, idioma)),
-            AnaliseVolumeLabel = TextoLocalizado.Obter(idioma, "Volume analysis", "Análise de volume"),
-            AnaliseVolumeResumo = H(FormatarResumoAnaliseVolume(resultado, idioma)),
             TotalLabel = TextoLocalizado.Obter(idioma, "Total findings", "Total de achados"),
             CriticosLabel = TextoLocalizado.Obter(idioma, "Critical", "Críticos"),
             AltosLabel = TextoLocalizado.Obter(idioma, "High", "Altos"),
@@ -261,6 +261,35 @@ public static class RenderizadorHtmlAnaliseDdl
         return valor.Replace("\\", "\\\\").Replace("'", "\\'");
     }
 
+    private static string FormatarResumoObjetosAnalisados(ResumoObjetosAnalisadosDdl resumo, IdiomaSaida idioma)
+    {
+        if (idioma == IdiomaSaida.PortugueseBrazil)
+        {
+            return string.Join(", ",
+                FormatarQuantidade(resumo.Tabelas, "tabela", "tabelas"),
+                FormatarQuantidade(resumo.Indices, "índice", "índices"),
+                FormatarQuantidade(resumo.ChavesPrimarias, "chave primária", "chaves primárias"),
+                FormatarQuantidade(resumo.ChavesEstrangeiras, "chave estrangeira", "chaves estrangeiras"),
+                FormatarQuantidade(resumo.Triggers, "trigger", "triggers"),
+                FormatarQuantidade(resumo.Procedures, "procedure", "procedures"),
+                FormatarQuantidade(resumo.Functions, "function", "functions"));
+        }
+
+        return string.Join(", ",
+            FormatarQuantidade(resumo.Tabelas, "table", "tables"),
+            FormatarQuantidade(resumo.Indices, "index", "indexes"),
+            FormatarQuantidade(resumo.ChavesPrimarias, "primary key", "primary keys"),
+            FormatarQuantidade(resumo.ChavesEstrangeiras, "foreign key", "foreign keys"),
+            FormatarQuantidade(resumo.Triggers, "trigger", "triggers"),
+            FormatarQuantidade(resumo.Procedures, "procedure", "procedures"),
+            FormatarQuantidade(resumo.Functions, "function", "functions"));
+    }
+
+    private static string FormatarQuantidade(int quantidade, string singular, string plural)
+    {
+        return $"{quantidade} {(quantidade == 1 ? singular : plural)}";
+    }
+
     private static string FormatarStatusAnaliseOperacional(ResultadoAnaliseDdl resultado, IdiomaSaida idioma)
     {
         return resultado.StatusAnaliseOperacional switch
@@ -279,27 +308,6 @@ public static class RenderizadorHtmlAnaliseDdl
         if ((resultado.StatusAnaliseOperacional == "failed" || resultado.StatusAnaliseOperacional == "unavailable")
             && !string.IsNullOrWhiteSpace(resultado.ErroAnaliseOperacional))
             return $"{status}. {resultado.ErroAnaliseOperacional}";
-
-        return status;
-    }
-
-    private static string FormatarStatusAnaliseVolume(ResultadoAnaliseDdl resultado, IdiomaSaida idioma)
-    {
-        return resultado.StatusAnaliseVolume switch
-        {
-            "executed" => TextoLocalizado.Obter(idioma, $"executed ({resultado.TabelasLidasAnaliseVolume} tables, {resultado.AchadosGeradosAnaliseVolume} findings)", $"executada ({resultado.TabelasLidasAnaliseVolume} tabelas, {resultado.AchadosGeradosAnaliseVolume} achados)"),
-            "disabled" => TextoLocalizado.Obter(idioma, "disabled", "desabilitada"),
-            "failed" => TextoLocalizado.Obter(idioma, "failed", "falhou"),
-            "pending" => TextoLocalizado.Obter(idioma, "pending", "pendente"),
-            _ => TextoLocalizado.Obter(idioma, "not applicable", "não aplicável")
-        };
-    }
-
-    private static string FormatarResumoAnaliseVolume(ResultadoAnaliseDdl resultado, IdiomaSaida idioma)
-    {
-        string status = FormatarStatusAnaliseVolume(resultado, idioma);
-        if (resultado.StatusAnaliseVolume == "failed" && !string.IsNullOrWhiteSpace(resultado.ErroAnaliseVolume))
-            return $"{status}. {resultado.ErroAnaliseVolume}";
 
         return status;
     }
@@ -339,10 +347,10 @@ public static class RenderizadorHtmlAnaliseDdl
         public string UltimaManutencao { get; init; } = string.Empty;
         public string FonteUltimaManutencao { get; init; } = string.Empty;
         public bool TemUltimaManutencao { get; init; }
+        public string ObjetosAnalisadosLabel { get; init; } = string.Empty;
+        public string ObjetosAnalisadosResumo { get; init; } = string.Empty;
         public string AnaliseOperacionalLabel { get; init; } = string.Empty;
         public string AnaliseOperacionalResumo { get; init; } = string.Empty;
-        public string AnaliseVolumeLabel { get; init; } = string.Empty;
-        public string AnaliseVolumeResumo { get; init; } = string.Empty;
         public string TotalLabel { get; init; } = string.Empty;
         public string CriticosLabel { get; init; } = string.Empty;
         public string AltosLabel { get; init; } = string.Empty;

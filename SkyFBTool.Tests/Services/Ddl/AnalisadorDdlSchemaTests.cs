@@ -649,6 +649,58 @@ public class AnalisadorDdlSchemaTests
     }
 
     [Fact]
+    public void Analisar_DevePreencherResumoDeObjetosAnalisados()
+    {
+        var snapshot = new SnapshotSchema
+        {
+            Tabelas =
+            [
+                new TabelaSchema
+                {
+                    Nome = "CLIENTES",
+                    Colunas = [new ColunaSchema { Nome = "ID", TipoSql = "INTEGER", AceitaNulo = false }],
+                    ChavePrimaria = new ChavePrimariaSchema { Nome = "PK_CLIENTES", Colunas = ["ID"] },
+                    ChavesEstrangeiras =
+                    [
+                        new ChaveEstrangeiraSchema
+                        {
+                            Nome = "FK_CLIENTES_CIDADE",
+                            Colunas = ["ID"],
+                            TabelaReferencia = "CIDADES",
+                            ColunasReferencia = ["ID"]
+                        }
+                    ],
+                    Indices =
+                    [
+                        new IndiceSchema { Nome = "IDX_CLIENTES_1", Colunas = ["ID"] },
+                        new IndiceSchema { Nome = "IDX_CLIENTES_2", Colunas = ["ID"] }
+                    ]
+                },
+                new TabelaSchema
+                {
+                    Nome = "LOG_CLIENTES",
+                    Colunas = [new ColunaSchema { Nome = "ID", TipoSql = "INTEGER", AceitaNulo = false }],
+                    ChavePrimaria = new ChavePrimariaSchema { Nome = "PK_LOG_CLIENTES", Colunas = ["ID"] },
+                    Indices = [new IndiceSchema { Nome = "IDX_LOG_CLIENTES", Colunas = ["ID"] }]
+                }
+            ],
+            Gatilhos = [new GatilhoSchema { Nome = "TRG_CLIENTES", SourceSql = "BEGIN NEW.ID = NEW.ID; END" }],
+            Procedimentos = [new ProcedimentoSchema { Nome = "SP_CLIENTES", SourceSql = "BEGIN SUSPEND; END" }],
+            Funcoes = [new FuncaoSchema { Nome = "FN_CLIENTES", SourceSql = "BEGIN RETURN 1; END" }]
+        };
+
+        var resultado = AnalisadorDdlSchema.Analisar(snapshot, prefixosTabelaIgnorados: ["LOG_"]);
+
+        Assert.Equal(1, resultado.ObjetosAnalisados.Tabelas);
+        Assert.Equal(2, resultado.ObjetosAnalisados.Indices);
+        Assert.Equal(1, resultado.ObjetosAnalisados.ChavesPrimarias);
+        Assert.Equal(1, resultado.ObjetosAnalisados.ChavesEstrangeiras);
+        Assert.Equal(1, resultado.ObjetosAnalisados.Triggers);
+        Assert.Equal(1, resultado.ObjetosAnalisados.Procedures);
+        Assert.Equal(1, resultado.ObjetosAnalisados.Functions);
+    }
+
+    [Fact]
     public void Analisar_DevePreencherResumoPorCodigoETabela()
     {
         var snapshot = new SnapshotSchema

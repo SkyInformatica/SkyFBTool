@@ -78,10 +78,6 @@ public static class AnalisadorDdlSchema
 
         resultado.Description = opcoes.Descricao?.Trim() ?? string.Empty;
         resultado.StatusAnaliseOperacional = possuiEntradaBanco ? "pending" : "not_applicable";
-        resultado.AnaliseVolumeHabilitada = opcoes.AnaliseVolumeHabilitada;
-        resultado.StatusAnaliseVolume = possuiEntradaBanco
-            ? (opcoes.AnaliseVolumeHabilitada ? "pending" : "disabled")
-            : "not_applicable";
 
         if (possuiEntradaBanco)
             await EnriquecerComAchadosOperacionaisAsync(resultado, opcoes, idioma, severidadesOverride);
@@ -117,6 +113,7 @@ public static class AnalisadorDdlSchema
             .ToHashSet(StringComparer.OrdinalIgnoreCase);
 
         resultado.TotalTabelas = tabelasVisiveis.Count;
+        resultado.ObjetosAnalisados = CriarResumoObjetosAnalisados(snapshot, tabelasVisiveis);
 
         var mapaTabelas = tabelasVisiveis.ToDictionary(t => t.Nome, StringComparer.OrdinalIgnoreCase);
 
@@ -138,6 +135,22 @@ public static class AnalisadorDdlSchema
         new RegraObjetosPsqlSemCorpoDdl(),
         new RegraObjetosPsqlSomenteSuspendDdl()
     ];
+
+    private static ResumoObjetosAnalisadosDdl CriarResumoObjetosAnalisados(
+        SnapshotSchema snapshot,
+        IReadOnlyCollection<TabelaSchema> tabelasVisiveis)
+    {
+        return new ResumoObjetosAnalisadosDdl
+        {
+            Tabelas = tabelasVisiveis.Count,
+            Indices = tabelasVisiveis.Sum(t => t.Indices.Count),
+            ChavesPrimarias = tabelasVisiveis.Count(t => t.ChavePrimaria is not null),
+            ChavesEstrangeiras = tabelasVisiveis.Sum(t => t.ChavesEstrangeiras.Count),
+            Triggers = snapshot.Gatilhos.Count,
+            Procedures = snapshot.Procedimentos.Count,
+            Functions = snapshot.Funcoes.Count
+        };
+    }
 
     private static List<string> NormalizarPrefixos(IEnumerable<string>? prefixos)
     {
@@ -220,31 +233,6 @@ public static class AnalisadorDdlSchema
             resultado.AchadosGeradosAnaliseOperacional = achadosOperacionais.Count;
         }
 
-        if (opcoes.AnaliseVolumeHabilitada)
-        {
-            try
-            {
-                var metricasVolume = await AnalisadorOperacionalFirebird.ColetarMetricasVolumeAsync(
-                    opcoes,
-                    usarCountExato: opcoes.AnaliseVolumeCountExato);
-                int adicionados = AdicionarAchadosPrioridadeVolume(resultado, metricasVolume, idioma, severidadesOverride);
-                resultado.StatusAnaliseVolume = "executed";
-                resultado.TabelasLidasAnaliseVolume = metricasVolume.Count;
-                resultado.AchadosGeradosAnaliseVolume = adicionados;
-                resultado.ErroAnaliseVolume = string.Empty;
-            }
-            catch (Exception ex)
-            {
-                resultado.StatusAnaliseVolume = "failed";
-                resultado.ErroAnaliseVolume = ex.Message;
-            }
-        }
-        else
-        {
-            resultado.StatusAnaliseVolume = "disabled";
-            resultado.ErroAnaliseVolume = string.Empty;
-        }
-
         try
         {
             var dataUltimaManutencao = await AnalisadorOperacionalFirebird.ColetarDataUltimaManutencaoAsync(opcoes);
@@ -263,114 +251,6 @@ public static class AnalisadorDdlSchema
         }
 
         resultado.AtualizarResumo();
-    }
-
-    private static int AdicionarAchadosPrioridadeVolume(
-        ResultadoAnaliseDdl resultado,
-        IReadOnlyCollection<MetricaVolumeTabelaFirebird> metricasVolume,
-        IdiomaSaida idioma,
-        IReadOnlyDictionary<string, string>? severidadesOverride)
-    {
-        if (metricasVolume.Count == 0)
-            return 0;
-
-        int totalAdicionados = 0;
-
-        var achadosPorTabela = resultado.Achados
-            .Where(a => !a.Escopo.StartsWith("OPERACIONAL.", StringComparison.OrdinalIgnoreCase))
-            .GroupBy(a => ResultadoAnaliseDdlExtensions.NomeTabelaDoEscopo(a.Escopo), StringComparer.OrdinalIgnoreCase)
-            .ToDictionary(g => g.Key, g => g.Count(), StringComparer.OrdinalIgnoreCase);
-
-        foreach (var metrica in metricasVolume.OrderByDescending(m => m.RegistrosEstimados).Take(20))
-        {
-            if (!achadosPorTabela.TryGetValue(metrica.Tabela, out int totalAchadosTabela))
-                continue;
-
-            if (totalAchadosTabela <= 0)
-                continue;
-
-            string? severidade = null;
-            string? codigo = null;
-
-            if (metrica.RegistrosEstimados >= 10_000_000 && totalAchadosTabela >= 3)
-            {
-                severidade = "high";
-                codigo = "OPERACIONAL_VOLUME_PRIORIDADE_ALTA";
-            }
-            else if (metrica.RegistrosEstimados >= 1_000_000 && totalAchadosTabela >= 2)
-            {
-                severidade = "medium";
-                codigo = "OPERACIONAL_VOLUME_PRIORIDADE_MEDIA";
-            }
-            else if (metrica.RegistrosEstimados >= 500_000)
-            {
-                severidade = "low";
-                codigo = "OPERACIONAL_VOLUME_PRIORIDADE_BAIXA";
-            }
-
-            if (severidade is null || codigo is null)
-                continue;
-
-            AdicionarAchado(
-                resultado,
-                severidade,
-                codigo,
-                metrica.Tabela,
-                FormatarDescricaoPrioridadeVolume(
-                    metrica.Tabela,
-                    metrica.RegistrosEstimados,
-                    totalAchadosTabela,
-                    codigo,
-                    idioma),
-                FormatarRecomendacaoPrioridadeVolume(
-                    metrica.Tabela,
-                    codigo,
-                    idioma),
-                severidadesOverride);
-            totalAdicionados++;
-        }
-
-        return totalAdicionados;
-    }
-
-    private static string FormatarDescricaoPrioridadeVolume(
-        string tabela,
-        long registrosEstimados,
-        int totalAchadosTabela,
-        string codigo,
-        IdiomaSaida idioma)
-    {
-        return codigo switch
-        {
-            "OPERACIONAL_VOLUME_PRIORIDADE_ALTA" => TextoLocalizado.Obter(idioma,
-                $"Table {tabela} has very high estimated volume ({registrosEstimados:N0} rows) and concentrated risk ({totalAchadosTabela} findings). Any regression here has high blast radius and can directly impact critical flows.",
-                $"Tabela {tabela} tem volume estimado muito alto ({registrosEstimados:N0} registros) e risco concentrado ({totalAchadosTabela} achados). Qualquer regressão aqui tem alto impacto e pode afetar diretamente fluxos críticos."),
-            "OPERACIONAL_VOLUME_PRIORIDADE_MEDIA" => TextoLocalizado.Obter(idioma,
-                $"Table {tabela} has relevant estimated volume ({registrosEstimados:N0} rows) with recurring risk ({totalAchadosTabela} findings). Incidents here tend to cause cumulative performance degradation and operational instability.",
-                $"Tabela {tabela} tem volume estimado relevante ({registrosEstimados:N0} registros) com risco recorrente ({totalAchadosTabela} achados). Problemas aqui tendem a gerar degradação cumulativa de performance e instabilidade operacional."),
-            _ => TextoLocalizado.Obter(idioma,
-                $"Table {tabela} has significant estimated volume ({registrosEstimados:N0} rows) with at least one structural finding ({totalAchadosTabela}). Isolated issues can become expensive over time due to high recurrence.",
-                $"Tabela {tabela} tem volume estimado significativo ({registrosEstimados:N0} registros) com pelo menos um achado estrutural ({totalAchadosTabela}). Problemas isolados podem se tornar caros ao longo do tempo pela alta recorrência.")
-        };
-    }
-
-    private static string FormatarRecomendacaoPrioridadeVolume(
-        string tabela,
-        string codigo,
-        IdiomaSaida idioma)
-    {
-        return codigo switch
-        {
-            "OPERACIONAL_VOLUME_PRIORIDADE_ALTA" => TextoLocalizado.Obter(idioma,
-                $"Treat {tabela} as immediate priority: review execution plans for the findings in this table, validate selective index coverage, and schedule remediation in the next release window.",
-                $"Trate {tabela} como prioridade imediata: revise planos de execução dos achados dessa tabela, valide cobertura de índices seletivos e programe correção na próxima janela de release."),
-            "OPERACIONAL_VOLUME_PRIORIDADE_MEDIA" => TextoLocalizado.Obter(idioma,
-                $"Put {tabela} in the short-term remediation queue: validate hottest queries, confirm index usefulness, and execute corrections before growth amplifies current risk.",
-                $"Coloque {tabela} na fila de correção de curto prazo: valide as consultas mais quentes, confirme utilidade dos índices e execute correções antes que o crescimento amplifique o risco atual."),
-            _ => TextoLocalizado.Obter(idioma,
-                $"Track {tabela} with planned remediation: confirm if the finding affects frequent queries and fix proactively to avoid latent cost escalation.",
-                $"Acompanhe {tabela} com correção planejada: confirme se o achado afeta consultas frequentes e corrija de forma preventiva para evitar aumento de custo latente.")
-        };
     }
 
     private static (string ArquivoJson, string ArquivoHtml) ResolverArquivosSaida(OpcoesDdlAnalise opcoes)

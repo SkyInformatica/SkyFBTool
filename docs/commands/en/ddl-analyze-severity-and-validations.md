@@ -48,9 +48,6 @@ This document describes exactly which validations `ddl-analyze` runs and how eac
 | `PROCEDURE_SOMENTE_SUSPEND` | `high` | Procedure with inert PSQL body | Body contains only `SUSPEND` after comments and separators are ignored | Procedure exists and compiles, but returns an empty/unassigned row without useful logic. Ex.: `BEGIN SUSPEND; END`. |
 | `FUNCTION_SOMENTE_SUSPEND` | `high` | Function with inert PSQL body | Body contains only `SUSPEND` after comments and separators are ignored | Function metadata has an executable block, but no useful calculation or return logic. |
 | `TRIGGER_SOMENTE_SUSPEND` | `high` | Trigger with inert PSQL body | Body contains only `SUSPEND` after comments and separators are ignored | Trigger exists but has no meaningful action. |
-| `OPERACIONAL_VOLUME_PRIORIDADE_ALTA` | `high` | High-volume table with concentrated findings | Estimated rows >= 10,000,000 and findings in table >= 3 | Very large table with multiple findings; high blast radius. Ex.: `STOCK_MOV` with 25M rows and 4 structural findings. |
-| `OPERACIONAL_VOLUME_PRIORIDADE_MEDIA` | `medium` | Relevant-volume table with repeated findings | Estimated rows >= 1,000,000 and findings in table >= 2 | Large table with recurring findings; relevant priority. Ex.: `INVOICE_ITEMS` with 2.3M rows and 2 findings. |
-| `OPERACIONAL_VOLUME_PRIORIDADE_BAIXA` | `low` | Medium-volume table with findings | Estimated rows >= 500,000 and findings in table >= 1 | Mid-size table with finding; preventive prioritization. Ex.: `EVENT_LOG` with 700k rows and 1 finding. |
 
 ## Field compatibility validation matrix (`CAMPO_*`)
 
@@ -130,4 +127,3 @@ These codes are emitted by the field-compatibility validator and are part of the
 - In `--input/--source` mode, `MON$` is not queried; therefore `OPERACIONAL_*` codes are not emitted.
 - If operational collection fails in `--database` mode (permissions/access/query failure), structural analysis still completes and the report is generated with operational analysis marked as `unavailable`.
 - `FK_SEM_INDICE_COBERTURA` is not emitted when the FK has a support index bound to the constraint (for example, `RDB$RELATION_CONSTRAINTS.RDB$INDEX_NAME` in DB mode, or matching FK/constraint index in SQL snapshot mode).
-- Volume-priority findings are emitted only in DB mode and use index-based estimated row count by default (best-effort); exact `COUNT(*)` is optional via `--volume-count-exact on`.

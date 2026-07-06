@@ -17,11 +17,15 @@ Nenhuma mudança registrada.
 - `ddl-analyze` agora reporta procedures, functions e triggers cujo corpo executa apenas `SUSPEND` como objetos PSQL inertes.
 
 ### Alterado
+- Relatórios HTML do `ddl-analyze` agora incluem uma contagem compacta dos objetos de schema analisados, incluindo tabelas, índices, chaves primárias, chaves estrangeiras, triggers, procedures e functions.
 - O relatório HTML do `ddl-analyze` agora identifica a priorização de correção por objeto/escopo em vez de tabela, evitando confusão quando achados se referem a triggers, procedures ou outros objetos.
 - `ddl-analyze --databases-batch` agora nomeia cada relatório por banco como `<banco>_schema_analysis_<timestamp>` para facilitar a leitura da saída em lote.
 
 ### Corrigido
 - `ddl-analyze` não reporta mais procedures extraídas dos metadados do banco como `PROCEDURE_SEM_CORPO` apenas porque o source armazenado contém o corpo PSQL sem a cláusula `AS` externa.
+
+### Removido
+- Removida a análise de prioridade por volume do `ddl-analyze`, incluindo `--volume-analysis`, `--volume-count-exact` e achados `OPERACIONAL_VOLUME_PRIORIDADE_*`, para que volume/distribuição de dados seja tratado por um fluxo futuro dedicado.
 
 ## [1.0.0] - 2026-07-05
 

@@ -7,14 +7,10 @@ public class ResultadoAnaliseDdl
     public DateTime GeradoEmUtc { get; set; } = DateTime.UtcNow;
     public DateTime? DataUltimaManutencaoUtc { get; set; }
     public string FonteDataUltimaManutencao { get; set; } = string.Empty;
-    public bool AnaliseVolumeHabilitada { get; set; } = true;
     public string StatusAnaliseOperacional { get; set; } = "not_applicable";
     public string ErroAnaliseOperacional { get; set; } = string.Empty;
     public int AchadosGeradosAnaliseOperacional { get; set; }
-    public string StatusAnaliseVolume { get; set; } = "not_applicable";
-    public string ErroAnaliseVolume { get; set; } = string.Empty;
-    public int TabelasLidasAnaliseVolume { get; set; }
-    public int AchadosGeradosAnaliseVolume { get; set; }
+    public ResumoObjetosAnalisadosDdl ObjetosAnalisados { get; set; } = new();
     public int TotalTabelas { get; set; }
     public int TotalAchados { get; set; }
     public int TotalCriticos { get; set; }
@@ -42,4 +38,15 @@ public class ItemResumoAnaliseDdl
     public string Chave { get; set; } = string.Empty;
     public int Quantidade { get; set; }
     public decimal Percentual { get; set; }
+}
+
+public class ResumoObjetosAnalisadosDdl
+{
+    public int Tabelas { get; set; }
+    public int Indices { get; set; }
+    public int ChavesPrimarias { get; set; }
+    public int ChavesEstrangeiras { get; set; }
+    public int Triggers { get; set; }
+    public int Procedures { get; set; }
+    public int Functions { get; set; }
 }

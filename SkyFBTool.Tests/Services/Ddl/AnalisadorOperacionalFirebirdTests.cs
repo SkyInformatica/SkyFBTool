@@ -103,4 +103,28 @@ public class AnalisadorOperacionalFirebirdTests
         Assert.Contains("indispon&#237;vel", html);
         Assert.Contains("permission_denied", html);
     }
+
+    [Fact]
+    public void Renderizar_DeveExporResumoDeObjetosAnalisadosNoHtml()
+    {
+        var resultado = new ResultadoAnaliseDdl
+        {
+            Origem = "origem.fdb",
+            ObjetosAnalisados = new ResumoObjetosAnalisadosDdl
+            {
+                Tabelas = 549,
+                Indices = 123,
+                ChavesPrimarias = 540,
+                ChavesEstrangeiras = 321,
+                Triggers = 45,
+                Procedures = 67,
+                Functions = 8
+            }
+        };
+
+        string html = RenderizadorHtmlAnaliseDdl.Renderizar(resultado, IdiomaSaida.PortugueseBrazil);
+
+        Assert.Contains("Objetos analisados", html);
+        Assert.Contains("549 tabelas, 123 &#237;ndices, 540 chaves prim&#225;rias, 321 chaves estrangeiras, 45 triggers, 67 procedures, 8 functions", html);
+    }
 }

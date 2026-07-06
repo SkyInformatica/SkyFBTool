@@ -48,9 +48,6 @@ Este documento descreve, de forma precisa, quais validações o `ddl-analyze` ex
 | `PROCEDURE_SOMENTE_SUSPEND` | `high` | Procedure com corpo PSQL inerte | Corpo contém apenas `SUSPEND` depois de ignorar comentários e separadores | A procedure existe e compila, mas retorna uma linha vazia/sem atribuições e sem lógica útil. Ex.: `BEGIN SUSPEND; END`. |
 | `FUNCTION_SOMENTE_SUSPEND` | `high` | Function com corpo PSQL inerte | Corpo contém apenas `SUSPEND` depois de ignorar comentários e separadores | O metadado da function tem bloco executável, mas sem cálculo ou retorno útil. |
 | `TRIGGER_SOMENTE_SUSPEND` | `high` | Trigger com corpo PSQL inerte | Corpo contém apenas `SUSPEND` depois de ignorar comentários e separadores | O trigger existe, mas não executa ação relevante. |
-| `OPERACIONAL_VOLUME_PRIORIDADE_ALTA` | `high` | Tabela de alto volume com achados concentrados | Registros estimados >= 10.000.000 e achados na tabela >= 3 | Tabela muito grande com vários achados; impacto potencial alto. Ex.: `MOV_ESTOQUE` com 25M linhas e 4 achados estruturais. |
-| `OPERACIONAL_VOLUME_PRIORIDADE_MEDIA` | `medium` | Tabela de volume relevante com achados recorrentes | Registros estimados >= 1.000.000 e achados na tabela >= 2 | Tabela grande com recorrência de achados; prioridade relevante. Ex.: `ITENS_NF` com 2,3M linhas e 2 achados. |
-| `OPERACIONAL_VOLUME_PRIORIDADE_BAIXA` | `low` | Tabela de volume intermediário com achados | Registros estimados >= 500.000 e achados na tabela >= 1 | Tabela de porte médio com achado; priorização preventiva. Ex.: `LOG_EVENTOS` com 700k linhas e 1 achado. |
 
 ## Matriz de validações de compatibilidade de campos (`CAMPO_*`)
 
@@ -130,4 +127,3 @@ Esses códigos são gerados pelo validador de compatibilidade de campos e aparec
 - No modo `--input/--source`, não há coleta de `MON$`; portanto, os códigos `OPERACIONAL_*` não aparecem.
 - Se a coleta operacional falhar no modo `--database` (permissão/acesso/erro de consulta), a análise estrutural continua e o relatório é gerado com a análise operacional marcada como `indisponível`.
 - `FK_SEM_INDICE_COBERTURA` não é emitido quando a FK já possui índice de suporte vinculado à constraint (por exemplo, `RDB$RELATION_CONSTRAINTS.RDB$INDEX_NAME` no modo por banco, ou índice equivalente no modo por snapshot SQL).
-- Achados de prioridade por volume são emitidos apenas no modo por banco e usam estimativa por índice como padrão (coleta best-effort); `COUNT(*)` exato é opcional via `--volume-count-exact on`.

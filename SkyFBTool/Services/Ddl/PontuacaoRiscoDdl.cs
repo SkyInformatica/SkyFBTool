@@ -25,9 +25,6 @@ internal static class PontuacaoRiscoDdl
 
         int ajusteCodigo = codigo switch
         {
-            "OPERACIONAL_VOLUME_PRIORIDADE_ALTA" => 10,
-            "OPERACIONAL_VOLUME_PRIORIDADE_MEDIA" => 8,
-            "OPERACIONAL_VOLUME_PRIORIDADE_BAIXA" => 5,
             "FK_SEM_INDICE_COBERTURA" => 5,
             "INDICE_REDUNDANTE_PREFIXO" => -5,
             "INDICE_DUPLICADO" => -8,

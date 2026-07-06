@@ -7,12 +7,12 @@ Analisa risco estrutural do schema e gera:
 - resumo consolidado em lote (`batch_analysis_summary_*.json/.html`) no modo batch
 
 Quando usado com `--database`, também executa checks operacionais nas tabelas de monitoramento do Firebird (`MON$`) e adiciona esses achados ao mesmo relatório.
-No modo por banco, usa estimativa leve de volume por índice para priorizar impacto dos achados.
 No modo por banco, os metadados do relatório também incluem a data estimada da última manutenção via `MON$DATABASE.MON$CREATION_DATE` (criação/último restore do banco).
 
 Também detecta redundância de índice por prefixo (por exemplo, `(A)` potencialmente redundante quando `(A,B)` já existe na mesma direção).
 
 No relatório HTML, o `ddl-analyze` também apresenta:
+- linha compacta de metadados **Objetos analisados** com contagens de tabelas, índices, chaves primárias, chaves estrangeiras, triggers, procedures e functions;
 - seção **Objetos priorizados para correção** (por escopo/objeto), com `Prioridade` (`P0..P3`), `Índice de risco` e `Qtde`;
 - legenda de prioridade (`P0..P3`) ao lado dos critérios de severidade para facilitar decisão rápida do DBA.
 
@@ -42,8 +42,6 @@ SkyFBTool ddl-analyze --databases-batch "C:\dados\*.fdb" --output DIRETÓRIO [op
 - `--ignore-table-prefixes`: lista de prefixos ignorados separados por vírgula.
 - `--severity-config`: JSON de override de severidade.
 - `--description`: texto livre incluído nos metadados do relatório JSON/HTML.
-- `--volume-analysis`: `on` (padrão) ou `off` para análise SQL de prioridade por volume.
-- `--volume-count-exact`: `on` ou `off` (padrão: `off`). Quando `on`, executa `COUNT(*)` exato por tabela no lugar da estimativa por índice.
 
 ## Regras
 - Use apenas um modo de entrada: arquivo (`--input/--source`) ou banco único (`--database`) ou lote (`--databases-batch`).
@@ -52,7 +50,6 @@ SkyFBTool ddl-analyze --databases-batch "C:\dados\*.fdb" --output DIRETÓRIO [op
 - A coleta operacional de `MON$` no modo por banco é best-effort:
   - se falhar (permissão/versão/consulta/timeout), a análise estrutural ainda conclui normalmente;
   - o relatório marca a análise operacional como `indisponível` e registra o motivo no resumo.
-- A estimativa de volume no modo por banco é best-effort; se falhar ou estourar timeout, a análise continua sem os achados de prioridade por volume.
 
 ## Exemplos
 ```powershell
