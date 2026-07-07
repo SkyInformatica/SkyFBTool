@@ -5,6 +5,8 @@ namespace SkyFBTool.Services.Ddl;
 
 public static class RenderizadorHtmlAnaliseDdl
 {
+    public const string VersaoRelatorio = "ddl-analyze.v1";
+
     public static string Renderizar(ResultadoAnaliseDdl resultado, IdiomaSaida idioma)
     {
         var modelo = CriarModelo(resultado, idioma);
@@ -23,6 +25,9 @@ public static class RenderizadorHtmlAnaliseDdl
         return new ModeloRelatorio
         {
             Lang = idioma == IdiomaSaida.PortugueseBrazil ? "pt-BR" : "en",
+            ReportType = "ddl-analyze",
+            ReportVersionLabel = TextoLocalizado.Obter(idioma, "Report version", "Vers\u00E3o do relat\u00F3rio"),
+            ReportVersion = VersaoRelatorio,
             TituloDocumento = TextoLocalizado.Obter(idioma, "DDL Risk Analysis", "Analise de Risco DDL"),
             Titulo = TextoLocalizado.Obter(idioma, "DDL Risk Analysis", "An\u00E1lise de Risco DDL"),
             OrigemLabel = TextoLocalizado.Obter(idioma, "Source", "Origem"),
@@ -33,6 +38,8 @@ public static class RenderizadorHtmlAnaliseDdl
             HasDescription = !string.IsNullOrWhiteSpace(resultado.Description),
             GeradoEmLabel = TextoLocalizado.Obter(idioma, "Generated at (UTC)", "Gerado em (UTC)"),
             GeradoEm = resultado.GeradoEmUtc.ToString("yyyy-MM-dd HH:mm:ss"),
+            GeradoEmLocalLabel = TextoLocalizado.Obter(idioma, "Generated at (local)", "Gerado em (local)"),
+            GeradoEmLocal = FormatarDataLocal(resultado.GeradoEmUtc),
             UltimaManutencaoLabel = TextoLocalizado.Obter(idioma, "Last maintenance (estimated, UTC)", "Última manutenção (estimada, UTC)"),
             UltimaManutencao = resultado.DataUltimaManutencaoUtc?.ToString("yyyy-MM-dd HH:mm:ss") ?? string.Empty,
             FonteUltimaManutencao = H(resultado.FonteDataUltimaManutencao),
@@ -290,6 +297,13 @@ public static class RenderizadorHtmlAnaliseDdl
         return $"{quantidade} {(quantidade == 1 ? singular : plural)}";
     }
 
+    private static string FormatarDataLocal(DateTime dataUtc)
+    {
+        var dataUtcNormalizada = DateTime.SpecifyKind(dataUtc, DateTimeKind.Utc);
+        var dataLocal = TimeZoneInfo.ConvertTimeFromUtc(dataUtcNormalizada, TimeZoneInfo.Local);
+        return dataLocal.ToString("yyyy-MM-dd HH:mm:ss");
+    }
+
     private static string FormatarStatusAnaliseOperacional(ResultadoAnaliseDdl resultado, IdiomaSaida idioma)
     {
         return resultado.StatusAnaliseOperacional switch
@@ -333,6 +347,9 @@ public static class RenderizadorHtmlAnaliseDdl
     private sealed class ModeloRelatorio
     {
         public string Lang { get; init; } = "en";
+        public string ReportType { get; init; } = string.Empty;
+        public string ReportVersionLabel { get; init; } = string.Empty;
+        public string ReportVersion { get; init; } = string.Empty;
         public string TituloDocumento { get; init; } = "DDL Risk Analysis";
         public string Titulo { get; init; } = string.Empty;
         public string OrigemLabel { get; init; } = string.Empty;
@@ -343,6 +360,8 @@ public static class RenderizadorHtmlAnaliseDdl
         public bool HasDescription { get; init; }
         public string GeradoEmLabel { get; init; } = string.Empty;
         public string GeradoEm { get; init; } = string.Empty;
+        public string GeradoEmLocalLabel { get; init; } = string.Empty;
+        public string GeradoEmLocal { get; init; } = string.Empty;
         public string UltimaManutencaoLabel { get; init; } = string.Empty;
         public string UltimaManutencao { get; init; } = string.Empty;
         public string FonteUltimaManutencao { get; init; } = string.Empty;

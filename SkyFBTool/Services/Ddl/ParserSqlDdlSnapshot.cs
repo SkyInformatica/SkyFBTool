@@ -1,4 +1,4 @@
-﻿using System.Text;
+using System.Text;
 using System.Text.RegularExpressions;
 
 namespace SkyFBTool.Services.Ddl;
@@ -347,7 +347,7 @@ internal static class ParserSqlDdlSnapshot
     {
         var match = Regex.Match(
             sql,
-            $"^CREATE\\s+(?:OR\\s+ALTER\\s+)?PROCEDURE\\s+(?<nome>{PadraoIdentificador})\\s+.+$",
+            $"^(?:CREATE\\s+(?:OR\\s+ALTER\\s+)?|ALTER\\s+)PROCEDURE\\s+(?<nome>{PadraoIdentificador})\\s+.+$",
             RegexOptions.IgnoreCase | RegexOptions.Singleline | RegexOptions.CultureInvariant);
 
         if (!match.Success)
@@ -371,7 +371,7 @@ internal static class ParserSqlDdlSnapshot
     {
         var match = Regex.Match(
             sql,
-            $"^CREATE\\s+(?:OR\\s+ALTER\\s+)?FUNCTION\\s+(?<nome>{PadraoIdentificador})\\s+.+$",
+            $"^(?:CREATE\\s+(?:OR\\s+ALTER\\s+)?|ALTER\\s+)FUNCTION\\s+(?<nome>{PadraoIdentificador})\\s+.+$",
             RegexOptions.IgnoreCase | RegexOptions.Singleline | RegexOptions.CultureInvariant);
 
         if (!match.Success)
@@ -419,7 +419,7 @@ internal static class ParserSqlDdlSnapshot
     {
         var match = Regex.Match(
             sql,
-            $"^CREATE\\s+(?:OR\\s+ALTER\\s+)?TRIGGER\\s+(?<nome>{PadraoIdentificador})\\s+.+$",
+            $"^(?:CREATE\\s+(?:OR\\s+ALTER\\s+)?|ALTER\\s+)TRIGGER\\s+(?<nome>{PadraoIdentificador})\\s+.+$",
             RegexOptions.IgnoreCase | RegexOptions.Singleline | RegexOptions.CultureInvariant);
 
         if (!match.Success)

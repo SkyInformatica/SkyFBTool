@@ -9,7 +9,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-No changes recorded.
+### Added
+- Scriban-based DDL HTML reports now expose a report version in visible metadata and HTML meta tags so future rule/layout changes can be distinguished.
+- Scriban-based DDL HTML reports now show the local generation timestamp alongside the UTC timestamp.
+
+### Fixed
+- `ddl-analyze` now treats `ALTER PROCEDURE`, `ALTER FUNCTION`, and `ALTER TRIGGER` statements in SQL snapshots as the final PSQL object definition, avoiding false positives from dependency stubs emitted earlier in extracted scripts.
 
 ## [1.0.1] - 2026-07-05
 

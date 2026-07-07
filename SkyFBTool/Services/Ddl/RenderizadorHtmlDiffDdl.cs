@@ -5,22 +5,30 @@ namespace SkyFBTool.Services.Ddl;
 
 public static class RenderizadorHtmlDiffDdl
 {
+    public const string VersaoRelatorio = "ddl-diff.v1";
+
     public static string Renderizar(
         ResultadoDiffSchema resultado,
         string origemJson,
         string alvoJson,
         IdiomaSaida idioma)
     {
+        DateTime geradoEmUtc = DateTime.UtcNow;
         var modelo = new ModeloRelatorio
         {
             Lang = idioma == IdiomaSaida.PortugueseBrazil ? "pt-BR" : "en",
+            ReportType = "ddl-diff",
+            ReportVersionLabel = TextoLocalizado.Obter(idioma, "Report version", "Vers\u00E3o do relat\u00F3rio"),
+            ReportVersion = VersaoRelatorio,
             Titulo = TextoLocalizado.Obter(idioma, "DDL Diff Report", "Relatório DDL Diff"),
             OrigemLabel = TextoLocalizado.Obter(idioma, "Source", "Origem"),
             AlvoLabel = TextoLocalizado.Obter(idioma, "Target", "Alvo"),
             OrigemArquivo = H(Path.GetFileName(origemJson)),
             AlvoArquivo = H(Path.GetFileName(alvoJson)),
             GeradoEmLabel = TextoLocalizado.Obter(idioma, "Generated at (UTC)", "Gerado em (UTC)"),
-            GeradoEm = DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss"),
+            GeradoEm = geradoEmUtc.ToString("yyyy-MM-dd HH:mm:ss"),
+            GeradoEmLocalLabel = TextoLocalizado.Obter(idioma, "Generated at (local)", "Gerado em (local)"),
+            GeradoEmLocal = FormatarDataLocal(geradoEmUtc),
             ComandosLabel = TextoLocalizado.Obter(idioma, "Generated SQL commands", "Comandos SQL gerados"),
             CriadosLabel = TextoLocalizado.Obter(idioma, "Created items", "Itens criados"),
             AlteradosLabel = TextoLocalizado.Obter(idioma, "Changed items", "Itens alterados"),
@@ -64,6 +72,13 @@ public static class RenderizadorHtmlDiffDdl
         return System.Net.WebUtility.HtmlEncode(valor ?? string.Empty);
     }
 
+    private static string FormatarDataLocal(DateTime dataUtc)
+    {
+        var dataUtcNormalizada = DateTime.SpecifyKind(dataUtc, DateTimeKind.Utc);
+        var dataLocal = TimeZoneInfo.ConvertTimeFromUtc(dataUtcNormalizada, TimeZoneInfo.Local);
+        return dataLocal.ToString("yyyy-MM-dd HH:mm:ss");
+    }
+
     private static Template CriarTemplate()
     {
         using var stream = typeof(RenderizadorHtmlDiffDdl).Assembly
@@ -85,6 +100,9 @@ public static class RenderizadorHtmlDiffDdl
     private sealed class ModeloRelatorio
     {
         public string Lang { get; init; } = "en";
+        public string ReportType { get; init; } = string.Empty;
+        public string ReportVersionLabel { get; init; } = string.Empty;
+        public string ReportVersion { get; init; } = string.Empty;
         public string Titulo { get; init; } = string.Empty;
         public string OrigemLabel { get; init; } = string.Empty;
         public string AlvoLabel { get; init; } = string.Empty;
@@ -92,6 +110,8 @@ public static class RenderizadorHtmlDiffDdl
         public string AlvoArquivo { get; init; } = string.Empty;
         public string GeradoEmLabel { get; init; } = string.Empty;
         public string GeradoEm { get; init; } = string.Empty;
+        public string GeradoEmLocalLabel { get; init; } = string.Empty;
+        public string GeradoEmLocal { get; init; } = string.Empty;
         public string ComandosLabel { get; init; } = string.Empty;
         public string CriadosLabel { get; init; } = string.Empty;
         public string AlteradosLabel { get; init; } = string.Empty;
@@ -127,4 +147,3 @@ public static class RenderizadorHtmlDiffDdl
         public List<string> Avisos { get; init; } = [];
     }
 }
-

@@ -1,4 +1,4 @@
-﻿# Registro de Mudanças
+# Registro de Mudanças
 
 [English](./CHANGELOG.md) | Português (Brasil)
 
@@ -9,7 +9,12 @@ e o projeto adota [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Não Lançado]
 
-Nenhuma mudança registrada.
+### Adicionado
+- Relatórios HTML DDL baseados em Scriban agora expõem uma versão do relatório nos metadados visíveis e nas meta tags HTML para diferenciar futuras mudanças de regras/layout.
+- Relatórios HTML DDL baseados em Scriban agora mostram a data/hora local de geração ao lado da data/hora UTC.
+
+### Corrigido
+- `ddl-analyze` agora trata comandos `ALTER PROCEDURE`, `ALTER FUNCTION` e `ALTER TRIGGER` em snapshots SQL como a definição final do objeto PSQL, evitando falsos positivos causados por stubs de dependência emitidos antes no script extraído.
 
 ## [1.0.1] - 2026-07-05
 
@@ -182,4 +187,3 @@ Nenhuma mudança registrada.
 [0.3.0]: https://github.com/SkyInformatica/SkyFBTool/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/SkyInformatica/SkyFBTool/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/SkyInformatica/SkyFBTool/releases/tag/v0.1.0
-

@@ -178,6 +178,61 @@ public class CarregadorSnapshotSchemaTests
         Assert.True(File.Exists(arquivoHtml));
     }
 
+    [Fact]
+    public async Task CarregarSnapshotComOrigemAsync_QuandoSqlTemStubPsqlAntesDoCorpoFinal_DeveUsarUltimaDefinicao()
+    {
+        string pasta = CriarPastaTemporaria();
+        string arquivoSql = Path.Combine(pasta, "schema_extraido.sql");
+
+        string ddl = """
+                     SET TERM ^;
+
+                     CREATE PROCEDURE "SP_DEPENDENTE"
+                     RETURNS (
+                         "RESULTADO" INTEGER
+                     )
+                     AS
+                     BEGIN
+                     END ^
+
+                     CREATE TRIGGER "TRG_CLIENTES_BI" FOR "CLIENTES" ACTIVE BEFORE INSERT POSITION 0
+                     AS
+                     BEGIN
+                     END ^
+
+                     ALTER PROCEDURE "SP_DEPENDENTE"
+                     RETURNS (
+                         "RESULTADO" INTEGER
+                     )
+                     AS
+                     BEGIN
+                         RESULTADO = 1;
+                         SUSPEND;
+                     END ^
+
+                     ALTER TRIGGER "TRG_CLIENTES_BI" ACTIVE BEFORE INSERT POSITION 0
+                     AS
+                     BEGIN
+                         NEW."ID" = COALESCE(NEW."ID", 1);
+                     END ^
+
+                     SET TERM ;^
+                     """;
+
+        await File.WriteAllTextAsync(arquivoSql, ddl);
+
+        var (snapshot, origem) = await CarregadorSnapshotSchema.CarregarSnapshotComOrigemAsync(arquivoSql);
+        var resultado = AnalisadorDdlSchema.Analisar(snapshot);
+
+        Assert.Equal(arquivoSql, origem);
+        var procedimento = Assert.Single(snapshot.Procedimentos);
+        var gatilho = Assert.Single(snapshot.Gatilhos);
+        Assert.Contains("RESULTADO = 1", procedimento.SourceSql);
+        Assert.Contains("COALESCE", gatilho.SourceSql);
+        Assert.DoesNotContain(resultado.Achados, a =>
+            a.Codigo is "PROCEDURE_SEM_CORPO" or "TRIGGER_SEM_CORPO" or "PROCEDURE_SOMENTE_SUSPEND" or "TRIGGER_SOMENTE_SUSPEND");
+    }
+
     private static string CriarPastaTemporaria()
     {
         string pasta = Path.Combine(

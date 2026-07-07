@@ -3,6 +3,8 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="skyfbtool-report-type" content="{{ ReportType }}" />
+  <meta name="skyfbtool-report-version" content="{{ ReportVersion }}" />
   <title>{{ Titulo }}</title>
   <style>
     @page { size: A4; margin: 12mm; }
@@ -53,9 +55,11 @@
 <body>
   <h1>{{ Titulo }}</h1>
   <div class="meta">
+    <div><strong>{{ ReportVersionLabel }}:</strong> {{ ReportVersion }}</div>
     <div><strong>{{ OrigemLabel }}:</strong> {{ OrigemArquivo }}</div>
     <div><strong>{{ AlvoLabel }}:</strong> {{ AlvoArquivo }}</div>
     <div><strong>{{ GeradoEmLabel }}:</strong> {{ GeradoEm }}</div>
+    <div><strong>{{ GeradoEmLocalLabel }}:</strong> {{ GeradoEmLocal }}</div>
   </div>
   <div class="kpi">
     <div class="pill"><strong>{{ ComandosLabel }}:</strong> {{ TotalComandos }}</div>
