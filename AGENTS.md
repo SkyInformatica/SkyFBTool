@@ -41,6 +41,7 @@ Guide for AI assistants working in this repository. Keep this file compact so ro
 - Avoid comments unless they clarify non-obvious logic.
 - When SQL concatenation is unavoidable, validate identifiers/inputs and keep useful context in errors.
 - For large logs, append to dedicated files and keep console messages short.
+- Preserve repository line-ending policy: text files use LF as defined in `.gitattributes`; avoid mixed line endings and keep a final newline.
 
 ## 6) CLI, Docs, and Localization
 - Runtime/report output defaults to English.
@@ -66,6 +67,8 @@ Guide for AI assistants working in this repository. Keep this file compact so ro
 - Commit messages must be in English, imperative, and specific, for example: `Add DDL severity override config`.
 - Avoid vague commit messages such as `fixes`, `update`, or `adjustments`.
 - Keep multiple commits scoped and consistent.
+- Before creating a commit, always run the applicable quality gate: `git diff --check`, `git ls-files --eol <changed text files>` when text files changed, local build, and focused tests for the affected flow.
+- Do not commit generated reports, temporary artifacts, or local analysis output unless the user explicitly asks for them.
 
 ## 10) Final Checklist
 Before concluding, verify:
@@ -76,6 +79,7 @@ Before concluding, verify:
 - CLI help, README, command docs, and changelog were updated when behavior changed.
 - New user-facing text follows English default plus localized PT-BR when applicable.
 - Tests/build appropriate to the risk were run.
+- `git diff --check` passes; when line-ending warnings appear, check `git ls-files --eol <files>` and normalize edited text files to LF.
 
 ## 11) Token Economy
 - Prefer targeted file reads and `rg` searches over dumping large files.

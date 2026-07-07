@@ -42,3 +42,4 @@
 ## Encoding Rules
 - UTF-8 preferred.
 - If an editor/environment introduces charset artifacts, normalize file encoding before commit.
+- Documentation files must follow `.gitattributes`: LF line endings, no mixed endings, and a final newline.
