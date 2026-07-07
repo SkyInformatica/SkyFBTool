@@ -571,6 +571,42 @@ public class AnalisadorDdlSchemaTests
     }
 
     [Fact]
+    public void Analisar_QuandoProcedureDeSqlExtraidoIgnorarValidacaoPsql_NaoDeveRegistrarAchadoPsql()
+    {
+        var snapshot = new SnapshotSchema
+        {
+            Procedimentos =
+            [
+                new ProcedimentoSchema
+                {
+                    Nome = "AUTH_DATA",
+                    SourceSql = """
+                                ALTER PROCEDURE AUTH_DATA
+                                RETURNS (
+                                    RDB$AUTH_TYPE CHAR(63) CHARACTER SET UTF8)
+                                AS
+                                """,
+                    IgnorarValidacaoCorpoPsql = true
+                },
+                new ProcedimentoSchema
+                {
+                    Nome = "SP_APLICACAO_SEM_CORPO",
+                    SourceSql = "CREATE PROCEDURE SP_APLICACAO_SEM_CORPO AS"
+                }
+            ]
+        };
+
+        var resultado = AnalisadorDdlSchema.Analisar(snapshot);
+
+        Assert.DoesNotContain(resultado.Achados, a =>
+            a.Escopo == "AUTH_DATA" &&
+            a.Codigo == "PROCEDURE_SEM_CORPO");
+        Assert.Contains(resultado.Achados, a =>
+            a.Codigo == "PROCEDURE_SEM_CORPO" &&
+            a.Escopo == "SP_APLICACAO_SEM_CORPO");
+    }
+
+    [Fact]
     public void Analisar_QuandoIndicePrefixoRedundante_DeveRegistrarAchadoMedium()
     {
         var snapshot = new SnapshotSchema

@@ -49,6 +49,14 @@ Este documento descreve, de forma precisa, quais validações o `ddl-analyze` ex
 | `FUNCTION_SOMENTE_SUSPEND` | `high` | Function com corpo PSQL inerte | Corpo contém apenas `SUSPEND` depois de ignorar comentários e separadores | O metadado da function tem bloco executável, mas sem cálculo ou retorno útil. |
 | `TRIGGER_SOMENTE_SUSPEND` | `high` | Trigger com corpo PSQL inerte | Corpo contém apenas `SUSPEND` depois de ignorar comentários e separadores | O trigger existe, mas não executa ação relevante. |
 
+### Extracts SQL puros e procedures sem bloco PSQL
+
+Quando o `ddl-analyze` lê metadados diretamente do banco, a classificação entre procedure de usuário e de sistema vem do catálogo do Firebird (`RDB$PROCEDURES.RDB$SYSTEM_FLAG`; `0` significa definida pelo usuário e `1` ou maior significa definida pelo sistema). Veja a referência oficial do catálogo `RDB$PROCEDURES` do Firebird: <https://www.firebirdsql.org/file/documentation/chunk/en/refdocs/fblangref30/fblangref-appx04-procedures.html>.
+
+Quando a entrada é um extract `.sql` avulso, essa flag de catálogo não está disponível. Algumas ferramentas de extração podem emitir uma definição final como `ALTER PROCEDURE ... AS`, sem bloco `BEGIN`/`END`, para rotinas que não expõem fonte PSQL no script. Nesse caso estrutural restrito, o `ddl-analyze` pula a validação de corpo PSQL dessa procedure em vez de reportar `PROCEDURE_SEM_CORPO` ou `PROCEDURE_SOMENTE_SUSPEND`.
+
+Isso não é uma lista de nomes permitidos e não desativa a validação de procedures SQL em geral. Se o extract contiver `AS BEGIN ... END`, o corpo continua sendo analisado; um bloco contendo apenas comentários, separadores ou marcações inertes como `-- NOTHING` continua elegível para `PROCEDURE_SEM_CORPO`.
+
 ## Matriz de validações de compatibilidade de campos (`CAMPO_*`)
 
 Esses códigos são gerados pelo validador de compatibilidade de campos e aparecem na mesma lista de achados do `ddl-analyze`.

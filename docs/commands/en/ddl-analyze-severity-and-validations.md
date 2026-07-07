@@ -49,6 +49,14 @@ This document describes exactly which validations `ddl-analyze` runs and how eac
 | `FUNCTION_SOMENTE_SUSPEND` | `high` | Function with inert PSQL body | Body contains only `SUSPEND` after comments and separators are ignored | Function metadata has an executable block, but no useful calculation or return logic. |
 | `TRIGGER_SOMENTE_SUSPEND` | `high` | Trigger with inert PSQL body | Body contains only `SUSPEND` after comments and separators are ignored | Trigger exists but has no meaningful action. |
 
+### SQL-only extracts and procedures without a PSQL block
+
+When `ddl-analyze` reads metadata directly from a database, user/system procedure classification comes from Firebird catalog metadata (`RDB$PROCEDURES.RDB$SYSTEM_FLAG`; `0` means user-defined and `1` or greater means system-defined). See the official Firebird `RDB$PROCEDURES` catalog reference: <https://www.firebirdsql.org/file/documentation/chunk/en/refdocs/fblangref30/fblangref-appx04-procedures.html>.
+
+When the input is a standalone `.sql` extract, that catalog flag is not available. Some extract tools can emit a final definition such as `ALTER PROCEDURE ... AS` with no `BEGIN`/`END` block for routines that do not expose PSQL source in the script. In this narrow structural case, `ddl-analyze` skips PSQL body validation for that procedure instead of reporting `PROCEDURE_SEM_CORPO` or `PROCEDURE_SOMENTE_SUSPEND`.
+
+This is not a name-based allowlist and does not disable validation for SQL procedures in general. If the extract contains `AS BEGIN ... END`, the body is still analyzed; a block containing only comments, separators, or inert markers such as `-- NOTHING` remains eligible for `PROCEDURE_SEM_CORPO`.
+
 ## Field compatibility validation matrix (`CAMPO_*`)
 
 These codes are emitted by the field-compatibility validator and are part of the same `ddl-analyze` findings list.

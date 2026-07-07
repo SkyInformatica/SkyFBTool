@@ -8,6 +8,9 @@ internal sealed class RegraObjetosPsqlSemCorpoDdl : IRegraAnaliseDdl
     {
         foreach (var procedimento in contexto.Snapshot.Procedimentos.OrderBy(p => p.Nome, StringComparer.OrdinalIgnoreCase))
         {
+            if (procedimento.IgnorarValidacaoCorpoPsql)
+                continue;
+
             ValidarObjeto(
                 contexto,
                 procedimento.Nome,

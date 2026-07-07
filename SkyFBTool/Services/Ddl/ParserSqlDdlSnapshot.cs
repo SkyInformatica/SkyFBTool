@@ -361,10 +361,18 @@ internal static class ParserSqlDdlSnapshot
         snapshot.Procedimentos.Add(new ProcedimentoSchema
         {
             Nome = nome,
-            SourceSql = NormalizarEspacosFonte(sql)
+            SourceSql = NormalizarEspacosFonte(sql),
+            IgnorarValidacaoCorpoPsql = EhAlterProcedureSemBlocoPsql(sql)
         });
 
         return true;
+    }
+
+    private static bool EhAlterProcedureSemBlocoPsql(string sql)
+    {
+        return sql.StartsWith("ALTER", StringComparison.OrdinalIgnoreCase) &&
+               Regex.IsMatch(sql, @"\bAS\s*$", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant) &&
+               !Regex.IsMatch(sql, @"\bBEGIN\b", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
     }
 
     private static bool TentarProcessarCreateFunction(string sql, SnapshotSchema snapshot)
@@ -936,4 +944,3 @@ internal static class ParserSqlDdlSnapshot
 
     private const string PadraoIdentificador = "(?:\"(?:\"\"|[^\"])+\"|[A-Za-z_][A-Za-z0-9_$]*)";
 }
-

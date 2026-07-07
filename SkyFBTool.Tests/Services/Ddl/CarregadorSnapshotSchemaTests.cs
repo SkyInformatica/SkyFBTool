@@ -233,6 +233,52 @@ public class CarregadorSnapshotSchemaTests
             a.Codigo is "PROCEDURE_SEM_CORPO" or "TRIGGER_SEM_CORPO" or "PROCEDURE_SOMENTE_SUSPEND" or "TRIGGER_SOMENTE_SUSPEND");
     }
 
+    [Fact]
+    public async Task CarregarSnapshotComOrigemAsync_QuandoAlterProcedureTerminaEmAs_DeveIgnorarValidacaoCorpoPsql()
+    {
+        string pasta = CriarPastaTemporaria();
+        string arquivoSql = Path.Combine(pasta, "schema_extraido.sql");
+
+        string ddl = """
+                     SET TERM ^;
+
+                     CREATE PROCEDURE AUTH_DATA
+                     RETURNS (
+                         RDB$AUTH_TYPE CHAR(63) CHARACTER SET UTF8)
+                     AS
+                     BEGIN
+                       SUSPEND;
+                     END ^
+
+                     ALTER PROCEDURE AUTH_DATA
+                     RETURNS (
+                         RDB$AUTH_TYPE CHAR(63) CHARACTER SET UTF8)
+                     AS ^
+
+                     CREATE PROCEDURE SP_APLICACAO
+                     AS
+                     BEGIN
+                       -- NOTHING
+                     END ^
+
+                     SET TERM ;^
+                     """;
+
+        await File.WriteAllTextAsync(arquivoSql, ddl);
+
+        var (snapshot, _) = await CarregadorSnapshotSchema.CarregarSnapshotComOrigemAsync(arquivoSql);
+        var resultado = AnalisadorDdlSchema.Analisar(snapshot);
+
+        var authData = Assert.Single(snapshot.Procedimentos, p => p.Nome == "AUTH_DATA");
+        Assert.True(authData.IgnorarValidacaoCorpoPsql);
+        Assert.DoesNotContain(resultado.Achados, a =>
+            a.Escopo == "AUTH_DATA" &&
+            a.Codigo is "PROCEDURE_SEM_CORPO" or "PROCEDURE_SOMENTE_SUSPEND");
+        Assert.Contains(resultado.Achados, a =>
+            a.Escopo == "SP_APLICACAO" &&
+            a.Codigo == "PROCEDURE_SEM_CORPO");
+    }
+
     private static string CriarPastaTemporaria()
     {
         string pasta = Path.Combine(

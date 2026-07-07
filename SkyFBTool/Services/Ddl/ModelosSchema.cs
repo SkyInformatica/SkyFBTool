@@ -95,6 +95,7 @@ public class ProcedimentoSchema
 {
     public string Nome { get; set; } = string.Empty;
     public string SourceSql { get; set; } = string.Empty;
+    public bool IgnorarValidacaoCorpoPsql { get; set; }
     public List<ParametroProcedimentoSchema> ParametrosEntrada { get; set; } = [];
     public List<ParametroProcedimentoSchema> ParametrosSaida { get; set; } = [];
 }

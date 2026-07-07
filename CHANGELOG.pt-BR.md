@@ -9,7 +9,10 @@ e o projeto adota [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Não Lançado]
 
-Nenhuma mudança registrada.
+## [1.0.3] - 2026-07-07
+
+### Corrigido
+- `ddl-analyze` não reporta mais procedures emitidas por ferramentas de extração SQL como `ALTER PROCEDURE ... AS` sem bloco PSQL como corpos PSQL ausentes ou inertes.
 
 ## [1.0.2] - 2026-07-07
 
@@ -181,7 +184,8 @@ Nenhuma mudança registrada.
 - Compatibilidade com Firebird 2.5, 3.0, 4.0 e 5.0 nos fluxos de exportação/importação.
 - Suíte de testes unitários e de integração.
 
-[Não Lançado]: https://github.com/SkyInformatica/SkyFBTool/compare/v1.0.2...HEAD
+[Não Lançado]: https://github.com/SkyInformatica/SkyFBTool/compare/v1.0.3...HEAD
+[1.0.3]: https://github.com/SkyInformatica/SkyFBTool/compare/v1.0.2...v1.0.3
 [1.0.2]: https://github.com/SkyInformatica/SkyFBTool/compare/v1.0.1...v1.0.2
 [1.0.1]: https://github.com/SkyInformatica/SkyFBTool/compare/v1.0.0...v1.0.1
 [1.0.0]: https://github.com/SkyInformatica/SkyFBTool/compare/v0.6.3...v1.0.0
