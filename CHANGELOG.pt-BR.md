@@ -9,6 +9,10 @@ e o projeto adota [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Não Lançado]
 
+Nenhuma mudança registrada.
+
+## [1.0.2] - 2026-07-07
+
 ### Adicionado
 - Relatórios HTML DDL baseados em Scriban agora expõem uma versão do relatório nos metadados visíveis e nas meta tags HTML para diferenciar futuras mudanças de regras/layout.
 - Relatórios HTML DDL baseados em Scriban agora mostram a data/hora local de geração ao lado da data/hora UTC.
@@ -177,7 +181,8 @@ e o projeto adota [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Compatibilidade com Firebird 2.5, 3.0, 4.0 e 5.0 nos fluxos de exportação/importação.
 - Suíte de testes unitários e de integração.
 
-[Não Lançado]: https://github.com/SkyInformatica/SkyFBTool/compare/v1.0.1...HEAD
+[Não Lançado]: https://github.com/SkyInformatica/SkyFBTool/compare/v1.0.2...HEAD
+[1.0.2]: https://github.com/SkyInformatica/SkyFBTool/compare/v1.0.1...v1.0.2
 [1.0.1]: https://github.com/SkyInformatica/SkyFBTool/compare/v1.0.0...v1.0.1
 [1.0.0]: https://github.com/SkyInformatica/SkyFBTool/compare/v0.6.3...v1.0.0
 [0.6.3]: https://github.com/SkyInformatica/SkyFBTool/compare/v0.6.2...v0.6.3
